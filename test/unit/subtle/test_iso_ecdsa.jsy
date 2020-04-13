@@ -1,0 +1,58 @@
+import {cbor_decode, hex_to_u8} from 'cbor-codec'
+
+import @{} u8_ecdsa
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/subtle.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/subtle.mjs'
+
+const { assert, expect } = require('chai')
+
+describe @ 'subtle/iso_ecdsa', @::
+  const u8_buf = new Uint8Array([9,10,11,12])
+
+  it @ 'shape', @::>
+    expect(u8_ecdsa).to.be.an('object')
+    expect(u8_ecdsa.sign).to.be.a('function')
+    expect(u8_ecdsa.verify).to.be.a('function')
+
+  it @ 'sign & verify', @::>
+    const sig_obj = await u8_ecdsa.sign(u8_buf)
+    expect(sig_obj).to.be.an('object')
+    expect(sig_obj.ec).to.be.an.instanceof(Uint8Array)
+    expect(sig_obj.sig).to.be.an.instanceof(Uint8Array)
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf
+    .to.be.true
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf.slice(1)
+    .to.be.false
+
+
+  it @ 'from NodeJS', @::>
+    const sig_obj = cbor_decode @ hex_to_u8 @
+      'a2626563589e30819b301006072a8648ce3d020106052b8104002303818600040130c53c4cd4efe32793258942677f5411c97ae56271469a421fb8766969630f13f3d5b48f3bbe87e287cecc67f408af8d410eb5d1e75664f6b20f8b586acb41db2800dc9900faa5d84d491ba2888b6ece7f52728759ea47951009841da56e9c550b632f399c6846e244ddc536b3c55b1ac29eb75e2e8a16f3d28e5981afae01bd9b52cd637369675884001ead90050b8baaacb74194f79a2eecb7954bc48687ff466d4b1856cf99ed866cdcdd6f4bb2354201923f64b48ce462e3627c5bea3405c95a7802022c6fd8b4f20e0054b57e693325f6d517a8900fddcd0e0c343898811f1c510be29df7f178acdc2cfcd4e501d57c5065130f5b0e76bda1730e7867a1b261c5a708e5bc0fea51edbdc7'
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf
+    .to.be.true
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf.slice(1)
+    .to.be.false
+
+
+  it @ 'from Web Crypto', @::>
+    const sig_obj = cbor_decode @ hex_to_u8 @
+      'a2626563589e30819b301006072a8648ce3d020106052b81040023038186000401aa1fbc7b18fdc9a21c0b045d2b9f8a92e2b18b87579c3fc6e5192603bfea1a0937885821c2799392e76ae7e2a8130100447315b41587e98ff5a1961994ea3da997001fc51cbd207df0805ba990fac7bf66b033e57a747c90ed4cdc3e72bc98e9369bc412db67eb172ee9fd85e9370b3e5b13c3941bd8c81a7c700d7eb445d3f893cbde637369675884009839b3b0049d47020596e902bbb3e8f18b5c9b2a6f5d3e3d70614ff5ddbec3b5d034521a1bea3a5406cc8777577166c06f554210ef7bbdc1eff7bb418f66af6c9a01e14adfae148a1c5ec55cd52403317aeb0b7df33452265f210c677b065404068b8791bd85ce51bb341095d667cfd9bc559bd0dabd3bca31b8eb199c74820158f099'
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf
+    .to.be.true
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf.slice(1)
+    .to.be.false
+

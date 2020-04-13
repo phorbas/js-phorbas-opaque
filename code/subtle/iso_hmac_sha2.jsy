@@ -1,0 +1,64 @@
+#IF PLAT_ABSTRACT
+  export function _bind_hmac_sha(hash) ::
+    return u8_key => @:
+      async sign(u8_buf) ::
+      async verify(u8_sig, u8_buf) ::
+
+
+#ELIF PLAT_WEB
+  export function _bind_hmac_sha(hash) ::
+    const {subtle} = crypto
+    hash = 'SHA-'+hash
+    const _hmac = @{} name: 'HMAC'
+    const _hmac_h = @{} ... _hmac, hash
+
+    return @\ u8_key ::
+      const key = subtle.importKey @
+        'raw', u8_key, _hmac_h,
+        false, ['sign', 'verify']
+
+      return @{}
+        async sign(u8_buf) ::
+          return new Uint8Array @
+            await subtle.sign @
+              _hmac, await key, u8_buf
+
+        async verify(u8_sig, u8_buf) ::
+          return subtle.verify @
+            _hmac, await key,
+            u8_sig, u8_buf
+
+
+#ELIF PLAT_NODEJS
+  import {createHmac} from 'crypto'
+
+  export function _bind_hmac_sha(hash) ::
+    hash = 'sha'+hash
+    return u8_key => @:
+      async sign(u8_buf) ::
+        return _hmac(u8_key, u8_buf)
+
+      async verify(u8_sig, u8_buf) ::
+        const u8_actual = _hmac(u8_key, u8_buf)
+        let r = 0
+        for let i=0;i<u8_actual.length;i++ ::
+          // don't allow short-circut early return
+          r |= u8_actual[i] ^ u8_sig[i]
+        return 0 === r
+
+    function _hmac(u8_key, u8_buf) ::
+      return new Uint8Array @
+        createHmac(hash, u8_key)
+          .update(u8_buf)
+          .digest()
+
+
+export const u8_hmac_sha_256 = _bind_hmac_sha('256')
+//export const u8_hmac_sha_384 = _bind_hmac_sha('384')
+//export const u8_hmac_sha_512 = _bind_hmac_sha('512')
+
+export @{}
+  u8_hmac_sha_256 as default,
+  u8_hmac_sha_256 as u8_hmac_sha,
+  u8_hmac_sha_256 as u8_hmac,
+

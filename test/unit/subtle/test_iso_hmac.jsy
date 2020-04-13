@@ -1,0 +1,43 @@
+import @{} u8_hmac
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/subtle.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/subtle.mjs'
+
+import {utf8_to_u8} from 'u8-utils'
+const { assert, expect } = require('chai')
+
+describe @ 'subtle/iso_hmac_sha2', @::
+  const u8_buf = new Uint8Array([9,10,11,12])
+
+  it @ 'shape', @::>
+    expect(u8_hmac).to.be.a('function')
+    expect(u8_hmac(utf8_to_u8('test')).sign).to.be.a('function')
+    expect(u8_hmac(utf8_to_u8('test')).verify).to.be.a('function')
+
+  it @ 'known sign & verify', @::>
+    const hm_known = u8_hmac @ utf8_to_u8('known')
+
+    const sig = hm_known.sign(u8_buf)
+    expect( sig ).to.be.a('promise')
+
+    expect @ await sig
+    .to.deep.equal @ new Uint8Array @#
+        241,  65,   9, 187, 164, 176, 243,  99, 198, 237,  44, 176, 142,   0,  40,  82, 173,  83, 113,  76, 145, 233, 231, 190, 130, 219, 127, 177, 157, 115, 200, 188
+
+    ::
+      const p = hm_known.verify(await sig, u8_buf)
+      expect( p ).to.be.a('promise')
+      expect( await p ).to.be.true
+
+    ::
+      const p = hm_known.verify(await sig, u8_buf.slice(1))
+      expect( p ).to.be.a('promise')
+      expect( await p ).to.be.false
+
+    ::
+      const p = u8_hmac(utf8_to_u8('other'))
+        .verify(await sig, u8_buf)
+      expect( p ).to.be.a('promise')
+      expect( await p ).to.be.false
+

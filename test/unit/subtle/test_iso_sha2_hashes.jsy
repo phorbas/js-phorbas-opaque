@@ -1,0 +1,24 @@
+import @{} u8_sha_256
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/subtle.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/subtle.mjs'
+
+const { assert, expect } = require('chai')
+
+describe @ 'subtle/iso_sha2_hashes', @::
+  it @ 'shape', @::>
+    expect(u8_sha_256).to.be.a('function')
+
+  it @ 'known hash', @::>
+    const u8_buf = new Uint8Array([9,10,11,12])
+    const r = u8_sha_256 @ u8_buf
+    expect(r).to.be.a('promise')
+
+    expect @ await r
+    .to.be.deep.equal @ new Uint8Array @#
+      225, 232,  83, 104,  74,  32, 111,  22,
+       46, 232,   0, 165,  75, 105,  92, 156,
+      193, 168, 209, 213,  84, 164, 127, 203,
+       19, 254,  81,  34, 156,  23, 119,  63
+

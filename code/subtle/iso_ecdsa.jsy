@@ -1,0 +1,108 @@
+#IF PLAT_ABSTRACT
+  export function _bind_ecdsa_p521(hash) ::
+    return @{}
+      sign(u8_buf) ::
+        if undefined !== u8_buf ::
+          return ecdsa_sign(u8_buf)
+
+        ecdsa_sign.ec = _ec_.then @ _ec_ => _ec_.publicKey
+        return ecdsa_sign
+
+        async function ecdsa_sign(u8_buf) ::
+
+      async verify(ec_sig_obj, u8_buf) ::
+
+
+#ELIF PLAT_WEB
+  export function _bind_ecdsa_p521(hash) ::
+    hash = 'SHA-'+hash
+    const {subtle} = crypto
+    const _ecdsa = @{} name: 'ECDSA', namedCurve: 'P-521'
+    const _ecdsa_h = @{} ..._ecdsa, hash
+
+    return @{}
+      sign(u8_buf) ::
+        const _ec_ = subtle
+          .generateKey @ _ecdsa, false, ['sign']
+          .then @\ _ec_ ::>
+            _ec_.publicKey = await subtle.exportKey('spki', _ec_.publicKey)
+            return _ec_
+
+        if undefined !== u8_buf ::
+          return ecdsa_sign(u8_buf)
+
+        ecdsa_sign.ec = _ec_.then @ _ec_ => _ec_.publicKey
+        return ecdsa_sign
+
+        async function ecdsa_sign(u8_buf) ::
+          const {publicKey, privateKey} = await _ec_
+          const sig = await subtle.sign @
+            _ecdsa_h, privateKey, u8_buf
+
+          return @{}
+            ec: new Uint8Array(publicKey)
+            sig: new Uint8Array(sig)
+
+
+      async verify(ec_sig_obj, u8_buf) ::
+        const ec_pub = subtle.importKey @
+          'spki', ec_sig_obj.ec, _ecdsa, false, ['verify']
+
+        return subtle.verify @
+          _ecdsa_h, await ec_pub,
+          ec_sig_obj.sig, u8_buf
+
+
+
+#ELIF PLAT_NODEJS
+  import {promisify} from 'util'
+  import {generateKeyPair, createPublicKey, createSign, createVerify} from 'crypto'
+  import {decode_ecdsa_asn1, encode_ecdsa_asn1, decode_ecdsa_raw, encode_ecdsa_raw} from 'ecc-codec/esm/ecdsa/index.mjs'
+
+  export function _bind_ecdsa_p521(hash) ::
+    hash = 'SHA'+hash
+    return @{}
+      sign(u8_buf) ::
+        const _ec_ = promisify(generateKeyPair) @ 'ec', @{}
+          namedCurve: 'secp521r1' // P-521
+          publicKeyEncoding: @{}
+            type: 'spki', format: 'der'
+
+        if undefined !== u8_buf ::
+          return ecdsa_sign(u8_buf)
+
+        ecdsa_sign.ec = _ec_.then @ _ec_ => _ec_.publicKey
+        return ecdsa_sign
+
+        async function ecdsa_sign(u8_buf) ::
+          const {publicKey, privateKey} = await _ec_
+          const sig = createSign(hash)
+            .update(u8_buf)
+            .sign(privateKey)
+
+          return @{} 
+            ec: new Uint8Array(publicKey)
+            sig: encode_ecdsa_raw @ decode_ecdsa_asn1(sig)
+
+
+      async verify(ec_sig_obj, u8_buf) ::
+        const ec_pub = createPublicKey @:
+          key: ec_sig_obj.ec, format: 'der', type: 'spki'
+        const ver = createVerify(hash)
+          .update(u8_buf)
+
+        const u8_sig = encode_ecdsa_asn1 @
+          decode_ecdsa_raw(ec_sig_obj.sig)
+
+        return ver.verify(ec_pub, u8_sig)
+
+
+
+export const u8_ecdsa_p521_256 = _bind_ecdsa_p521('256')
+//export const u8_ecdsa_p521_384 = _bind_ecdsa_p521('384')
+//export const u8_ecdsa_p521_512 = _bind_ecdsa_p521('512')
+
+export @{}
+  u8_ecdsa_p521_256 as default,
+  u8_ecdsa_p521_256 as u8_ecdsa,
+

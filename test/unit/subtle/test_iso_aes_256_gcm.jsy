@@ -1,0 +1,67 @@
+import @{} u8_aes_gcm, u8_hmac
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/subtle.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/subtle.mjs'
+
+import {utf8_to_u8} from 'u8-utils'
+const { assert, expect } = require('chai')
+
+describe @ 'subtle/iso_aes_gcm', @::
+  const content = utf8_to_u8 @ 'some test content'
+
+  const hm = u8_hmac @ utf8_to_u8('bad_secret')
+  const key_cipher = hm.sign @ utf8_to_u8('password')
+  const key_iv = hm.sign @ utf8_to_u8('iv')
+
+
+  it @ 'shape', @::>
+    expect(u8_aes_gcm).to.be.an('object')
+    expect(u8_aes_gcm.encrypt).to.be.a('function')
+    expect(u8_aes_gcm.decrypt).to.be.a('function')
+
+
+  it @ 'encrypt & decrypt', @::>
+    const pe = u8_aes_gcm.encrypt @
+      content, await key_cipher, await key_iv
+
+    expect(pe).to.be.a('promise')
+
+    const enc_content = await pe
+    expect(enc_content).to.be.an.instanceof(Uint8Array)
+
+    const pd = u8_aes_gcm.decrypt @
+      enc_content, await key_cipher, await key_iv
+    expect(pd).to.be.a('promise')
+
+    const dec_content = await pd
+    expect(dec_content).to.be.an.instanceof(Uint8Array)
+    expect(dec_content).to.deep.equal(content)
+
+
+  it @ 'from NodeJS', @::>
+    const enc_content = new Uint8Array @#
+      254, 156, 138, 216,  37,  66, 135, 172, 71, 126, 162,  41,  93,  15,  43,  56, 235, 112, 106,  88, 245, 203,  14, 219, 28, 159, 163,  41,  25, 189, 226,  51, 27
+
+    const pd = u8_aes_gcm.decrypt @
+      enc_content, await key_cipher, await key_iv
+    expect(pd).to.be.a('promise')
+
+    const dec_content = await pd
+    expect(dec_content).to.be.an.instanceof(Uint8Array)
+    expect(dec_content).to.deep.equal(content)
+
+
+  it @ 'from Web Crypto', @::>
+    const enc_content = new Uint8Array @#
+      254, 156, 138, 216, 37, 66, 135, 172, 71, 126, 162, 41, 93, 15, 43, 56, 235, 112, 106, 88, 245, 203, 14, 219, 28, 159, 163, 41, 25, 189, 226, 51, 27
+
+    const pd = u8_aes_gcm.decrypt @
+      enc_content, await key_cipher, await key_iv
+    expect(pd).to.be.a('promise')
+
+    const dec_content = await pd
+    expect(dec_content).to.be.an.instanceof(Uint8Array)
+    expect(dec_content).to.deep.equal(content)
+
+
