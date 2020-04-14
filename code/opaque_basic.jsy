@@ -1,43 +1,24 @@
 import {opaque_core_api} from './opaque_core_api.jsy'
-import {u8_crypto_random, u8_sha_256, u8_aes_256_gcm} from './subtle.jsy'
+import {u8_crypto_random, u8_sha_256} from './subtle.jsy'
+
+
+export const kdf_random = @=> u8_crypto_random(16)
+export const kdf_sha_256 = u8 => u8_sha_256(u8)
 
 
 export const opaque_basic_api = @{}
   ... opaque_core_api
 
-  _kdf0_random: @=> u8_crypto_random(16)
-  _kdf0_hash: u8_buf => u8_sha_256(u8_buf)
-  key_proto: @{}
+  _kdf0_random: kdf_random
+  _kdf0_hash: kdf_sha_256
+  _kdf1_ref: kdf_sha_256
+  _kdf2_loc: kdf_sha_256
 
-
-export const okdf_sha_256 =
-  async u8_key => @:
-    key: await u8_sha_256(u8_key)
+  key_proto: {}
+  _initKey(is_new) :: return {__proto__: this.key_proto}
+  _finishKey(kctx) :: return kctx
 
 
 export const opaque_basic = @{}
   ... opaque_basic_api
-
-  _okdf_ref: okdf_sha_256
-  _okdf_loc: okdf_sha_256
-
-
-export const opaque_tahoe = @{}
-  ... opaque_basic
-
-  key_proto: @{}
-    ... bind_opaque_cipher @ u8_aes_256_gcm
-
-
-export function bind_opaque_cipher(cipher) ::
-  return @{}
-    async encipher_content(u8_content) ::
-      const {k1ref, k2loc} = this
-      return await cipher.encrypt @
-        u8_content, k1ref.key, k2loc.key
-
-    async decipher_content(u8_enc_content) ::
-      const {k1ref, k2loc} = this
-      return await cipher.decrypt @
-        u8_enc_content, k1ref.key, k2loc.key
 

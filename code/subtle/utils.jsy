@@ -1,0 +1,9 @@
+
+export function u8_timing_equal(a, b) ::
+  const alen = a.length
+  let r = alen ^ b.length
+  // don't allow short-circut early return
+  for let i=0;i<alen;i++ ::
+    r |= a[i] ^ b[i]
+  return 0 === r
+

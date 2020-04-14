@@ -43,6 +43,10 @@ describe @ 'subtle/iso_ecdsa', @::
       await u8_ecdsa.verify @ sig_obj, u8_buf.slice(1)
     .to.be.false
 
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf.slice(0, -15)
+    .to.be.false
+
 
   it @ 'from Web Crypto', @::>
     const sig_obj = cbor_decode @ hex_to_u8 @
@@ -54,5 +58,9 @@ describe @ 'subtle/iso_ecdsa', @::
 
     expect @
       await u8_ecdsa.verify @ sig_obj, u8_buf.slice(1)
+    .to.be.false
+
+    expect @
+      await u8_ecdsa.verify @ sig_obj, u8_buf.slice(0, -15)
     .to.be.false
 

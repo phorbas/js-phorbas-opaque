@@ -1,5 +1,5 @@
 #IF PLAT_ABSTRACT
-  export function _bind_ecdsa_p521(hash) ::
+  export function _bind_ecdsa(hash, namedCurve) ::
     return @{}
       sign(u8_buf) ::
         if undefined !== u8_buf ::
@@ -14,10 +14,14 @@
 
 
 #ELIF PLAT_WEB
-  export function _bind_ecdsa_p521(hash) ::
+  export const _bind_ecdsa_p521 = hash => _bind_ecdsa @ hash, 'P-521'
+  export const _bind_ecdsa_p384 = hash => _bind_ecdsa @ hash, 'P-384'
+  export const _bind_ecdsa_p256 = hash => _bind_ecdsa @ hash, 'P-256'
+
+  export function _bind_ecdsa(hash, namedCurve) ::
     hash = 'SHA-'+hash
     const {subtle} = crypto
-    const _ecdsa = @{} name: 'ECDSA', namedCurve: 'P-521'
+    const _ecdsa = @{} name: 'ECDSA', namedCurve
     const _ecdsa_h = @{} ..._ecdsa, hash
 
     return @{}
@@ -36,21 +40,23 @@
 
         async function ecdsa_sign(u8_buf) ::
           const {publicKey, privateKey} = await _ec_
-          const sig = await subtle.sign @
-            _ecdsa_h, privateKey, u8_buf
+          const u8_sig = new Uint8Array @
+            await subtle.sign @
+              _ecdsa_h, privateKey, u8_buf
 
           return @{}
             ec: new Uint8Array(publicKey)
-            sig: new Uint8Array(sig)
+            sig: u8_sig
 
 
       async verify(ec_sig_obj, u8_buf) ::
+        const {ec, sig: u8_sig} = ec_sig_obj
         const ec_pub = subtle.importKey @
-          'spki', ec_sig_obj.ec, _ecdsa, false, ['verify']
+          'spki', ec, _ecdsa, false, ['verify']
 
         return subtle.verify @
           _ecdsa_h, await ec_pub,
-          ec_sig_obj.sig, u8_buf
+          u8_sig, u8_buf
 
 
 
@@ -59,7 +65,15 @@
   import {generateKeyPair, createPublicKey, createSign, createVerify} from 'crypto'
   import {decode_ecdsa_asn1, encode_ecdsa_asn1, decode_ecdsa_raw, encode_ecdsa_raw} from 'ecc-codec/esm/ecdsa/index.mjs'
 
-  export function _bind_ecdsa_p521(hash) ::
+  export const _bind_ecdsa_p521 = hash => _bind_ecdsa_node @ hash, 'secp521r1'
+  export const _bind_ecdsa_p384 = hash => _bind_ecdsa_node @ hash, 'secp384r1'
+  export const _bind_ecdsa_p256 = hash => _bind_ecdsa_node @ hash, 'prime256v1'
+
+  export function _bind_ecdsa(hash, namedCurve) ::
+    const curves = @{} 'P-521': 'secp521r1', 'P-384': 'secp384r1', 'P-256': 'prime256v1'
+    return _bind_ecdsa_node @ hash, curves[namedCurve] || namedCurve
+
+  export function _bind_ecdsa_node(hash, namedCurve) ::
     hash = 'SHA'+hash
     return @{}
       sign(u8_buf) ::
@@ -76,31 +90,41 @@
 
         async function ecdsa_sign(u8_buf) ::
           const {publicKey, privateKey} = await _ec_
-          const sig = createSign(hash)
-            .update(u8_buf)
+          const asn1_sig =
+            createSign(hash).update(u8_buf).end()
             .sign(privateKey)
+
+          const u8_sig = encode_ecdsa_raw @
+            decode_ecdsa_asn1(asn1_sig)
 
           return @{} 
             ec: new Uint8Array(publicKey)
-            sig: encode_ecdsa_raw @ decode_ecdsa_asn1(sig)
+            sig: u8_sig
 
 
       async verify(ec_sig_obj, u8_buf) ::
         const ec_pub = createPublicKey @:
           key: ec_sig_obj.ec, format: 'der', type: 'spki'
-        const ver = createVerify(hash)
-          .update(u8_buf)
+        const ver = createVerify(hash).update(u8_buf).end()
 
-        const u8_sig = encode_ecdsa_asn1 @
+        const asn1_sig = encode_ecdsa_asn1 @
           decode_ecdsa_raw(ec_sig_obj.sig)
 
-        return ver.verify(ec_pub, u8_sig)
+        return ver.verify @ ec_pub, asn1_sig
 
 
 
 export const u8_ecdsa_p521_256 = _bind_ecdsa_p521('256')
 //export const u8_ecdsa_p521_384 = _bind_ecdsa_p521('384')
 //export const u8_ecdsa_p521_512 = _bind_ecdsa_p521('512')
+
+//export const u8_ecdsa_p384_256 = _bind_ecdsa_p384('256')
+//export const u8_ecdsa_p384_384 = _bind_ecdsa_p384('384')
+//export const u8_ecdsa_p384_512 = _bind_ecdsa_p384('512')
+
+//export const u8_ecdsa_p256_256 = _bind_ecdsa_p256('256')
+//export const u8_ecdsa_p256_384 = _bind_ecdsa_p256('384')
+//export const u8_ecdsa_p256_512 = _bind_ecdsa_p256('512')
 
 export @{}
   u8_ecdsa_p521_256 as u8_ecdsa,

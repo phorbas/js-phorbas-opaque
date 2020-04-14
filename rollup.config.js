@@ -23,6 +23,8 @@ export default configs
 
 add_jsy('index')
 add_jsy('subtle')
+add_jsy('opaque_tahoe')
+add_jsy('opaque_phorbas')
 
 
 function add_jsy(src_name) {
