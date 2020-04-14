@@ -10,12 +10,16 @@ const { assert, expect } = require('chai')
 
 
 describe @ 'opaque phorbas', @::
+  opaque_phorbas.init_codec @:
+    encode: cbor_encode
+    decode: cbor_decode
+
+
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
     k1ref: hex_to_u8 @ 'df5fc1518264e938ad40aee968494351641480cd22adff6e5063d52d22098fc0'
     k2loc: hex_to_u8 @ 'dc4dad30007a2d713b91e11e5b8c40f78adceeb8b14a8b23951e452a3ba7a040'
     value: hex_to_u8 @ '8258840045adbcfc95f1fbcff545ddd28dc4cd1db2f1f4a411faa32915b784dbb5d0b317b60e90eec648fec2b92b4e844046a848b153960a3f45503b2ea97980115fb9450301f663f7a7437260c59eaa16599f3bd6bcf62a3d1fe7e6de8f9ef0563c467dde528d4ce978d99a8bd96643ecaad66512350fc16a071152a29d9c55bb0664f3e464ed58f283589e30819b301006072a8648ce3d020106052b81040023038186000401281921ba4dd0c7be819bb528f05853eb68e5f94720e6cc5592cbfabb037c3e779dc51b54516ae6756379899ea629dbbd9c4acc717d4e06885af96d301883d3ea33011db54b0ca66864ce1e08d44bcb79289e69f8d77835fe28ba08f76f72751f93d8eabec24423c1eb4ea30e6ea50adb360fb12c7c5ae17331c7c70ce6c5c476a7c0be5820dc4dad30007a2d713b91e11e5b8c40f78adceeb8b14a8b23951e452a3ba7a040582d4e3dc0b0e516752c64922e622728adea8cfa680b5e17588ebcf9f4abeb1d8aafaa6eafc4ab2aa1873075022102'
-
 
   it @ 'two from_random', @::>
     const okey_a = await opaque_phorbas.from_random()

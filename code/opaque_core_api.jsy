@@ -31,6 +31,9 @@ export const opaque_core_api = @{}
   from_u8(u8_k0) ::
     return this.from_k0 @ u8_k0
 
+  init_codec() :: return this
+  as_session() :: return this
+
   as_core() :: return @{}
     from_k1ref: k1ref => this.from_k1ref(k1ref)
     from_k2loc: k2loc => this.from_k2loc(k2loc)
@@ -38,5 +41,7 @@ export const opaque_core_api = @{}
     from_random: @=> this.from_random()
     from_u8: u8_raw => this.from_u8(u8_raw)
 
+    init_codec: @=> this.init_codec().as_core()
+    as_session: @=> this.as_session().as_core()
     as_core() :: return this
 

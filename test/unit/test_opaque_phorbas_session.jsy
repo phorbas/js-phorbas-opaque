@@ -10,6 +10,11 @@ const { assert, expect } = require('chai')
 
 
 describe @ 'opaque phorbas', @::
+  opaque_phorbas.init_codec @:
+    encode: cbor_encode
+    decode: cbor_decode
+
+
   const opaque_session = opaque_phorbas.as_session()
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}

@@ -1,4 +1,3 @@
-import {cbor_encode, cbor_decode} from 'cbor-codec'
 import {opaque_basic_api} from './opaque_basic.jsy'
 import @{}
   u8_aes_256_gcm
@@ -14,8 +13,9 @@ export const opaque_phorbas_api = @{}
 
   _hmac: u8_hmac_sha_256
   key_proto: @{}
-    ... bind_opaque_phorbas @
-          u8_ecdsa_p521_256, u8_aes_256_gcm
+    ... bind_opaque_phorbas @:
+          ecdsa: u8_ecdsa_p521_256
+          cipher: u8_aes_256_gcm
 
 
 export const opaque_phorbas = @{} __proto__: @{}
@@ -29,13 +29,19 @@ export const opaque_phorbas = @{} __proto__: @{}
     await kctx._init_eckey(is_new, kctx)
     return kctx
 
+  init_codec(codec) ::
+    this.key_proto.init_codec(codec)
+    return this
+
   as_session() ::
     return @{} __proto__: this,
       key_proto: this.key_proto.as_session()
 
 
 
-export function bind_opaque_phorbas(ecdsa, cipher) ::
+export function bind_opaque_phorbas({ecdsa, cipher}) ::
+  let _u8_encode_record, _u8_decode_record
+
   return @{}
     async _init_eckey(is_new, kctx) ::
       const ec_sign = ecdsa.sign()
@@ -59,16 +65,16 @@ export function bind_opaque_phorbas(ecdsa, cipher) ::
       const u8_enc = await cipher.encrypt @
         u8_content, k1ref, k2loc
 
-      return await this.pack_opaque @
+      return await this._pack_opaque @
         u8_enc, k1ref, k2loc
 
 
-    async decipher(rec_cbor) ::
+    async decipher(record) ::
       const {k1ref, k2loc} = this
       if undefined === k1ref || undefined === k2loc ::
         return
 
-      const u8_enc = await this._unpack_opaque(rec_cbor)
+      const u8_enc = await this._unpack_opaque(record)
       if undefined === u8_enc ::
         return
 
@@ -76,29 +82,32 @@ export function bind_opaque_phorbas(ecdsa, cipher) ::
         u8_enc, k1ref, k2loc
 
 
-    async validate(rec_cbor) ::
-      const u8_enc = await this._unpack_opaque(rec_cbor)
+    async validate(record) ::
+      const u8_enc = await this._unpack_opaque(record)
       return u8_enc instanceof Uint8Array
 
 
-    async _unpack_opaque(rec_cbor) ::
+    async _unpack_opaque(record) ::
       let sig, body, ec, _k2loc, u8_enc
       try ::
-        ;[sig, body] = u8_typecheck @ cbor_decode(rec_cbor)
-        ;[ec, _k2loc, u8_enc] = u8_typecheck @ cbor_decode(body)
+        ;[sig, body] = u8_typecheck @ _u8_decode_record(record)
+        ;[ec, _k2loc, u8_enc] = u8_typecheck @ _u8_decode_record(body)
       catch err ::
-        return // ignore cbor decoding error
+        return // ignore decoding error
 
       if u8_fast_equal @ this.k2loc, _k2loc ::
         if await ecdsa.verify @ {ec, sig}, body ::
           return u8_enc
 
-
-    async pack_opaque(u8_enc, k1ref, k2loc) ::
+    async _pack_opaque(u8_enc, k1ref, k2loc) ::
       const {_ec_sign} = this
-      const body = cbor_encode @#
+      const body = _u8_encode_record @#
         await _ec_sign.ec, k2loc, u8_enc
       const {sig} = await _ec_sign(body)
-      return cbor_encode @#
+      return _u8_encode_record @#
         sig, body
+
+    init_codec({encode, decode}) ::
+      _u8_encode_record = encode
+      _u8_decode_record = decode
 
