@@ -1,21 +1,38 @@
 import {opaque_basic_api} from './opaque_basic.jsy'
-import {u8_aes_256_gcm} from './subtle.jsy'
+import {u8_aes_256_gcm, u8_hmac_sha_256} from './subtle.jsy'
+
 
 export default opaque_tahoe
-export const opaque_tahoe = @{} __proto__: @{}
+export const opaque_tahoe = @{}
   ... opaque_basic_api
+  _hmac: u8_hmac_sha_256
+
   key_proto: @{}
-    ... bind_opaque_cipher(u8_aes_256_gcm)
+    ... bind_tahoe(u8_aes_256_gcm)
+
+  with_hmac(u8_key) ::
+    return @{}
+      __proto__: this
+      as_session: null
+      _kdf1_ref: this._hmac(u8_key).sign
+
+  as_session(u8_key) ::
+    return this.with_hmac(u8_key)
 
 
-export function bind_opaque_cipher(cipher) ::
+export const tahoe = @=> opaque_tahoe
+export const tahoe_hmac = u8_key =>
+  opaque_tahoe.with_hmac(u8_key)
+
+
+export function bind_tahoe(cipher) ::
   return @{}
-    async encipher_content(u8_content) ::
+    async encipher(u8_content) ::
       const {k1ref, k2loc} = this
       return await cipher.encrypt @
         u8_content, k1ref, k2loc
 
-    async decipher_content(u8_enc_content) ::
+    async decipher(u8_enc_content) ::
       const {k1ref, k2loc} = this
       if undefined === k1ref || undefined === k2loc ::
         return

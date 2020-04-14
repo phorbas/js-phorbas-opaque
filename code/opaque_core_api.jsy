@@ -42,6 +42,6 @@ export const opaque_core_api = @{}
     from_u8: u8_raw => this.from_u8(u8_raw)
 
     init_codec: @=> this.init_codec().as_core()
-    as_session: @=> this.as_session().as_core()
+    as_session: (...args) => this.as_session(...args).as_core()
     as_core() :: return this
 

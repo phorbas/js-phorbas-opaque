@@ -1,2 +1,1 @@
-import {opaque_phorbas} from './opaque_phorbas.jsy'
-export default opaque_phorbas.as_core()
+export {phorbas as default} from './opaque_phorbas.jsy'

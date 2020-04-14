@@ -13,12 +13,12 @@ export const opaque_phorbas_api = @{}
 
   _hmac: u8_hmac_sha_256
   key_proto: @{}
-    ... bind_opaque_phorbas @:
+    ... bind_phorbas @:
           ecdsa: u8_ecdsa_p521_256
           cipher: u8_aes_256_gcm
 
 
-export const opaque_phorbas = @{} __proto__: @{}
+export const opaque_phorbas = @{}
   ... opaque_phorbas_api
 
   _kdf1_ref(u8_k0, kctx) ::
@@ -33,13 +33,16 @@ export const opaque_phorbas = @{} __proto__: @{}
     this.key_proto.init_codec(codec)
     return this
 
-  as_session() ::
+  as_session(...args) ::
     return @{} __proto__: this,
-      key_proto: this.key_proto.as_session()
+      as_session: null
+      key_proto: this.key_proto.as_session(...args)
 
 
+export const phorbas = @=> opaque_phorbas
 
-export function bind_opaque_phorbas({ecdsa, cipher}) ::
+
+export function bind_phorbas({ecdsa, cipher}) ::
   let _u8_encode_record, _u8_decode_record
 
   return @{}
@@ -49,11 +52,12 @@ export function bind_opaque_phorbas({ecdsa, cipher}) ::
       kctx.ec = await ec_sign.ec
       return kctx
 
-    as_session() ::
-      const ec_sign = ecdsa.sign()
+    as_session(ec_sign) ::
+      if ! ec_sign ::
+        ec_sign = ecdsa.sign()
 
       return @{} __proto__: this,
-        as_session() :: return this
+        as_session: null
         async _init_eckey(is_new, kctx) ::
           kctx._ec_sign = ec_sign
           kctx.ec = await ec_sign.ec

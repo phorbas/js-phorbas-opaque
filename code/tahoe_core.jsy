@@ -1,2 +1,1 @@
-import {opaque_tahoe} from './opaque_tahoe.jsy'
-export default opaque_tahoe.as_core()
+export {tahoe as default} from './opaque_tahoe.jsy'

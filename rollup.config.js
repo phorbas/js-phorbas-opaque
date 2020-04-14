@@ -26,6 +26,7 @@ add_jsy('subtle')
 add_jsy('opaque_tahoe')
 add_jsy('opaque_phorbas')
 add_jsy('tahoe_core')
+add_jsy('tahoe_hmac')
 add_jsy('phorbas_core')
 
 
