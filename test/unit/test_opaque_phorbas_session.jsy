@@ -10,6 +10,7 @@ const { assert, expect } = require('chai')
 
 
 describe @ 'opaque phorbas', @::
+  const opaque_session = opaque_phorbas.as_session()
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
     k1ref: hex_to_u8 @ 'df5fc1518264e938ad40aee968494351641480cd22adff6e5063d52d22098fc0'
@@ -18,32 +19,41 @@ describe @ 'opaque phorbas', @::
 
 
   it @ 'two from_random', @::>
-    const okey_a = await opaque_phorbas.from_random()
-    const okey_b = await opaque_phorbas.from_random()
+    const okey_a = await opaque_session.from_random()
+    const okey_b = await opaque_session.from_random()
 
     expect @ okey_a.ec
-    .to.not.deep.equal @ okey_b.ec
+    .to.deep.equal @ okey_b.ec
 
     expect @ okey_a.k1ref
     .to.not.deep.equal @ okey_b.k1ref
 
 
   it @ 'two from_content', @::>
-    const okey_a = await opaque_phorbas.from_content @ u8_test_content
-    const okey_b = await opaque_phorbas.from_content @ u8_test_content
+    const okey_a = await opaque_session.from_content @ u8_test_content
+    const okey_b = await opaque_session.from_content @ u8_test_content
 
     expect @ okey_a.ec
-    .to.not.deep.equal @ okey_b.ec
+    .to.deep.equal @ okey_b.ec
 
     expect @ okey_a.k1ref
-    .to.not.deep.equal @ okey_b.k1ref
+    .to.deep.equal @ okey_b.k1ref
 
     expect @ okey_a.k2loc
-    .to.not.deep.equal @ okey_b.k2loc
+    .to.deep.equal @ okey_b.k2loc
+
+
+    // ecdsa algorithm uses an ephemeral nonce
+    const a_rec = await okey_a.encipher(u8_test_content)
+    const a2_rec = await okey_a.encipher(u8_test_content)
+    expect(a_rec).to.not.deep.equal(a2_rec)
+
+    const b_rec = await okey_b.encipher(u8_test_content)
+    expect(b_rec).to.not.deep.equal(a_rec)
 
 
   it @ 'from_random', @::>
-    const okey = await opaque_phorbas.from_random()
+    const okey = await opaque_session.from_random()
     const p_rec = okey.encipher(u8_test_content)
     expect(p_rec).to.be.a('promise')
 
@@ -64,7 +74,7 @@ describe @ 'opaque phorbas', @::
 
 
   it @ 'from_k1ref', @::>
-    const okey = await opaque_phorbas.from_k1ref(kv_test.k1ref)
+    const okey = await opaque_session.from_k1ref(kv_test.k1ref)
 
     const p_check = okey.validate(kv_test.value)
     expect(p_check).to.be.a('promise')
@@ -79,7 +89,7 @@ describe @ 'opaque phorbas', @::
     expect(ans).to.be.deep.equal @ u8_test_content
 
   it @ 'from_k2ref', @::>
-    const okey = await opaque_phorbas.from_k2loc(kv_test.k2loc)
+    const okey = await opaque_session.from_k2loc(kv_test.k2loc)
 
     const p_check = okey.validate(kv_test.value)
     expect(p_check).to.be.a('promise')
@@ -93,7 +103,7 @@ describe @ 'opaque phorbas', @::
 
 
   it @ 'from_k1ref invalid', @::>
-    const okey = await opaque_phorbas.from_k1ref(kv_test.k1ref)
+    const okey = await opaque_session.from_k1ref(kv_test.k1ref)
 
     expect @ await okey.decipher(kv_test.value)
     .to.be.deep.equal @ u8_test_content
@@ -105,7 +115,7 @@ describe @ 'opaque phorbas', @::
 
 
   it @ 'from_k2ref invalid', @::>
-    const okey = await opaque_phorbas.from_k2loc(kv_test.k2loc)
+    const okey = await opaque_session.from_k2loc(kv_test.k2loc)
 
     expect @ await okey.validate(kv_test.value)
     .to.be.true

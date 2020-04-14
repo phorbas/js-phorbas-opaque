@@ -8,3 +8,4 @@ import './unit/subtle/test_iso_sha2_hashes.jsy'
 
 import './unit/test_opaque_basic.jsy'
 import './unit/test_opaque_phorbas.jsy'
+import './unit/test_opaque_phorbas_session.jsy'
