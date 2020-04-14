@@ -24,5 +24,3 @@ export const u8_sha_256 = _bind_sha_digest('256')
 //export const u8_sha_384 = _bind_sha_digest('384')
 //export const u8_sha_512 = _bind_sha_digest('512')
 
-export @{}
-  u8_sha_256 as default 

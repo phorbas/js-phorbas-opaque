@@ -58,6 +58,5 @@
 
 
 export @{}
-  u8_aes_256_gcm as default,
   u8_aes_256_gcm as u8_aes_gcm,
 

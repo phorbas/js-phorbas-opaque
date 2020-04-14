@@ -1,0 +1,87 @@
+import @{} opaque_core_api, opaque_basic
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/index.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/index.mjs'
+
+import {utf8_to_u8} from 'u8-utils'
+const { assert, expect } = require('chai')
+
+
+
+describe @ 'opaque core & basics', @::
+  it @ 'shape of opaque_core_api', @::>
+    expect(opaque_core_api).to.be.an('object')
+    expect(opaque_core_api.fromKey).to.be.a('function')
+    expect(opaque_core_api.fromRandom).to.be.a('function')
+    expect(opaque_core_api.fromContent).to.be.a('function')
+
+    expect(opaque_core_api._kdf0_hash).to.be.undefined
+    expect(opaque_core_api._kdf0_random).to.be.undefined
+    expect(opaque_core_api._okdf_ref).to.be.undefined
+    expect(opaque_core_api._okdf_loc).to.be.undefined
+
+  it @ 'shape of opaque_basic', @::>
+    expect(opaque_basic).to.be.an('object')
+    expect(opaque_basic.fromKey).to.be.a('function')
+    expect(opaque_basic.fromRandom).to.be.a('function')
+    expect(opaque_basic.fromContent).to.be.a('function')
+
+    expect(opaque_basic._kdf0_hash).to.be.a('function')
+    expect(opaque_basic._kdf0_random).to.be.a('function')
+    expect(opaque_basic._okdf_ref).to.be.a('function')
+    expect(opaque_basic._okdf_loc).to.be.a('function')
+
+
+  it @ 'opaque_basic.fromKey', @::>
+    const p_okey = opaque_basic.fromKey @
+      new Uint8Array @# 10,12,14,16
+    expect(p_okey).to.be.a('promise')
+
+    const okey = await p_okey
+    _expect_okey(okey)
+
+    expect(okey.k1ref.key)
+    .to.deep.equal @ new Uint8Array @#
+         14,  63,  96,  24,  87, 145,  30, 204, 178, 105,  84,  21,  31, 221,  35, 134, 20,  19, 142,  37, 222, 146,  83,  31, 131,  78,  29, 214, 138, 181, 232, 155
+
+    expect(okey.k2loc.key)
+    .to.deep.equal @ new Uint8Array @#
+         18, 119, 85, 180, 214, 215, 215, 163, 80, 130,  3, 234,  29, 109,  85, 218, 4, 119, 71, 189, 186, 105, 180, 221, 137,  83, 90, 178, 101, 103,  99, 205
+
+
+  it @ 'opaque_basic.fromContent', @::>
+    const p_okey = opaque_basic.fromContent @
+      utf8_to_u8 @ 'some example content'
+    expect(p_okey).to.be.a('promise')
+
+    const okey = await p_okey
+    _expect_okey(okey)
+
+    expect(okey.k1ref.key)
+    .to.deep.equal @ new Uint8Array @#
+        155,   5, 164, 210, 240, 89, 113, 115, 27,  71,  57,  65,  82, 98, 220, 183, 177, 172,   5, 201, 236, 60,  19,  82, 128, 225,  33,  47, 172, 85,  95,  35
+
+    expect(okey.k2loc.key)
+    .to.deep.equal @ new Uint8Array @#
+        203,  39, 71,  15, 254, 113, 100, 166, 178, 150, 19, 186, 247,  25,  61, 236, 168, 219, 78, 249, 200, 128, 234,   3, 69, 164, 84, 159,  74, 214,  62, 205
+
+
+  it @ 'opaque_basic.fromRandom', @::>
+    const p_okey = opaque_basic.fromRandom()
+    expect(p_okey).to.be.a('promise')
+
+    const okey = await p_okey
+    _expect_okey(okey)
+
+
+function _expect_okey(okey) ::
+  expect(okey.k1ref).to.be.an('object')
+  expect(okey.k1ref.key)
+  .to.have.length(32)
+  .to.be.an.instanceof(Uint8Array)
+
+  expect(okey.k2loc).to.be.an('object')
+  expect(okey.k2loc.key)
+  .to.have.length(32)
+  .to.be.an.instanceof(Uint8Array)

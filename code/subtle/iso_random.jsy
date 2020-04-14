@@ -1,0 +1,16 @@
+#IF PLAT_ABSTRACT
+  export function u8_crypto_random(n) ::
+
+
+#ELIF PLAT_WEB
+  export function u8_crypto_random(n) ::
+    return crypto.getRandomValues @
+      new Uint8Array(n)
+
+
+#ELIF PLAT_NODEJS
+  import {randomFillSync} from 'crypto'
+  export function u8_crypto_random(n) ::
+    return randomFillSync @
+      new Uint8Array(n)
+

@@ -58,7 +58,6 @@ export const u8_hmac_sha_256 = _bind_hmac_sha('256')
 //export const u8_hmac_sha_512 = _bind_hmac_sha('512')
 
 export @{}
-  u8_hmac_sha_256 as default,
   u8_hmac_sha_256 as u8_hmac_sha,
   u8_hmac_sha_256 as u8_hmac,
 

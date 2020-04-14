@@ -1,5 +1,9 @@
 import './unit/smoke.jsy'
+
+import './unit/subtle/test_iso_random.jsy'
 import './unit/subtle/test_iso_aes_256_gcm.jsy'
 import './unit/subtle/test_iso_ecdsa.jsy'
 import './unit/subtle/test_iso_hmac.jsy'
 import './unit/subtle/test_iso_sha2_hashes.jsy'
+
+import './unit/test_opaque_basic.jsy'

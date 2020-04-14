@@ -103,6 +103,5 @@ export const u8_ecdsa_p521_256 = _bind_ecdsa_p521('256')
 //export const u8_ecdsa_p521_512 = _bind_ecdsa_p521('512')
 
 export @{}
-  u8_ecdsa_p521_256 as default,
   u8_ecdsa_p521_256 as u8_ecdsa,
 

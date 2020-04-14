@@ -1,0 +1,24 @@
+import @{} u8_crypto_random
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/subtle.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/subtle.mjs'
+
+const { assert, expect } = require('chai')
+
+describe @ 'subtle/iso_random', @::
+  it @ 'shape', @::>
+    expect(u8_crypto_random).to.be.a('function')
+
+  it @ 'random 1', @::>
+    const u8 = u8_crypto_random(1)
+
+    expect(u8).to.be.an.instanceof(Uint8Array)
+    expect(u8).to.have.length(1)
+
+  it @ 'random 23', @::>
+    const u8 = u8_crypto_random(23)
+
+    expect(u8).to.be.an.instanceof(Uint8Array)
+    expect(u8).to.have.length(23)
+

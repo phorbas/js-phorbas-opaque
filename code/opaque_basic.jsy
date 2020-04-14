@@ -1,0 +1,23 @@
+import {opaque_core_api} from './opaque_core_api.jsy'
+import {u8_crypto_random, u8_sha_256} from './subtle.jsy'
+
+
+export const opaque_basic_api = @{}
+  ... opaque_core_api
+
+  _kdf0_random: @=> u8_crypto_random(16)
+  _kdf0_hash: u8_buf => u8_sha_256(u8_buf)
+  _key_proto: @{}
+
+
+export const okdf_sha_256 =
+  async u8_key => @:
+    key: await u8_sha_256(u8_key)
+
+
+export const opaque_basic = @{}
+  ... opaque_basic_api
+
+  _okdf_ref: okdf_sha_256
+  _okdf_loc: okdf_sha_256
+
