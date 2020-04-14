@@ -1,4 +1,4 @@
-import @{} opaque_core_api, opaque_basic
+import @{} opaque_core_api, opaque_basic, opaque_tahoe
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -11,30 +11,23 @@ const { assert, expect } = require('chai')
 
 describe @ 'opaque core & basics', @::
   it @ 'shape of opaque_core_api', @::>
-    expect(opaque_core_api).to.be.an('object')
-    expect(opaque_core_api.fromKey).to.be.a('function')
-    expect(opaque_core_api.fromRandom).to.be.a('function')
-    expect(opaque_core_api.fromContent).to.be.a('function')
-
-    expect(opaque_core_api._kdf0_hash).to.be.undefined
-    expect(opaque_core_api._kdf0_random).to.be.undefined
-    expect(opaque_core_api._okdf_ref).to.be.undefined
-    expect(opaque_core_api._okdf_loc).to.be.undefined
+    _expect_core_api(opaque_core_api)
 
   it @ 'shape of opaque_basic', @::>
-    expect(opaque_basic).to.be.an('object')
-    expect(opaque_basic.fromKey).to.be.a('function')
-    expect(opaque_basic.fromRandom).to.be.a('function')
-    expect(opaque_basic.fromContent).to.be.a('function')
+    _expect_full_api(opaque_basic)
 
-    expect(opaque_basic._kdf0_hash).to.be.a('function')
-    expect(opaque_basic._kdf0_random).to.be.a('function')
-    expect(opaque_basic._okdf_ref).to.be.a('function')
-    expect(opaque_basic._okdf_loc).to.be.a('function')
+  it @ 'shape of opaque_tahoe', @::>
+    _expect_full_api(opaque_tahoe)
+
+  it @ 'shape of opaque_basic.asCore()', @::>
+    _expect_core_api(opaque_basic.asCore())
+
+  it @ 'shape of opaque_tahoe.asCore()', @::>
+    _expect_core_api(opaque_tahoe.asCore())
 
 
-  it @ 'opaque_basic.fromKey', @::>
-    const p_okey = opaque_basic.fromKey @
+  it @ 'opaque_basic.fromRawU8', @::>
+    const p_okey = opaque_basic.fromRawU8 @
       new Uint8Array @# 10,12,14,16
     expect(p_okey).to.be.a('promise')
 
@@ -75,6 +68,74 @@ describe @ 'opaque core & basics', @::
     _expect_okey(okey)
 
 
+  it @ 'opaque_tahoe.fromContent', @::>
+    const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
+
+    const kv_test = @{}
+      key: new Uint8Array @# 212,  33, 243,  17, 223, 240, 150, 252, 174, 159, 147,  75, 124, 164,  23,  41, 123, 178, 188, 158,  85,   7,   9, 251, 65, 106,  94,  69, 188,  93,  25, 234
+      value: new Uint8Array @# 21,  43,  20, 251,  83, 178, 201, 164,  74, 185, 138, 248, 186, 208, 211, 115, 177,  67, 47,  18,  31, 200, 126, 193,  46, 244, 114, 227, 245, 224, 133,  74, 151, 144,  80, 133, 187, 240,  83, 140, 155,  34,  17, 243, 101
+
+    ::
+      const p_okey = opaque_tahoe.fromContent(u8_test_content)
+      expect(p_okey).to.be.a('promise')
+
+      const okey = await p_okey
+      _expect_okey(okey)
+
+      expect(okey.k1ref.key).to.be.deep.equal @ kv_test.key
+
+      expect(okey.encipher_content).to.be.a('function')
+      expect(okey.decipher_content).to.be.a('function')
+
+      const p_u8_enc = okey.encipher_content(u8_test_content)
+      expect(p_u8_enc).to.be.a('promise')
+
+      const u8_enc = await p_u8_enc
+      expect(u8_enc).to.be.an.instanceof(Uint8Array)
+      expect(u8_enc).to.be.deep.equal @ kv_test.value
+
+
+    ::
+      const p_okey = opaque_tahoe.fromK1(kv_test.key)
+      expect(p_okey).to.be.a('promise')
+
+      const okey = await p_okey
+      _expect_okey(okey)
+
+      expect(okey.k1ref.key).to.be.deep.equal @ kv_test.key
+
+      const p_u8_dec = okey.decipher_content(kv_test.value)
+      expect(p_u8_dec).to.be.a('promise')
+
+      const u8_dec = await p_u8_dec
+      expect(u8_dec).to.be.an.instanceof(Uint8Array)
+      expect(u8_dec).to.be.deep.equal @ u8_test_content
+
+
+function _expect_core_api(opaque, only_core) ::
+  expect(opaque_core_api).to.be.an('object')
+  expect(opaque_core_api.fromK1).to.be.a('function')
+  expect(opaque_core_api.fromRandom).to.be.a('function')
+  expect(opaque_core_api.fromContent).to.be.a('function')
+  expect(opaque_core_api.fromRawU8).to.be.a('function')
+  expect(opaque_core_api.asCore).to.be.a('function')
+
+  if ! only_core :: 
+    expect(opaque_core_api._kdf0_hash).to.be.undefined
+    expect(opaque_core_api._kdf0_random).to.be.undefined
+    expect(opaque_core_api._okdf_ref).to.be.undefined
+    expect(opaque_core_api._okdf_loc).to.be.undefined
+
+
+function _expect_full_api(opaque) ::
+  _expect_core_api @ opaque, true
+
+  expect(opaque_basic._kdf0_hash).to.be.a('function')
+  expect(opaque_basic._kdf0_random).to.be.a('function')
+  expect(opaque_basic._okdf_ref).to.be.a('function')
+  expect(opaque_basic._okdf_loc).to.be.a('function')
+
+
 function _expect_okey(okey) ::
   expect(okey.k1ref).to.be.an('object')
   expect(okey.k1ref.key)
@@ -85,3 +146,4 @@ function _expect_okey(okey) ::
   expect(okey.k2loc.key)
   .to.have.length(32)
   .to.be.an.instanceof(Uint8Array)
+

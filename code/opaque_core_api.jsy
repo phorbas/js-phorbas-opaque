@@ -1,15 +1,29 @@
 
 export const opaque_core_api = @{}
-  fromRandom() ::
-    return this.fromKey @
-      this._kdf0_random()
-
-  fromContent(u8_buf) ::
-    return this.fromKey @
-      this._kdf0_hash(u8_buf)
-
-  async fromKey(key0) ::
-    const k1ref = await this._okdf_ref(key0)
+  async _fromK1(k1ref) ::
     const k2loc = await this._okdf_loc(k1ref.key)
     return @{} __proto__: this.key_proto, k1ref, k2loc
+
+  fromK1(u8_k1_key) ::
+    return this._fromK1 @: key: u8_k1_key
+
+  async fromRandom() ::
+    return this._fromK1 @
+      await this._okdf_ref @
+        await this._kdf0_random()
+
+  async fromContent(u8_buf) ::
+    return this._fromK1 @
+      await this._okdf_ref @
+        await this._kdf0_hash @ u8_buf
+
+  async fromRawU8(u8_raw) ::
+    return this._fromK1 @
+      await this._okdf_ref @ u8_raw
+
+  asCore() :: return @{}
+    fromK1: u8_k1_key => this.fromK1(u8_k1_key)
+    fromRandom: @=> this.fromRandom()
+    fromContent: u8_buf => this.fromContent(u8_buf)
+    fromRawU8: u8_raw => this.fromRawU8(u8_raw)
 
