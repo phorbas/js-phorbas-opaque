@@ -23,11 +23,6 @@ export default configs
 
 add_jsy('index')
 add_jsy('subtle')
-add_jsy('opaque_tahoe')
-add_jsy('opaque_phorbas')
-add_jsy('tahoe_core')
-add_jsy('tahoe_hmac')
-add_jsy('phorbas_core')
 
 
 function add_jsy(src_name) {

@@ -1,1 +1,0 @@
-export {tahoe as default} from './opaque_tahoe.jsy'

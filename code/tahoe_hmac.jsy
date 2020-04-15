@@ -1,1 +1,0 @@
-export {tahoe_hmac as default} from './opaque_tahoe.jsy'

@@ -1,1 +1,0 @@
-export {phorbas as default} from './opaque_phorbas.jsy'
