@@ -9,19 +9,15 @@ import @{}
 from './subtle.jsy'
 
 
-export const opaque_phorbas_api = @{}
+export const opaque_ecdsa = @{}
   ... opaque_basic_api
 
   _hmac: u8_hmac_sha_256
-  key_proto: @{}
-    ... bind_phorbas @:
-          ecdsa_signer: u8_ecdsa_sha_256.p521
-          ecdsa_verify: u8_ecdsa_sha_256.verify
-          cipher: u8_aes_256_gcm
+  key_proto: bind_tahoe_ecdsa @:
+    ecdsa_signer: u8_ecdsa_sha_256.p521
+    ecdsa_verify: u8_ecdsa_sha_256.verify
+    cipher: u8_aes_256_gcm
 
-
-export const opaque_phorbas = @{}
-  ... opaque_phorbas_api
 
   _kdf1_ref(u8_k0, kctx) ::
     return this._hmac(kctx.ec).sign(u8_k0)
@@ -36,12 +32,15 @@ export const opaque_phorbas = @{}
       as_session: null
       key_proto: this.key_proto.as_session(...args)
 
+  with_hmac(u8_key) ::
+    const {sign} = this._hmac(u8_key)
+    return @{} __proto__: this, as_session: null,
+      _kdf1_ref: @\ u8_key, kctx =>>
+        this._kdf1_ref @ await sign(u8_key), kctx
 
-export const phorbas = @=> opaque_phorbas
 
 
-
-export function bind_phorbas({ecdsa_signer, ecdsa_verify, cipher}) ::
+export function bind_tahoe_ecdsa({ecdsa_signer, ecdsa_verify, cipher}) ::
   return @{}
     ... bind_tahoe_cipher(cipher)
     ... bind_ecdsa_codec(ecdsa_signer, ecdsa_verify)

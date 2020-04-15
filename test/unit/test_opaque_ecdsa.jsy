@@ -1,4 +1,4 @@
-import @{} opaque_phorbas
+import @{} opaque_ecdsa
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -8,59 +8,49 @@ import @{}
   cbor_encode, cbor_decode,
   utf8_to_u8, u8_to_hex, hex_to_u8,
 from 'cbor-codec'
+
 const { assert, expect } = require('chai')
 
-
-describe @ 'opaque phorbas session', @::
-  opaque_phorbas.init_shared_codec @:
+describe @ 'opaque phorbas', @::
+  opaque_ecdsa.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
 
 
-  const opaque_session = opaque_phorbas.as_session()
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ 'e168cb531761616b1aaffd2877844664121e7c32b34d2639bd74225dca673a9d'
-    k2loc: hex_to_u8 @ '8c862e79e421f8ecee739deecfb0b78c3588d3f7f44baea78fc5e8edbb51461a'
-    value: hex_to_u8 @ 'a2617a588401bfc0da078fd49760219d5c4b93dc76f23c08f4d9c86e719e909936638d4e790035658bc664d1002161f601c196d03b1824867f0f65d87c5dcb6c33d557fa7db8c901672011164bac2b00e8d9ce04835a08eb14fb6bbe8408da1f06d350aa7630d95fe9a1820a20bcd44ea6da773c440e2a667db80de283f7f319b669aba9527627a719616259010ba46163582db6995461e580763d05ccc4f02c7c4fa7d08e359d94a8e083ca6da8dd4c4460e57cf76f6158bce4f004177cd30c617650945101f3713a331e4e261b3e6358f260616c58208c862e79e421f8ecee739deecfb0b78c3588d3f7f44baea78fc5e8edbb51461a6165589e30819b301006072a8648ce3d020106052b8104002303818600040041d210f7e713d6a31e9d7cc9e61d4c48cac00d2c75f66babd82e0f681bd17a948697f1b813129640beb650c33268a000611e872200cbd9985e4e8160ead069e57c01e209b2574e8ceef825949013a1a60736eae7abe2abee35761b16d99241916c87ccda173736b92e31ec03cbd952b643dfd5f0b2038c0b66d1de58aa63cfb7ea3fe4'
+    k1ref: hex_to_u8 @ '1bcc1892df1e4f45d84f84842ee54b8a347aa11f228b99ca770ac2beb6bcfc6f'
+    k2loc: hex_to_u8 @ '21d70227b4e9b728738583acebdd0ef4396ffc4a7bf7b93f961a4866557b65fc'
+    value: hex_to_u8 @ 'a2617a588400dbc302afa5be4555ccb164840a1332397d97d5ab4f0b30ba24827d7ddfda0d69ab03bd6f7441545e9e1654295f12f1faa7443a941d972a8ff7d14166becd25c55b00382a1739f4a823e8dd6c281954e1232a76a1b0a01012a784110343d027e10572b4f07f9d03e09b9f51681356e6df77ca36e39a7184968b8bcc45f59d59de375062616259010ba46163582da0c3d8d807ac4efe728ee7d0ec05732c623873c71e41797072664bfc40923610ca5f65cd0788cd5e6a9d91387d6176507bd9e153ba53814aa7c5239a02b6ab96616c582021d70227b4e9b728738583acebdd0ef4396ffc4a7bf7b93f961a4866557b65fc6165589e30819b301006072a8648ce3d020106052b81040023038186000400c8fae0e4cd2bbf153d63489074e3e2388bb8decd0da6447737d2d484c0e8a0a66f5e06dfb637e527d8fb44a84dae072b90b9cd00442aacdf3d382286ab45dee2ae01dbe875bcbbea14b6d90261e1c52028e0e43ee4e15005ae68e3bf653292ae3f22783e7c679e91115f4fffb536e2674420d7989db78879b368afb93d8745a76310b4'
 
 
   it @ 'two from_random', @::>
-    const okey_a = await opaque_session.from_random()
-    const okey_b = await opaque_session.from_random()
+    const okey_a = await opaque_ecdsa.from_random()
+    const okey_b = await opaque_ecdsa.from_random()
 
     expect @ okey_a.ec
-    .to.deep.equal @ okey_b.ec
+    .to.not.deep.equal @ okey_b.ec
 
     expect @ okey_a.k1ref
     .to.not.deep.equal @ okey_b.k1ref
 
 
   it @ 'two from_content', @::>
-    const okey_a = await opaque_session.from_content @ u8_test_content
-    const okey_b = await opaque_session.from_content @ u8_test_content
+    const okey_a = await opaque_ecdsa.from_content @ u8_test_content
+    const okey_b = await opaque_ecdsa.from_content @ u8_test_content
 
     expect @ okey_a.ec
-    .to.deep.equal @ okey_b.ec
+    .to.not.deep.equal @ okey_b.ec
 
     expect @ okey_a.k1ref
-    .to.deep.equal @ okey_b.k1ref
+    .to.not.deep.equal @ okey_b.k1ref
 
     expect @ okey_a.k2loc
-    .to.deep.equal @ okey_b.k2loc
-
-
-    // ecdsa algorithm uses an ephemeral nonce
-    const a_rec = await okey_a.encipher(u8_test_content)
-    const a2_rec = await okey_a.encipher(u8_test_content)
-    expect(a_rec).to.not.deep.equal(a2_rec)
-
-    const b_rec = await okey_b.encipher(u8_test_content)
-    expect(b_rec).to.not.deep.equal(a_rec)
+    .to.not.deep.equal @ okey_b.k2loc
 
 
   it @ 'from_random', @::>
-    const okey = await opaque_session.from_random()
+    const okey = await opaque_ecdsa.from_random()
     const p_rec = okey.encipher(u8_test_content)
     expect(p_rec).to.be.a('promise')
 
@@ -81,7 +71,7 @@ describe @ 'opaque phorbas session', @::
 
 
   it @ 'from_k1ref', @::>
-    const okey = await opaque_session.from_k1ref(kv_test.k1ref)
+    const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)
 
     const p_check = okey.validate(kv_test.value)
     expect(p_check).to.be.a('promise')
@@ -95,8 +85,9 @@ describe @ 'opaque phorbas session', @::
     expect(ans).to.be.an.instanceof(Uint8Array)
     expect(ans).to.be.deep.equal @ u8_test_content
 
+
   it @ 'from_k2ref', @::>
-    const okey = await opaque_session.from_k2loc(kv_test.k2loc)
+    const okey = await opaque_ecdsa.from_k2loc(kv_test.k2loc)
 
     const p_check = okey.validate(kv_test.value)
     expect(p_check).to.be.a('promise')
@@ -110,7 +101,7 @@ describe @ 'opaque phorbas session', @::
 
 
   it @ 'from_k1ref invalid', @::>
-    const okey = await opaque_session.from_k1ref(kv_test.k1ref)
+    const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)
 
     expect @ await okey.decipher(kv_test.value)
     .to.be.deep.equal @ u8_test_content
@@ -122,7 +113,7 @@ describe @ 'opaque phorbas session', @::
 
 
   it @ 'from_k2ref invalid', @::>
-    const okey = await opaque_session.from_k2loc(kv_test.k2loc)
+    const okey = await opaque_ecdsa.from_k2loc(kv_test.k2loc)
 
     expect @ await okey.validate(kv_test.value)
     .to.be.true
