@@ -1,6 +1,6 @@
-import {utf8_to_u8, u8_to_utf8,} from './subtle/utils.jsy'
+import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
 import {opaque_basic_api, kdf_random_16} from './opaque_basic.jsy'
-import {u8_aes_256_gcm, u8_hmac_sha_256} from './subtle.jsy'
+import {u8_aes_256_gcm, u8_hmac_sha_256, opaque_shared_codec} from './subtle.jsy'
 
 
 export default opaque_tahoe
@@ -9,7 +9,7 @@ export const opaque_tahoe = @{}
   _hmac: u8_hmac_sha_256
 
   key_proto: @{}
-    ... bind_tahoe(u8_aes_256_gcm)
+    ... bind_tahoe_cipher(u8_aes_256_gcm)
 
   with_hmac(u8_key) ::
     return @{}
@@ -26,24 +26,25 @@ export const tahoe_hmac = u8_key =>
   opaque_tahoe.with_hmac(u8_key)
 
 
-export function bind_tahoe(cipher) ::
+
+export function bind_tahoe_cipher(cipher) ::
   return @{}
     encipher_utf8(utf8) ::
       return this.encipher @ utf8_to_u8(utf8)
 
     async encipher(u8_content) ::
-      const {k1ref, k2loc, _codec} = this
+      const {k1ref, k2loc, _codec, _kdf_secret, _kdf_iv} = this
       if k1ref && k2loc ::
-        const u8_secret = ! _codec.kdf_secret ? k1ref
-          : await _codec.kdf_secret(k1ref)
+        const u8_secret = ! _kdf_secret ? k1ref
+          : await _kdf_secret(k1ref)
 
-        const u8_iv = await _codec.kdf_iv(k2loc)
+        const u8_iv = await _kdf_iv(k2loc)
 
         const u8_enc = await cipher.encrypt @
           u8_content, u8_secret, u8_iv
 
-        return await this._pack_opaque @
-          u8_enc, u8_iv, k2loc
+        return await this._pack_opaque @:
+          c:u8_enc, v:u8_iv, l:k2loc
 
     async decipher_utf8(record) ::
       const u8 = await this.decipher(record)
@@ -53,8 +54,8 @@ export function bind_tahoe(cipher) ::
     async decipher(record) ::
       const {k1ref, k2loc, _codec} = this
       if record && k1ref && k2loc ::
-        const [u8_iv, u8_enc] =
-          await this._unpack_opaque(record) || []
+        const {v:u8_iv, c:u8_enc} =
+          await this._unpack_opaque(record) || {}
 
         const u8_secret = ! _codec.kdf_secret ? k1ref
           : await _codec.kdf_secret(k1ref)
@@ -64,22 +65,12 @@ export function bind_tahoe(cipher) ::
             u8_enc, u8_secret, u8_iv
 
 
-    _pack_opaque(u8_enc, u8_iv, k2loc) ::
-      return this._codec.encode @# u8_iv, u8_enc
+    _codec: opaque_shared_codec
+    _kdf_iv: kdf_random_16
+    // _kdf_secret: k1ref => k1ref
 
+    _pack_opaque(obj_body) ::
+      return this._codec.encode(obj_body)
     _unpack_opaque(record) ::
-      return this._codec.decode @ record
-
-
-    _codec: @{}
-      // kdf_secret: k1ref => k1ref
-      kdf_iv: kdf_random_16
-      encode: (...args) => args
-      decode: (...args) => args
-
-    init_codec(ex_codec) ::
-      this._codec = @{}
-        ... this._codec
-        ... ex_codec
-      return this
+      return this._codec.decode(record)
 

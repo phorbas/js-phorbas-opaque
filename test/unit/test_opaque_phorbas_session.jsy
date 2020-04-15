@@ -4,13 +4,15 @@ import @{} opaque_phorbas
 #ELIF PLAT_NODEJS
   from '@phorbas/opaque/esm/node/index.mjs'
 
-import {cbor_encode, cbor_decode} from 'cbor-codec'
-import {utf8_to_u8, u8_to_hex, hex_to_u8} from 'u8-utils'
+import @{}
+  cbor_encode, cbor_decode,
+  utf8_to_u8, u8_to_hex, hex_to_u8,
+from 'cbor-codec'
 const { assert, expect } = require('chai')
 
 
 describe @ 'opaque phorbas session', @::
-  opaque_phorbas.init_codec @:
+  opaque_phorbas.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
 
@@ -18,9 +20,9 @@ describe @ 'opaque phorbas session', @::
   const opaque_session = opaque_phorbas.as_session()
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ 'a71b96d5a8469be197a85ed8b4a845814f6701777cba27418b3715729316abe2'
-    k2loc: hex_to_u8 @ 'defb43abee64e34e3f627c9c105856a9fa75f6b40e561d8f1ce9bab913c12e48'
-    value: hex_to_u8 @ '82588401a3804bfa9349eed93bb5f2b11cce14710c84115db85fdfc0b3528bfd41a21dbcf823998e20b9a2799f7e1ea996ddefa20137a90b4cbf6900bb47e1d80fab21dec300f1a752119e3b0f5e4914bd3f01a51256fa53e2e4f79dda8f014f75088916055ceace22a84700dc214766427576c1e297dd0d8dcc0520a591ea32baf367c567933b59010384589e30819b301006072a8648ce3d020106052b81040023038186000400c4295c8f70f8fa37b45fb9f5218360b8039ac6be71f8ba57928bf28e012598d2f1401c41ba3fc62fa2b91fd9fa83fdfbd66c288e0b865ca9967903cbcb2365c9a3018f9bcbc47e5c6d47443f61207c2322c503ca93f2dd99a01d4e2287b71f76247887ba32daf66674106fe70d30bea7c2d574f33a11c35ac6f4c8979c4115b88fec185820defb43abee64e34e3f627c9c105856a9fa75f6b40e561d8f1ce9bab913c12e485064fff292a0432b7f076c22f6f7b11f7c582d04d02ca7c1c48d44aca6bc4fc4a81c647d7fd9ae12c1b4d4a5d3cb6925feae4f25e8f7aa73cd143da2107f24ec'
+    k1ref: hex_to_u8 @ 'e168cb531761616b1aaffd2877844664121e7c32b34d2639bd74225dca673a9d'
+    k2loc: hex_to_u8 @ '8c862e79e421f8ecee739deecfb0b78c3588d3f7f44baea78fc5e8edbb51461a'
+    value: hex_to_u8 @ 'a2617a588401bfc0da078fd49760219d5c4b93dc76f23c08f4d9c86e719e909936638d4e790035658bc664d1002161f601c196d03b1824867f0f65d87c5dcb6c33d557fa7db8c901672011164bac2b00e8d9ce04835a08eb14fb6bbe8408da1f06d350aa7630d95fe9a1820a20bcd44ea6da773c440e2a667db80de283f7f319b669aba9527627a719616259010ba46163582db6995461e580763d05ccc4f02c7c4fa7d08e359d94a8e083ca6da8dd4c4460e57cf76f6158bce4f004177cd30c617650945101f3713a331e4e261b3e6358f260616c58208c862e79e421f8ecee739deecfb0b78c3588d3f7f44baea78fc5e8edbb51461a6165589e30819b301006072a8648ce3d020106052b8104002303818600040041d210f7e713d6a31e9d7cc9e61d4c48cac00d2c75f66babd82e0f681bd17a948697f1b813129640beb650c33268a000611e872200cbd9985e4e8160ead069e57c01e209b2574e8ceef825949013a1a60736eae7abe2abee35761b16d99241916c87ccda173736b92e31ec03cbd952b643dfd5f0b2038c0b66d1de58aa63cfb7ea3fe4'
 
 
   it @ 'two from_random', @::>

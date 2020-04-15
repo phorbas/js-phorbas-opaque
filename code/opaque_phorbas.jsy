@@ -1,5 +1,5 @@
 import {opaque_basic_api} from './opaque_basic.jsy'
-import {bind_tahoe} from './opaque_tahoe.jsy'
+import {bind_tahoe_cipher} from './opaque_tahoe.jsy'
 
 import @{}
   u8_aes_256_gcm
@@ -40,9 +40,50 @@ export const opaque_phorbas = @{}
 export const phorbas = @=> opaque_phorbas
 
 
+
 export function bind_phorbas({ecdsa, cipher}) ::
   return @{}
-    ... bind_tahoe(cipher)
+    ... bind_tahoe_cipher(cipher)
+    ... bind_ecdsa_codec(ecdsa)
+
+    async validate(record) ::
+      if record ::
+        const res = await this._unpack_opaque(record)
+        return undefined !== res
+
+
+export function bind_ecdsa_codec(ecdsa) ::
+  return @{}
+
+    async _pack_opaque(obj_body) ::
+      const {_ec_sign, _codec} = this
+
+      obj_body.e = await _ec_sign.ec
+      const body = _codec.encode(obj_body)
+      const {sig} = await _ec_sign(body)
+
+      return _codec.encode @: z:sig, b:body
+
+
+    async _unpack_opaque(record) ::
+      const {decode} = this._codec
+      let obj_sig
+      try :: obj_sig = decode(record)
+      catch err :: return // ignore decoding error
+
+      const {z:sig, b:body} = obj_sig
+
+      let obj_body
+      try :: obj_body = decode(body)
+      catch err :: return // ignore decoding error
+
+      const {e: ec, l: _k2loc} = obj_body
+      if u8_fast_equal @ this.k2loc, _k2loc ::
+        try ::
+          if await ecdsa.verify @ {ec, sig}, body ::
+            return obj_body
+        catch err :: return // ignore verify errors
+
 
     async _init_eckey(is_new, kctx) ::
       const ec_sign = ecdsa.sign()
@@ -60,35 +101,4 @@ export function bind_phorbas({ecdsa, cipher}) ::
           kctx._ec_sign = ec_sign
           kctx.ec = await ec_sign.ec
           return kctx
-
-
-    async validate(record) ::
-      if record ::
-        const res = await this._unpack_opaque(record) || []
-        return 0 !== u8_typecheck(res, []).length
-
-
-    async _unpack_opaque(record) ::
-      let sig, body, ec, _k2loc, u8_iv, u8_enc
-      try ::
-        const {decode} = this._codec
-        ;[sig, body] = u8_typecheck @ decode(record)
-        ;[ec, _k2loc, u8_iv, u8_enc] = u8_typecheck @ decode(body)
-      catch err ::
-        return [] // ignore decoding error
-
-      if u8_fast_equal @ this.k2loc, _k2loc ::
-        if await ecdsa.verify @ {ec, sig}, body ::
-          return @[] u8_iv, u8_enc
-
-
-    async _pack_opaque(u8_enc, u8_iv, k2loc) ::
-      const {_ec_sign, _codec} = this
-
-      const body = _codec.encode @#
-        await _ec_sign.ec, k2loc, u8_iv, u8_enc
-
-      const {sig} = await _ec_sign(body)
-
-      return _codec.encode @# sig, body
 

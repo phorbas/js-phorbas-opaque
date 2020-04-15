@@ -1,4 +1,6 @@
 import {utf8_to_u8} from './subtle/utils.jsy'
+import {init_opaque_shared_codec} from './subtle/codec.jsy'
+
 
 export const opaque_core_api = @{}
   async _from_kctx(kctx) ::
@@ -34,8 +36,8 @@ export const opaque_core_api = @{}
   from_u8(u8_k0) ::
     return this.from_k0 @ u8_k0
 
-  init_codec() :: return this
   as_session() :: return this
+  init_shared_codec: init_opaque_shared_codec
 
   as_core() :: return @{}
     from_k1ref: k1ref => this.from_k1ref(k1ref)
@@ -44,7 +46,8 @@ export const opaque_core_api = @{}
     from_random: @=> this.from_random()
     from_u8: u8_raw => this.from_u8(u8_raw)
 
-    init_codec: @=> this.init_codec().as_core()
     as_session: (...args) => this.as_session(...args).as_core()
+
+    init_shared_codec: init_opaque_shared_codec
     as_core() :: return this
 

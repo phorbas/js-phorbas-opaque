@@ -18,10 +18,6 @@ export const opaque_basic_api = @{}
   _init_key(is_new) :: return {__proto__: this.key_proto}
   _finish_key(kctx) :: return kctx
 
-  init_codec(codec) ::
-    this.key_proto.init_codec(codec)
-    return this
-
 
 export const opaque_basic = @{}
   ... opaque_basic_api

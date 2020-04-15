@@ -4,22 +4,25 @@ import @{} opaque_phorbas
 #ELIF PLAT_NODEJS
   from '@phorbas/opaque/esm/node/index.mjs'
 
-import {cbor_encode, cbor_decode} from 'cbor-codec'
-import { utf8_to_u8, u8_to_hex, hex_to_u8 } from 'u8-utils'
+import @{}
+  cbor_encode, cbor_decode,
+  utf8_to_u8, u8_to_hex, hex_to_u8,
+from 'cbor-codec'
+
 const { assert, expect } = require('chai')
 
-
 describe @ 'opaque phorbas', @::
-  opaque_phorbas.init_codec @:
+  opaque_phorbas.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
 
 
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ 'a71b96d5a8469be197a85ed8b4a845814f6701777cba27418b3715729316abe2'
-    k2loc: hex_to_u8 @ 'defb43abee64e34e3f627c9c105856a9fa75f6b40e561d8f1ce9bab913c12e48'
-    value: hex_to_u8 @ '82588401a3804bfa9349eed93bb5f2b11cce14710c84115db85fdfc0b3528bfd41a21dbcf823998e20b9a2799f7e1ea996ddefa20137a90b4cbf6900bb47e1d80fab21dec300f1a752119e3b0f5e4914bd3f01a51256fa53e2e4f79dda8f014f75088916055ceace22a84700dc214766427576c1e297dd0d8dcc0520a591ea32baf367c567933b59010384589e30819b301006072a8648ce3d020106052b81040023038186000400c4295c8f70f8fa37b45fb9f5218360b8039ac6be71f8ba57928bf28e012598d2f1401c41ba3fc62fa2b91fd9fa83fdfbd66c288e0b865ca9967903cbcb2365c9a3018f9bcbc47e5c6d47443f61207c2322c503ca93f2dd99a01d4e2287b71f76247887ba32daf66674106fe70d30bea7c2d574f33a11c35ac6f4c8979c4115b88fec185820defb43abee64e34e3f627c9c105856a9fa75f6b40e561d8f1ce9bab913c12e485064fff292a0432b7f076c22f6f7b11f7c582d04d02ca7c1c48d44aca6bc4fc4a81c647d7fd9ae12c1b4d4a5d3cb6925feae4f25e8f7aa73cd143da2107f24ec'
+    k1ref: hex_to_u8 @ '1bcc1892df1e4f45d84f84842ee54b8a347aa11f228b99ca770ac2beb6bcfc6f'
+    k2loc: hex_to_u8 @ '21d70227b4e9b728738583acebdd0ef4396ffc4a7bf7b93f961a4866557b65fc'
+    value: hex_to_u8 @ 'a2617a588400dbc302afa5be4555ccb164840a1332397d97d5ab4f0b30ba24827d7ddfda0d69ab03bd6f7441545e9e1654295f12f1faa7443a941d972a8ff7d14166becd25c55b00382a1739f4a823e8dd6c281954e1232a76a1b0a01012a784110343d027e10572b4f07f9d03e09b9f51681356e6df77ca36e39a7184968b8bcc45f59d59de375062616259010ba46163582da0c3d8d807ac4efe728ee7d0ec05732c623873c71e41797072664bfc40923610ca5f65cd0788cd5e6a9d91387d6176507bd9e153ba53814aa7c5239a02b6ab96616c582021d70227b4e9b728738583acebdd0ef4396ffc4a7bf7b93f961a4866557b65fc6165589e30819b301006072a8648ce3d020106052b81040023038186000400c8fae0e4cd2bbf153d63489074e3e2388bb8decd0da6447737d2d484c0e8a0a66f5e06dfb637e527d8fb44a84dae072b90b9cd00442aacdf3d382286ab45dee2ae01dbe875bcbbea14b6d90261e1c52028e0e43ee4e15005ae68e3bf653292ae3f22783e7c679e91115f4fffb536e2674420d7989db78879b368afb93d8745a76310b4'
+
 
   it @ 'two from_random', @::>
     const okey_a = await opaque_phorbas.from_random()
@@ -81,6 +84,7 @@ describe @ 'opaque phorbas', @::
 
     expect(ans).to.be.an.instanceof(Uint8Array)
     expect(ans).to.be.deep.equal @ u8_test_content
+
 
   it @ 'from_k2ref', @::>
     const okey = await opaque_phorbas.from_k2loc(kv_test.k2loc)
