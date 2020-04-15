@@ -1,9 +1,9 @@
 #IF PLAT_ABSTRACT
   export function _bind_ecdsa(hash) ::
     return @{}
-      signer_p521()
-      signer_p384()
-      signer_p256()
+      p521()
+      p384()
+      p256()
       async verify(ec_sig_obj, u8) ::
 
 
@@ -11,9 +11,9 @@
   export function _bind_ecdsa(hash) ::
     const {subtle} = crypto
     return @{}
-      signer_p521: @=> _ecdsa_signer @ 'P-521'
-      signer_p384: @=> _ecdsa_signer @ 'P-384'
-      signer_p256: @=> _ecdsa_signer @ 'P-256'
+      p521: @=> _ecdsa_signer @ 'P-521'
+      p384: @=> _ecdsa_signer @ 'P-384'
+      p256: @=> _ecdsa_signer @ 'P-256'
       verify: ecdsa_verify
       hash
 
@@ -35,15 +35,13 @@
 
     function _ecdsa_signer(namedCurve) ::
       const _kind = {name: 'ECDSA', namedCurve, hash}
-      const _ec_ = subtle
-        .generateKey @ _kind, false, ['sign']
-        .then @\ _ec_ ::>
-          _ec_.publicKey = new Uint8Array @
-            await subtle.exportKey('spki', _ec_.publicKey)
-          return _ec_
+      const _ec_ = subtle.generateKey @
+        _kind, false, ['sign']
 
       return Object.assign @ ecdsa_sign, @{}
-        ec: _ec_.then @ _ec_ => _ec_.publicKey
+        ec: _ec_.then @ async _ec_ => new Uint8Array @
+          await subtle.exportKey('spki', _ec_.publicKey)
+
         ecdsa_sign, ecdsa_verify
         hash, namedCurve
 
@@ -68,9 +66,9 @@
 
   export function _bind_ecdsa(hash) ::
     return @{}
-      signer_p521: @=> _ecdsa_signer @ 'P-521', 'secp521r1'
-      signer_p384: @=> _ecdsa_signer @ 'P-384', 'secp384r1'
-      signer_p256: @=> _ecdsa_signer @ 'P-256', 'prime256v1'
+      p521: @=> _ecdsa_signer @ 'P-521', 'secp521r1'
+      p384: @=> _ecdsa_signer @ 'P-384', 'secp384r1'
+      p256: @=> _ecdsa_signer @ 'P-256', 'prime256v1'
       verify: ecdsa_verify
       hash
 
@@ -115,12 +113,6 @@
           ec: new Uint8Array(publicKey)
           sig: u8_sig
 
-
-
-function _maybe_sign(u8, sign) ::
-  return undefined !== u8
-    ? sign(u8)
-    : sign
 
 
 export const u8_ecdsa_sha_256 = _bind_ecdsa('SHA-256')

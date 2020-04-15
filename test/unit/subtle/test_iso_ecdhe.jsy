@@ -1,0 +1,193 @@
+import @{}
+  u8_ecdhe
+
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/subtle.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/subtle.mjs'
+
+import {hex_to_u8, u8_to_hex} from 'cbor-codec'
+const { assert, expect } = require('chai')
+
+
+describe @ 'subtle/iso_ecdhe', @::
+
+  it @ 'shape', @::>
+    expect(u8_ecdhe).to.be.an('object')
+    expect(u8_ecdhe.p521).to.be.a('function')
+    expect(u8_ecdhe.p384).to.be.a('function')
+    expect(u8_ecdhe.p256).to.be.a('function')
+
+  it @ 'invoke shape', @::>
+    const p_ans = u8_ecdhe.p521()
+    expect(p_ans).to.be.a('promise')
+
+    const ans = await p_ans
+    expect(ans).to.be.a('function')
+    expect(ans.ecdh_derive).to.be.a('function')
+    expect(ans.ec).to.be.instanceof(Uint8Array)
+
+  it @ 'two', @::>
+    const a = await u8_ecdhe.p521()
+    const b = await u8_ecdhe.p521()
+
+    const p_ab_ss = a.ecdh_derive @ b.ec
+    const p_ba_ss = b.ecdh_derive @ a.ec
+
+    expect(p_ab_ss).to.be.a('promise')
+    expect(p_ba_ss).to.be.a('promise')
+
+    const ab_ss = await p_ab_ss
+    expect(ab_ss).to.be.instanceof(Uint8Array)
+
+    const ba_ss = await p_ba_ss
+    expect(ba_ss).to.be.instanceof(Uint8Array)
+
+    expect(ab_ss).to.deep.equal(ba_ss)
+
+  describe @ 'known', @::
+    it @ 'P-521', @=>> _validate_known @ await _load_testable_ecdhe_p521()
+    it @ 'P-384', @=>> _validate_known @ await _load_testable_ecdhe_p384()
+    it @ 'P-256', @=>> _validate_known @ await _load_testable_ecdhe_p256()
+
+    async function _validate_known(testable) ::
+      const p_node = testable.known_ecdhe @ testable.ec_pub_node
+      const p_web = testable.known_ecdhe @ testable.ec_pub_web
+
+      expect(p_node).to.be.a('promise')
+      expect(p_web).to.be.a('promise')
+
+      const node = await p_node
+      const web = await p_web
+      expect(node).to.be.instanceof(Uint8Array)
+      expect(web).to.be.instanceof(Uint8Array)
+
+      if ! testable.results ::
+        console.log @ `node: hex_to_u8 @ '${u8_to_hex @ node}'`
+        console.log @ `web:  hex_to_u8 @ '${u8_to_hex @ web}'`
+        assert @ false, 'FIX results'
+
+      expect(node).to.deep.equal @ testable.results.node
+      expect(web).to.deep.equal @ testable.results.web
+
+      expect @ testable.from_node.web
+      .to.deep.equal @ testable.from_web.node
+
+      expect @ testable.from_node.web
+      .to.not.deep.equal @ testable.from_web.web
+      expect @ testable.from_node.node
+      .to.not.deep.equal @ testable.from_web.node
+
+
+function _load_testable_ecdhe_p521() ::
+  return _load_testable_ecdhe @:
+    namedCurve: 'P-521', namedCurve_node: 'secp521r1',
+
+    ec_pub_web:  hex_to_u8 @ '040189583c64d0fb7cf86cd65230eaf48f97c6bd8031bc12640d9d784cbb78c0d71ebebc185387f5f3b3abb0d4dddca3b3264a815d53c8305a56b5d7a0906b5d98f79001de8b1f5710c40a539b2568ab37f5e0b5ddfbf1f789ce47a08f789116ecdbeab52ff0f5804ef0f8df7c44f76885956491748f924ecf3077da36bcc17da2896cd4df'
+    ec_pub_node: hex_to_u8 @ '04007e9b797f716f889ce7e341b3e66ef9746c85fcb6821be301e3b4a7230e0707fb470b00da57535ffea762fa7c75e7fd7d27423ff9df1a1decb024c453388fb1c3df01015fa497164ff0d825a5d485190d3b2130a197050135ec2fb6d7be885d38083c6491e9069d4a2ef43bdab4b23071bdd54dd8f8b680788f58bc4474b8ac2951a84c'
+
+    from_node: @{}
+      node: hex_to_u8 @ '001bea0c962728d5dfe5192b5e51a9476e027e44bbd65a0e978b875fd7d178433716b984996f0157f1e329f9b41b05a4882f02c08b03c043b4127520d0081143feee'
+      web:  hex_to_u8 @ '014eafc6045179d57a16eb1011423e7ffebc4e1c0e371a58311c652b1e9194d6414cb639f1a065298113d3293a36329a22f5548232862b5c384978d27dd8c7817c76'
+
+    from_web: @{}
+      node: hex_to_u8 @ '014eafc6045179d57a16eb1011423e7ffebc4e1c0e371a58311c652b1e9194d6414cb639f1a065298113d3293a36329a22f5548232862b5c384978d27dd8c7817c76'
+      web:  hex_to_u8 @ '0071abeb700ef5f4c70d9627d13371643208ed634e2532679111d4bbece5a5e2675456e5e170cdbe27d9a859c34d49afa52a3b3bfce875bde30368982756eaa6d8a2'
+
+    _known_node_raw: '01aeb24d1b759ed6ce709980121849bf9699394a1d984f08521f497a1716dceea21fecabd28e7574f9d73d404b9a41f1523af7d123952ce5955ad044330ee0aa5008'
+    _known_web_jwk: @{}
+      kty: 'EC', crv: 'P-521'
+      x: 'AYlYPGTQ-3z4bNZSMOr0j5fGvYAxvBJkDZ14TLt4wNcevrwYU4f187OrsNTd3KOzJkqBXVPIMFpWtdegkGtdmPeQ'
+      y: 'Ad6LH1cQxApTmyVoqzf14LXd-_H3ic5HoI94kRbs2-q1L_D1gE7w-N98RPdohZVkkXSPkk7PMHfaNrzBfaKJbNTf'
+      d: 'ARpd4xdjAO133mqlydtswBFWzivp8vUcp0p3AGIGI3LVxizTwXaHCsPvwUBaR3hCHb3Cg5ZaQUYg3483dm6PQKMf'
+
+
+function _load_testable_ecdhe_p384() ::
+  return _load_testable_ecdhe @:
+    namedCurve: 'P-384', namedCurve_node: 'secp384r1',
+
+    ec_pub_web:  hex_to_u8 @ '04a0b4b9bb255275cd3c3e5c21e55e6747804c4440480aa5c5cf00d3d2833c78c31d772978dad73511d21c97e15e369df1155306751fdb0c19c0ca449b5fdec02dc4e0c793cea430f9183000c057986b22da0be040fc11dbf5b847e6da61073872'
+    ec_pub_node: hex_to_u8 @ '0451d49fe341824263142b0395275c4cf62028bfe2b2c282808cd1ac041cf3eab951bfcbc785151a7b24a3160fd6285977c18a2e20eabe22a115d6325404076d2830100ea1cb290ca1be4baf9302c7790077deaa1cb39b24fc980a5e492a920007'
+
+    from_node: @{}
+      node: hex_to_u8 @ '32c937c737f63a271ae61b856554a5e79b302ce3f56951bb0265991b9b97e7a18f126207a368c0144a34c55e90779576'
+      web:  hex_to_u8 @ 'ee4238b3efaac73c53cb85d5d43677d38070810be95215dbb6b3b3f2525f54aa6cdcdfceb45b7e710f73e892069a5b6d'
+
+    from_web: @{}
+      node: hex_to_u8 @ 'ee4238b3efaac73c53cb85d5d43677d38070810be95215dbb6b3b3f2525f54aa6cdcdfceb45b7e710f73e892069a5b6d'
+      web:  hex_to_u8 @ '013de44776f1875bab39b1ced4450b862e962b70312730fa97644a698c20e73a642c383f59ae24ea2233ec4ddcdfb746'
+
+    _known_node_raw: '1028ffe02a0294bd114408ed6a9a8b8f6900edeeac878d1c114d8a6bb1fa3c0fb5319a1b350f7f2750dc676f7db9545b'
+    _known_web_jwk: @{}
+      kty: 'EC', crv: 'P-384',
+      x: 'oLS5uyVSdc08Plwh5V5nR4BMREBICqXFzwDT0oM8eMMddyl42tc1EdIcl-FeNp3x',
+      y: 'FVMGdR_bDBnAykSbX97ALcTgx5POpDD5GDAAwFeYayLaC-BA_BHb9bhH5tphBzhy'
+      d: 'CKAsQTP1wSbxxejTx2bUg1xTRRLoi1hmkYYhCoHVdDc04MbiM_XSFjytMVeNYDoj',
+
+
+function _load_testable_ecdhe_p256() ::
+  return _load_testable_ecdhe @:
+    namedCurve: 'P-256', namedCurve_node: 'prime256v1',
+
+    ec_pub_web:  hex_to_u8 @ '04272fcfbfcefbca0d97ba1fcf88a8404e4c6d42fc361069a85669c5d4e990ce403bd91cd0465cfffbc59acfda991937a936caa6f4dbafb4dc5b60c072ea5e2d9b'
+    ec_pub_node: hex_to_u8 @ '046bad6ea8e70ddde73cfa129ea5e50974eb3a0f0339c6928cc4a0e8cc89553b36d4b300114be57d27861fd7d9a7ac1934dc02f337b1d2ce25a88099b5c7138d25'
+
+    from_node: @{}
+      node: hex_to_u8 @ 'dbe1065e07727cf9ddde3469ca1dda885cfff4e906924e27cd0080552fdb704f'
+      web:  hex_to_u8 @ 'b74d64486faf1f1d73da8fd9dd51ecc76f96fb5a01c3e2aea9ee2f46ef1e3227'
+
+    from_web: @{}
+      node: hex_to_u8 @ 'b74d64486faf1f1d73da8fd9dd51ecc76f96fb5a01c3e2aea9ee2f46ef1e3227'
+      web:  hex_to_u8 @ 'e40dc1867ec5139b4931174bd6fa75f22a2dc85d09bf8ea1f02c3be5285a507f'
+
+    _known_node_raw: 'a5f2131c7a41fd05a38cc0bf955f9dca1142cfae3213fcdaa9d8c3947810f5dd'
+    _known_web_jwk: @{}
+      kty: 'EC', crv: 'P-256',
+      x: 'Jy_Pv877yg2Xuh_PiKhATkxtQvw2EGmoVmnF1OmQzkA',
+      y: 'O9kc0EZc__vFms_amRk3qTbKpvTbr7TcW2DAcupeLZs'
+      d: '_-Z_zGkT9kA1gTWBH6zk5KYMbCKCO0pnv9_EfdiLlCs',
+
+
+async function _load_testable_ecdhe(testable) ::
+  #IF PLAT_WEB
+    const {namedCurve, _known_web_jwk} = testable
+    const _ecdh_kind = {name: 'ECDH', namedCurve}
+    if ! _known_web_jwk ::
+      const {privateKey} = await crypto.subtle.generateKey @ _ecdh_kind, true, ['deriveBits']
+      const jwk = await crypto.subtle.exportKey @ 'jwk', privateKey
+      console.log @ '_known_web_jwk:', JSON.stringify(jwk, null, 2)
+      return assert @ false, 'FIX WEB ECDH JWK'
+
+    const {kty, crv, x, y, d} = _known_web_jwk
+    const _ec_ = @{}
+      privateKey: await crypto.subtle.importKey @ 'jwk', _known_web_jwk, _ecdh_kind, false, ['deriveBits']
+      publicKey: await crypto.subtle.importKey @ 'jwk', {kty, crv, x, y}, _ecdh_kind, true, []
+
+    testable.results = testable.from_web
+    testable.known_ecdhe =
+      await u8_ecdhe._with_ecdh @: _ec_, namedCurve
+
+    if ! testable.ec_pub_web ::
+      console.log @ `ec_pub_web:  hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ec}'`
+    
+  #ELIF PLAT_NODEJS
+    const {namedCurve, namedCurve_node, _known_node_raw} = testable
+    const {createECDH} = require('crypto')
+    const _ecdh_ = createECDH(namedCurve_node)
+
+    if ! _known_node_raw ::
+      _ecdh_.generateKeys()
+      console.log @ `_known_node_raw: '${u8_to_hex @ _ecdh_.getPrivateKey()}'`
+      return assert @ false, 'FIX NODE ECDH'
+
+    _ecdh_.setPrivateKey @ hex_to_u8(_known_node_raw)
+
+    testable.results = testable.from_node
+    testable.known_ecdhe =
+      await u8_ecdhe._with_ecdh @: _ecdh_, namedCurve, namedCurve_node
+
+    if ! testable.ec_pub_node ::
+      console.log @ `ec_pub_node: hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ec}'`
+
+  return testable
+

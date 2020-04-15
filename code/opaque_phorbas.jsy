@@ -15,7 +15,7 @@ export const opaque_phorbas_api = @{}
   _hmac: u8_hmac_sha_256
   key_proto: @{}
     ... bind_phorbas @:
-          ecdsa_signer: u8_ecdsa_sha_256.signer_p521
+          ecdsa_signer: u8_ecdsa_sha_256.p521
           ecdsa_verify: u8_ecdsa_sha_256.verify
           cipher: u8_aes_256_gcm
 

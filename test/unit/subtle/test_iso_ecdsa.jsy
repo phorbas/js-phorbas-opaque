@@ -21,13 +21,13 @@ describe @ 'subtle/iso_ecdsa', @::
 
   it @ 'shape', @::>
     expect(u8_ecdsa).to.be.an('object')
-    expect(u8_ecdsa.signer_p521).to.be.a('function')
-    expect(u8_ecdsa.signer_p384).to.be.a('function')
-    expect(u8_ecdsa.signer_p256).to.be.a('function')
+    expect(u8_ecdsa.p521).to.be.a('function')
+    expect(u8_ecdsa.p384).to.be.a('function')
+    expect(u8_ecdsa.p256).to.be.a('function')
     expect(u8_ecdsa.verify).to.be.a('function')
 
   it @ 'sign & verify', @::>
-    const ecdsa_sign = u8_ecdsa.signer_p521()
+    const ecdsa_sign = u8_ecdsa.p521()
     const sig_obj = await ecdsa_sign(u8_buf)
     expect(sig_obj).to.be.an('object')
     expect(sig_obj.ec).to.be.an.instanceof(Uint8Array)
@@ -82,7 +82,7 @@ describe @ 'subtle/iso_ecdsa', @::
     for const u8_ecdsa_sha of @[] u8_ecdsa_sha_512, u8_ecdsa_sha_384, u8_ecdsa_sha_256 ::
       describe @ u8_ecdsa_sha.hash, @::
 
-        for const ecdsa_sign of @[] u8_ecdsa_sha.signer_p521(), u8_ecdsa_sha.signer_p384(), u8_ecdsa_sha.signer_p256() ::
+        for const ecdsa_sign of @[] u8_ecdsa_sha.p521(), u8_ecdsa_sha.p384(), u8_ecdsa_sha.p256() ::
           it @ `${ecdsa_sign.namedCurve} vec [256]`, @=>> _validate_ecdsa @ ecdsa_sign, test_vec_256
 
 
