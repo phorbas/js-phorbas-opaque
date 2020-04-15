@@ -20,8 +20,10 @@ export function u8_fast_equal(a, b) ::
   return true
 
 
-export function u8_typecheck(lst) ::
+export function u8_typecheck(lst, fail) ::
   for const e of lst ::
     if ! @ e instanceof Uint8Array ::
+      if undefined !== fail ::
+        return fail
       throw new TypeError()
   return lst

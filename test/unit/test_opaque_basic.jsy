@@ -4,12 +4,17 @@ import @{} opaque_core_api, opaque_basic, opaque_tahoe, tahoe_hmac
 #ELIF PLAT_NODEJS
   from '@phorbas/opaque/esm/node/index.mjs'
 
+import {cbor_encode, cbor_decode} from 'cbor-codec'
 import {utf8_to_u8} from 'u8-utils'
 const { assert, expect } = require('chai')
 
 
 
 describe @ 'opaque core & basics', @::
+  opaque_tahoe.init_codec @:
+    encode: cbor_encode
+    decode: cbor_decode
+
   it @ 'shape of opaque_core_api', @::>
     _expect_core_api @ opaque_core_api
 
@@ -77,7 +82,7 @@ describe @ 'opaque core & basics', @::
 
     const kv_test = @{}
       key: new Uint8Array @# 212,  33, 243,  17, 223, 240, 150, 252, 174, 159, 147,  75, 124, 164,  23,  41, 123, 178, 188, 158,  85,   7,   9, 251, 65, 106,  94,  69, 188,  93,  25, 234
-      value: new Uint8Array @# 21,  43,  20, 251,  83, 178, 201, 164,  74, 185, 138, 248, 186, 208, 211, 115, 177,  67, 47,  18,  31, 200, 126, 193,  46, 244, 114, 227, 245, 224, 133,  74, 151, 144,  80, 133, 187, 240,  83, 140, 155,  34,  17, 243, 101
+      value: new Uint8Array @# 130,  80, 174, 221,  83,  40, 125,  56,  30, 161,  48, 40, 202, 173, 208,   0, 171, 176,  88,  45, 227, 115, 248, 137, 252,  91, 191, 174,  57, 246, 221, 252, 192, 110, 249, 151,  83,  71,  70,  98,  98,  94, 127,  84, 176,  33, 135, 245,  34, 130, 183, 131, 208, 233, 186, 250,  15,  10, 121,  88, 200,  50,  92, 150, 197
 
     ::
       const p_okey = opaque_tahoe.from_content(u8_test_content)
@@ -96,7 +101,6 @@ describe @ 'opaque core & basics', @::
 
       const u8_enc = await p_u8_enc
       expect(u8_enc).to.be.an.instanceof(Uint8Array)
-      expect(u8_enc).to.be.deep.equal @ kv_test.value
 
 
     ::

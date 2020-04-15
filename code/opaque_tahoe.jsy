@@ -1,4 +1,4 @@
-import {opaque_basic_api} from './opaque_basic.jsy'
+import {opaque_basic_api, kdf_random_16} from './opaque_basic.jsy'
 import {u8_aes_256_gcm, u8_hmac_sha_256} from './subtle.jsy'
 
 
@@ -28,15 +28,50 @@ export const tahoe_hmac = u8_key =>
 export function bind_tahoe(cipher) ::
   return @{}
     async encipher(u8_content) ::
-      const {k1ref, k2loc} = this
-      return await cipher.encrypt @
-        u8_content, k1ref, k2loc
+      const {k1ref, k2loc, _codec} = this
+      if k1ref && k2loc ::
+        const u8_secret = ! _codec.kdf_secret ? k1ref
+          : await _codec.kdf_secret(k1ref)
 
-    async decipher(u8_enc_content) ::
-      const {k1ref, k2loc} = this
-      if undefined === k1ref || undefined === k2loc ::
-        return
+        const u8_iv = await _codec.kdf_iv(k2loc)
 
-      return await cipher.decrypt @
-        u8_enc_content, k1ref, k2loc
+        const u8_enc = await cipher.encrypt @
+          u8_content, u8_secret, u8_iv
+
+        return await this._pack_opaque @
+          u8_enc, u8_iv, k2loc
+
+
+    async decipher(record) ::
+      const {k1ref, k2loc, _codec} = this
+      if record && k1ref && k2loc ::
+        const [u8_iv, u8_enc] =
+          await this._unpack_opaque(record) || []
+
+        const u8_secret = ! _codec.kdf_secret ? k1ref
+          : await _codec.kdf_secret(k1ref)
+
+        if u8_enc && u8_secret && u8_iv ::
+          return await cipher.decrypt @
+            u8_enc, u8_secret, u8_iv
+
+
+    _pack_opaque(u8_enc, u8_iv, k2loc) ::
+      return this._codec.encode @# u8_iv, u8_enc
+
+    _unpack_opaque(record) ::
+      return this._codec.decode @ record
+
+
+    _codec: @{}
+      // kdf_secret: k1ref => k1ref
+      kdf_iv: kdf_random_16
+      encode: (...args) => args
+      decode: (...args) => args
+
+    init_codec(ex_codec) ::
+      this._codec = @{}
+        ... this._codec
+        ... ex_codec
+      return this
 
