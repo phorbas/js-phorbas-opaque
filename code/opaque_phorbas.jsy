@@ -4,9 +4,8 @@ import {bind_tahoe_cipher} from './opaque_tahoe.jsy'
 import @{}
   u8_aes_256_gcm
   u8_hmac_sha_256
-  u8_ecdsa_p521_256
+  u8_ecdsa_sha_256
   u8_fast_equal
-  u8_typecheck
 from './subtle.jsy'
 
 
@@ -16,7 +15,8 @@ export const opaque_phorbas_api = @{}
   _hmac: u8_hmac_sha_256
   key_proto: @{}
     ... bind_phorbas @:
-          ecdsa: u8_ecdsa_p521_256
+          ecdsa_signer: u8_ecdsa_sha_256.signer_p521
+          ecdsa_verify: u8_ecdsa_sha_256.verify
           cipher: u8_aes_256_gcm
 
 
@@ -41,10 +41,10 @@ export const phorbas = @=> opaque_phorbas
 
 
 
-export function bind_phorbas({ecdsa, cipher}) ::
+export function bind_phorbas({ecdsa_signer, ecdsa_verify, cipher}) ::
   return @{}
     ... bind_tahoe_cipher(cipher)
-    ... bind_ecdsa_codec(ecdsa)
+    ... bind_ecdsa_codec(ecdsa_signer, ecdsa_verify)
 
     async validate(record) ::
       if record ::
@@ -52,9 +52,8 @@ export function bind_phorbas({ecdsa, cipher}) ::
         return undefined !== res
 
 
-export function bind_ecdsa_codec(ecdsa) ::
+export function bind_ecdsa_codec(ecdsa_signer, ecdsa_verify) ::
   return @{}
-
     async _pack_opaque(obj_body) ::
       const {_ec_sign, _codec} = this
 
@@ -80,20 +79,20 @@ export function bind_ecdsa_codec(ecdsa) ::
       const {e: ec, l: _k2loc} = obj_body
       if u8_fast_equal @ this.k2loc, _k2loc ::
         try ::
-          if await ecdsa.verify @ {ec, sig}, body ::
+          if await ecdsa_verify @ {ec, sig}, body ::
             return obj_body
         catch err :: return // ignore verify errors
 
 
     async _init_eckey(is_new, kctx) ::
-      const ec_sign = ecdsa.sign()
+      const ec_sign = ecdsa_signer()
       kctx._ec_sign = ec_sign
       kctx.ec = await ec_sign.ec
       return kctx
 
     as_session(ec_sign) ::
       if ! ec_sign ::
-        ec_sign = ecdsa.sign()
+        ec_sign = ecdsa_signer()
 
       return @{} __proto__: this,
         as_session: null

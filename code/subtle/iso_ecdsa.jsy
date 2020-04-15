@@ -1,62 +1,62 @@
 #IF PLAT_ABSTRACT
-  export function _bind_ecdsa(hash, namedCurve) ::
+  export function _bind_ecdsa(hash) ::
     return @{}
-      sign(u8_buf) ::
-        if undefined !== u8_buf ::
-          return ecdsa_sign(u8_buf)
-
-        ecdsa_sign.ec = _ec_.then @ _ec_ => _ec_.publicKey
-        return ecdsa_sign
-
-        async function ecdsa_sign(u8_buf) ::
-
-      async verify(ec_sig_obj, u8_buf) ::
+      signer_p521()
+      signer_p384()
+      signer_p256()
+      async verify(ec_sig_obj, u8) ::
 
 
 #ELIF PLAT_WEB
-  export const _bind_ecdsa_p521 = hash => _bind_ecdsa @ hash, 'P-521'
-  export const _bind_ecdsa_p384 = hash => _bind_ecdsa @ hash, 'P-384'
-  export const _bind_ecdsa_p256 = hash => _bind_ecdsa @ hash, 'P-256'
-
-  export function _bind_ecdsa(hash, namedCurve) ::
-    hash = 'SHA-'+hash
+  export function _bind_ecdsa(hash) ::
     const {subtle} = crypto
-    const _ecdsa = @{} name: 'ECDSA', namedCurve
-    const _ecdsa_h = @{} ..._ecdsa, hash
-
     return @{}
-      sign(u8_buf) ::
-        const _ec_ = subtle
-          .generateKey @ _ecdsa, false, ['sign']
-          .then @\ _ec_ ::>
-            _ec_.publicKey = await subtle.exportKey('spki', _ec_.publicKey)
-            return _ec_
-
-        if undefined !== u8_buf ::
-          return ecdsa_sign(u8_buf)
-
-        ecdsa_sign.ec = _ec_.then @ _ec_ => _ec_.publicKey
-        return ecdsa_sign
-
-        async function ecdsa_sign(u8_buf) ::
-          const {publicKey, privateKey} = await _ec_
-          const u8_sig = new Uint8Array @
-            await subtle.sign @
-              _ecdsa_h, privateKey, u8_buf
-
-          return @{}
-            ec: new Uint8Array(publicKey)
-            sig: u8_sig
+      signer_p521: @=> _ecdsa_signer @ 'P-521'
+      signer_p384: @=> _ecdsa_signer @ 'P-384'
+      signer_p256: @=> _ecdsa_signer @ 'P-256'
+      verify: ecdsa_verify
+      hash
 
 
-      async verify(ec_sig_obj, u8_buf) ::
-        const {ec, sig: u8_sig} = ec_sig_obj
-        const ec_pub = subtle.importKey @
-          'spki', ec, _ecdsa, false, ['verify']
+    async function ecdsa_verify(ec_sig_obj, u8) ::
+      const {ec, sig} = ec_sig_obj, ec_len = ec.length
+      const _kind = @{} name: 'ECDSA', hash,
+        namedCurve: 158===ec_len ? 'P-521'
+          : 120===ec_len ? 'P-384'
+          : 91===ec_len ? 'P-256'
+          : '?'
 
-        return subtle.verify @
-          _ecdsa_h, await ec_pub,
-          u8_sig, u8_buf
+      const ec_pub = subtle.importKey @
+        'spki', ec, _kind, false, ['verify']
+
+      return subtle.verify @
+        _kind, await ec_pub, sig, u8
+
+
+    function _ecdsa_signer(namedCurve) ::
+      const _kind = {name: 'ECDSA', namedCurve, hash}
+      const _ec_ = subtle
+        .generateKey @ _kind, false, ['sign']
+        .then @\ _ec_ ::>
+          _ec_.publicKey = new Uint8Array @
+            await subtle.exportKey('spki', _ec_.publicKey)
+          return _ec_
+
+      return Object.assign @ ecdsa_sign, @{}
+        ec: _ec_.then @ _ec_ => _ec_.publicKey
+        ecdsa_sign, ecdsa_verify
+        hash, namedCurve
+
+
+      async function ecdsa_sign(u8) ::
+        const {publicKey, privateKey} = await _ec_
+        const u8_sig = new Uint8Array @
+          await subtle.sign @
+            _kind, privateKey, u8
+
+        return @{}
+          ec: new Uint8Array(publicKey)
+          sig: u8_sig
 
 
 
@@ -64,68 +64,69 @@
   import {promisify} from 'util'
   import {generateKeyPair, createPublicKey, createSign, createVerify} from 'crypto'
   import {decode_ecdsa_asn1, encode_ecdsa_asn1, decode_ecdsa_raw, encode_ecdsa_raw} from 'ecc-codec/esm/ecdsa/index.mjs'
+  const _generateKeyPair_p = promisify(generateKeyPair)
 
-  export const _bind_ecdsa_p521 = hash => _bind_ecdsa_node @ hash, 'secp521r1'
-  export const _bind_ecdsa_p384 = hash => _bind_ecdsa_node @ hash, 'secp384r1'
-  export const _bind_ecdsa_p256 = hash => _bind_ecdsa_node @ hash, 'prime256v1'
-
-  export function _bind_ecdsa(hash, namedCurve) ::
-    const curves = @{} 'P-521': 'secp521r1', 'P-384': 'secp384r1', 'P-256': 'prime256v1'
-    return _bind_ecdsa_node @ hash, curves[namedCurve] || namedCurve
-
-  export function _bind_ecdsa_node(hash, namedCurve) ::
-    hash = 'SHA'+hash
+  export function _bind_ecdsa(hash) ::
     return @{}
-      sign(u8_buf) ::
-        const _ec_ = promisify(generateKeyPair) @ 'ec', @{}
-          namedCurve: 'secp521r1' // P-521
-          publicKeyEncoding: @{}
-            type: 'spki', format: 'der'
-
-        if undefined !== u8_buf ::
-          return ecdsa_sign(u8_buf)
-
-        ecdsa_sign.ec = _ec_.then @ _ec_ => _ec_.publicKey
-        return ecdsa_sign
-
-        async function ecdsa_sign(u8_buf) ::
-          const {publicKey, privateKey} = await _ec_
-          const asn1_sig =
-            createSign(hash).update(u8_buf).end()
-            .sign(privateKey)
-
-          const u8_sig = encode_ecdsa_raw @
-            decode_ecdsa_asn1(asn1_sig)
-
-          return @{} 
-            ec: new Uint8Array(publicKey)
-            sig: u8_sig
+      signer_p521: @=> _ecdsa_signer @ 'P-521', 'secp521r1'
+      signer_p384: @=> _ecdsa_signer @ 'P-384', 'secp384r1'
+      signer_p256: @=> _ecdsa_signer @ 'P-256', 'prime256v1'
+      verify: ecdsa_verify
+      hash
 
 
-      async verify(ec_sig_obj, u8_buf) ::
-        const ec_pub = createPublicKey @:
-          key: ec_sig_obj.ec, format: 'der', type: 'spki'
-        const ver = createVerify(hash).update(u8_buf).end()
+    async function ecdsa_verify(ec_sig_obj, u8) ::
+      const ec_pub = createPublicKey @:
+        key: ec_sig_obj.ec, format: 'der', type: 'spki'
 
-        const asn1_sig = encode_ecdsa_asn1 @
-          decode_ecdsa_raw(ec_sig_obj.sig)
+      const ver =
+        createVerify @ hash.replace('-','')
+        .update(u8).end()
 
-        return ver.verify @ ec_pub, asn1_sig
+      const asn1_sig = encode_ecdsa_asn1 @
+        decode_ecdsa_raw(ec_sig_obj.sig)
+
+      return ver.verify @ ec_pub, asn1_sig
+
+
+    function _ecdsa_signer(namedCurve, namedCurve_node) ::
+      const _ec_ = _generateKeyPair_p @ 'ec', @{}
+        namedCurve: namedCurve_node
+        publicKeyEncoding: @{}
+          type: 'spki', format: 'der'
+
+      return Object.assign @ ecdsa_sign, @{}
+        ec: _ec_.then @ _ec_ => new Uint8Array @ _ec_.publicKey
+        ecdsa_sign, ecdsa_verify
+        hash, namedCurve, namedCurve_node
+
+
+      async function ecdsa_sign(u8) ::
+        const {publicKey, privateKey} = await _ec_
+        const asn1_sig =
+          createSign @ hash.replace('-','')
+          .update(u8).end()
+          .sign(privateKey)
+
+        const u8_sig = encode_ecdsa_raw @
+          decode_ecdsa_asn1(asn1_sig)
+
+        return @{} 
+          ec: new Uint8Array(publicKey)
+          sig: u8_sig
 
 
 
-export const u8_ecdsa_p521_256 = _bind_ecdsa_p521('256')
-//export const u8_ecdsa_p521_384 = _bind_ecdsa_p521('384')
-//export const u8_ecdsa_p521_512 = _bind_ecdsa_p521('512')
+function _maybe_sign(u8, sign) ::
+  return undefined !== u8
+    ? sign(u8)
+    : sign
 
-//export const u8_ecdsa_p384_256 = _bind_ecdsa_p384('256')
-//export const u8_ecdsa_p384_384 = _bind_ecdsa_p384('384')
-//export const u8_ecdsa_p384_512 = _bind_ecdsa_p384('512')
 
-//export const u8_ecdsa_p256_256 = _bind_ecdsa_p256('256')
-//export const u8_ecdsa_p256_384 = _bind_ecdsa_p256('384')
-//export const u8_ecdsa_p256_512 = _bind_ecdsa_p256('512')
+export const u8_ecdsa_sha_256 = _bind_ecdsa('SHA-256')
+export const u8_ecdsa_sha_384 = _bind_ecdsa('SHA-384')
+export const u8_ecdsa_sha_512 = _bind_ecdsa('SHA-512')
 
 export @{}
-  u8_ecdsa_p521_256 as u8_ecdsa,
+  u8_ecdsa_sha_256 as u8_ecdsa
 

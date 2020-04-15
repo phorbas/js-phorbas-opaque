@@ -1,12 +1,12 @@
 #IF PLAT_ABSTRACT
-  export function _bind_sha_digest(variant) ::
+  export function _bind_sha_digest(hash) ::
     return async function sha_digest_NNN(data) ::
 
 
 #ELIF PLAT_WEB
-  export function _bind_sha_digest(variant) ::
+  export function _bind_sha_digest(hash) ::
     const _digest_ = crypto.subtle
-      .digest.bind @ crypto.subtle, { name: 'SHA-'+variant }
+      .digest.bind @ crypto.subtle, { name: hash }
 
     return async data => new Uint8Array @
       await _digest_ @ await data 
@@ -14,13 +14,13 @@
 
 #ELIF PLAT_NODEJS
   import {createHash} from 'crypto'
-  export function _bind_sha_digest(variant) ::
-    const _create_hash_ = createHash.bind(null, 'sha'+variant)
+  export function _bind_sha_digest(hash) ::
+    const _create_hash_ = createHash.bind(null, hash.replace('-',''))
     return async data => new Uint8Array @
       _create_hash_().update(await data).digest()
 
 
-export const u8_sha_256 = _bind_sha_digest('256')
-//export const u8_sha_384 = _bind_sha_digest('384')
-//export const u8_sha_512 = _bind_sha_digest('512')
+export const u8_sha_256 = _bind_sha_digest('SHA-256')
+export const u8_sha_384 = _bind_sha_digest('SHA-384')
+export const u8_sha_512 = _bind_sha_digest('SHA-512')
 

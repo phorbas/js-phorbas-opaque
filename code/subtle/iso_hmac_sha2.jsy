@@ -10,27 +10,23 @@
 
   export function _bind_hmac_sha(hash) ::
     const {subtle} = crypto
-    hash = 'SHA-'+hash
-    const _hmac = @{} name: 'HMAC'
-    const _hmac_h = @{} ... _hmac, hash
-
     return @\ u8_key ::
       if 'string' === typeof u8_key ::
         u8_key = utf8_to_u8(u8_key)
 
       const key = subtle.importKey @
-        'raw', u8_key, _hmac_h,
+        'raw', u8_key, {name: 'HMAC', hash},
         false, ['sign', 'verify']
 
       return @{}
         async sign(u8_buf) ::
           return new Uint8Array @
             await subtle.sign @
-              _hmac, await key, u8_buf
+              {name: 'HMAC'}, await key, u8_buf
 
         async verify(u8_sig, u8_buf) ::
           return subtle.verify @
-            _hmac, await key,
+            {name: 'HMAC'}, await key,
             u8_sig, u8_buf
 
 
@@ -39,7 +35,6 @@
   import {u8_timing_equal} from './utils.jsy'
 
   export function _bind_hmac_sha(hash) ::
-    hash = 'sha'+hash
     return u8_key => @:
       async sign(u8_buf) ::
         return _hmac(u8_key, u8_buf)
@@ -50,14 +45,14 @@
 
     function _hmac(u8_key, u8_buf) ::
       return new Uint8Array @
-        createHmac(hash, u8_key)
+        createHmac(hash.replace('-',''), u8_key)
           .update(u8_buf)
           .digest()
 
 
-export const u8_hmac_sha_256 = _bind_hmac_sha('256')
-//export const u8_hmac_sha_384 = _bind_hmac_sha('384')
-//export const u8_hmac_sha_512 = _bind_hmac_sha('512')
+export const u8_hmac_sha_256 = _bind_hmac_sha('SHA-256')
+export const u8_hmac_sha_384 = _bind_hmac_sha('SHA-384')
+export const u8_hmac_sha_512 = _bind_hmac_sha('SHA-512')
 
 export @{}
   u8_hmac_sha_256 as u8_hmac_sha,
