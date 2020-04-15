@@ -157,7 +157,7 @@ async function _load_testable_ecdhe(testable) ::
       return assert @ false, 'FIX WEB ECDH JWK'
 
     const {kty, crv, x, y, d} = _known_web_jwk
-    const _ec_ = @{}
+    const _ec_ = Promise.resolve @:
       privateKey: await crypto.subtle.importKey @ 'jwk', _known_web_jwk, _ecdh_kind, false, ['deriveBits']
       publicKey: await crypto.subtle.importKey @ 'jwk', {kty, crv, x, y}, _ecdh_kind, true, []
 
