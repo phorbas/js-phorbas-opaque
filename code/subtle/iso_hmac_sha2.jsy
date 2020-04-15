@@ -6,6 +6,8 @@
 
 
 #ELIF PLAT_WEB
+  import {utf8_to_u8} from './utils.jsy'
+
   export function _bind_hmac_sha(hash) ::
     const {subtle} = crypto
     hash = 'SHA-'+hash
@@ -13,6 +15,9 @@
     const _hmac_h = @{} ... _hmac, hash
 
     return @\ u8_key ::
+      if 'string' === typeof u8_key ::
+        u8_key = utf8_to_u8(u8_key)
+
       const key = subtle.importKey @
         'raw', u8_key, _hmac_h,
         false, ['sign', 'verify']
