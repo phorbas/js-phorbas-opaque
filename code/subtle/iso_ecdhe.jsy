@@ -1,3 +1,6 @@
+import {ecc_mirror} from './utils.jsy'
+
+
 #IF PLAT_ABSTRACT
   export function _bind_ecdhe(hash) ::
     return @{}
@@ -8,36 +11,35 @@
     const n_bits = @{} 'P-521': 528, 'P-384': 384, 'P-256': 256,
     const {subtle} = crypto
 
-    let self
-    return self = @{}
+    return @{}
       p521: @=> _gen_ecdhe @ 'P-521'
       p384: @=> _gen_ecdhe @ 'P-384'
       p256: @=> _gen_ecdhe @ 'P-256'
       _with_ecdh
 
-    async function _gen_ecdhe(namedCurve) ::
+    function _gen_ecdhe(namedCurve) ::
       return _with_ecdh @: namedCurve,
-        _ec_: await subtle.generateKey @
+        _ec_: subtle.generateKey @
           {name: 'ECDH', namedCurve}, false, ['deriveBits']
 
 
-    async function _with_ecdh({_ec_, namedCurve}) ::
+    function _with_ecdh({_ec_, namedCurve}) ::
       const _kind = @{} name: 'ECDH', namedCurve
       return Object.assign @ ecdh_derive, @{}
-        ec: new Uint8Array @
+        ecdh: _ec_.then @\ _ec_ =>> new Uint8Array @
           await subtle.exportKey('raw', _ec_.publicKey)
 
         ecdh_derive
         namedCurve
 
-      async function ecdh_derive(ec) ::
+      async function ecdh_derive(ecdh) ::
         const ec_pub = await subtle.importKey @
-          'raw', ec, _kind, false, []
+          'raw', await ecdh, _kind, false, []
 
         return new Uint8Array @
           await subtle.deriveBits @ 
             @{} ... _kind, public: ec_pub
-            _ec_.privateKey
+            (await _ec_).privateKey
             n_bits[namedCurve]
 
 
@@ -45,30 +47,33 @@
   import {createECDH} from 'crypto'
 
   export function _bind_ecdhe() ::
-    let self
-    return self = @{}
+    return @{}
       p521: @=> _gen_ecdhe @ 'P-521', 'secp521r1'
       p384: @=> _gen_ecdhe @ 'P-384', 'secp384r1'
       p256: @=> _gen_ecdhe @ 'P-256', 'prime256v1'
       _with_ecdh
 
-    async function _gen_ecdhe(namedCurve, namedCurve_node) ::
+    function _gen_ecdhe(namedCurve, namedCurve_node) ::
       const _ecdh_ = createECDH(namedCurve_node)
       _ecdh_.generateKeys()
       return _with_ecdh @:
         namedCurve, namedCurve_node, _ecdh_
 
 
-    async function _with_ecdh({_ecdh_, namedCurve, namedCurve_node}) ::
+    function _with_ecdh({_ecdh_, namedCurve, namedCurve_node}) ::
       return Object.assign @ ecdh_derive, @{}
-        ec: new Uint8Array @ _ecdh_.getPublicKey()
+        ecdh: Promise.resolve @ new Uint8Array @ _ecdh_.getPublicKey()
         ecdh_derive
         namedCurve, namedCurve_node
 
-      async function ecdh_derive(ec) ::
+      async function ecdh_derive(ecdh) ::
         return new Uint8Array @
-          _ecdh_.computeSecret @ ec
-
+          _ecdh_.computeSecret @ await ecdh
 
 export const u8_ecdhe = _bind_ecdhe()
+
+export function u8_ecdhe_mirror(ec_len) ::
+  const p_ecdhe = ecc_mirror(u8_ecdhe, ec_len)
+  if undefined !== p_ecdhe ::
+    return p_ecdhe()
 

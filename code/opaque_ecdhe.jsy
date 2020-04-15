@@ -1,0 +1,29 @@
+import {u8_ecdhe, u8_ecdhe_mirror} from './subtle.jsy'
+import {opaque_tahoe} from './opaque_tahoe.jsy'
+
+
+export function bind_tahoe_ecdhe({opaque, u8_ecdhe, u8_ecdhe_mirror}) ::
+  return @\ ec_other ::
+    const _ecdh_ = ec_other
+      ? u8_ecdhe_mirror(ec_other.length)
+      : u8_ecdhe()
+
+    const opaque_ecdhe = @{}
+      __proto__: opaque
+      ecdh: tahoe_ecdhe.ecdh = _ecdh_.ecdh
+      with_ecdh: tahoe_ecdhe
+
+    return ec_other 
+      ? tahoe_ecdhe(ec_other)
+      : tahoe_ecdhe
+
+    async function tahoe_ecdhe(ec_other) ::
+      return opaque_ecdhe.with_hmac @
+        await _ecdh_(await ec_other)
+
+export const tahoe_ecdhe =
+  bind_tahoe_ecdhe @:
+    opaque: opaque_tahoe
+    u8_ecdhe: u8_ecdhe.p521, 
+    u8_ecdhe_mirror
+

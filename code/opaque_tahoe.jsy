@@ -3,7 +3,6 @@ import {opaque_basic_api, kdf_random_16} from './opaque_basic.jsy'
 import {u8_aes_256_gcm, u8_hmac_sha_256, opaque_shared_codec} from './subtle.jsy'
 
 
-export default opaque_tahoe
 export const opaque_tahoe = @{}
   ... opaque_basic_api
 

@@ -1,0 +1,54 @@
+import @{} tahoe_ecdhe, init_opaque_shared_codec
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/index.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/index.mjs'
+
+import @{}
+  cbor_encode, cbor_decode,
+  utf8_to_u8, u8_to_hex, hex_to_u8,
+from 'cbor-codec'
+
+const { assert, expect } = require('chai')
+
+describe @ 'opaque ecdhe', @::
+  init_opaque_shared_codec @:
+    encode: cbor_encode
+    decode: cbor_decode
+
+  const u8_test_content = 'some ecdhe test content'
+
+  it @ 'shape', @::>
+    const op_ecdhe = tahoe_ecdhe()
+
+    expect(op_ecdhe).to.be.a('function')
+    expect(op_ecdhe.ecdh).to.be.a('promise')
+    expect(await op_ecdhe.ecdh).to.be.instanceof(Uint8Array)
+
+  it @ 'three', @::>
+    const op_ecdhe = @{}
+      a: tahoe_ecdhe()
+      b: tahoe_ecdhe()
+      c: tahoe_ecdhe()
+    
+
+    const op_paired = @{}
+    for const i of 'abc' ::
+      for const j of 'abc' ::
+        if i !== j ::
+          op_paired[i+j] = await op_ecdhe[i] @
+            op_ecdhe[j].ecdh
+
+
+    const k1ref_map = {}, k2loc_map = {}
+    for const [name, op] of Object.entries(op_paired) ::
+      const okey = await op.from_content @ u8_test_content 
+      k1ref_map[name] = u8_to_hex @ okey.k1ref
+      k2loc_map[name] = u8_to_hex @ okey.k2loc
+
+    for const i of 'abc' ::
+      for const j of 'abc' ::
+        if i !== j ::
+          assert.equal @ k1ref_map[i+j], k1ref_map[j+i], `k1ref i:${i} j:${j}` 
+          assert.equal @ k2loc_map[i+j], k2loc_map[j+i], `k2loc i:${i} j:${j}` 
+

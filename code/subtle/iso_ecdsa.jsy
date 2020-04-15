@@ -8,6 +8,8 @@
 
 
 #ELIF PLAT_WEB
+  import {ecc_by_len} from './utils.jsy'
+
   export function _bind_ecdsa(hash) ::
     const {subtle} = crypto
     return @{}
@@ -19,12 +21,9 @@
 
 
     async function ecdsa_verify(ec_sig_obj, u8) ::
-      const {ec, sig} = ec_sig_obj, ec_len = ec.length
+      const {ec, sig} = ec_sig_obj
       const _kind = @{} name: 'ECDSA', hash,
-        namedCurve: 158===ec_len ? 'P-521'
-          : 120===ec_len ? 'P-384'
-          : 91===ec_len ? 'P-256'
-          : '?'
+        namedCurve: ecc_by_len(ec.length)
 
       const ec_pub = subtle.importKey @
         'spki', ec, _kind, false, ['verify']

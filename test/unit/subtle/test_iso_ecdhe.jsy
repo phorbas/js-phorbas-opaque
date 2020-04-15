@@ -19,20 +19,18 @@ describe @ 'subtle/iso_ecdhe', @::
     expect(u8_ecdhe.p256).to.be.a('function')
 
   it @ 'invoke shape', @::>
-    const p_ans = u8_ecdhe.p521()
-    expect(p_ans).to.be.a('promise')
-
-    const ans = await p_ans
+    const ans = u8_ecdhe.p521()
     expect(ans).to.be.a('function')
     expect(ans.ecdh_derive).to.be.a('function')
-    expect(ans.ec).to.be.instanceof(Uint8Array)
+    expect(ans.ecdh).to.be.a('promise')
+    expect(await ans.ecdh).to.be.instanceof(Uint8Array)
 
   it @ 'two', @::>
-    const a = await u8_ecdhe.p521()
-    const b = await u8_ecdhe.p521()
+    const a = u8_ecdhe.p521()
+    const b = u8_ecdhe.p521()
 
-    const p_ab_ss = a.ecdh_derive @ b.ec
-    const p_ba_ss = b.ecdh_derive @ a.ec
+    const p_ab_ss = a.ecdh_derive @ b.ecdh
+    const p_ba_ss = b.ecdh_derive @ a.ecdh
 
     expect(p_ab_ss).to.be.a('promise')
     expect(p_ba_ss).to.be.a('promise')
@@ -165,10 +163,10 @@ async function _load_testable_ecdhe(testable) ::
 
     testable.results = testable.from_web
     testable.known_ecdhe =
-      await u8_ecdhe._with_ecdh @: _ec_, namedCurve
+      u8_ecdhe._with_ecdh @: _ec_, namedCurve
 
     if ! testable.ec_pub_web ::
-      console.log @ `ec_pub_web:  hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ec}'`
+      console.log @ `ec_pub_web:  hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`
     
   #ELIF PLAT_NODEJS
     const {namedCurve, namedCurve_node, _known_node_raw} = testable
@@ -184,10 +182,10 @@ async function _load_testable_ecdhe(testable) ::
 
     testable.results = testable.from_node
     testable.known_ecdhe =
-      await u8_ecdhe._with_ecdh @: _ecdh_, namedCurve, namedCurve_node
+      u8_ecdhe._with_ecdh @: _ecdh_, namedCurve, namedCurve_node
 
     if ! testable.ec_pub_node ::
-      console.log @ `ec_pub_node: hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ec}'`
+      console.log @ `ec_pub_node: hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`
 
   return testable
 

@@ -11,7 +11,7 @@ from 'cbor-codec'
 
 const { assert, expect } = require('chai')
 
-describe @ 'opaque phorbas', @::
+describe @ 'opaque ecdsa', @::
   opaque_ecdsa.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
