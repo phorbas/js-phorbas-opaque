@@ -10,33 +10,25 @@ import @{}
 from './subtle.jsy'
 
 
-export const kdf_ec = len_tail =>
-    u8 => u8_sha_256(u8, -len_tail)
+export const kdf_kctx_tail = kdf_inner =>
+    async (u8_k0, kctx) =>
+      u8_mix_aaab @ await kdf_inner(u8_k0), kctx.k_ec
 
-export const kdf_kctx_tail = @\ n, kdf_inner =>
-    @\ u8_k0, kctx ::>
-      const k1ref = await kdf_inner(u8_k0)
-      k1ref.set @ kctx.k_ec, k1ref.length - n
-      return k1ref
-
-export const kdf_key_tail = @\ n, kdf_inner =>
-    @\ k1ref, kctx ::>
-      const k2loc = await kdf_inner(k1ref)
-      k2loc.set @ k1ref.subarray(-n), k1ref.length - n
-      return k2loc
+export const kdf_key_tail = kdf_inner =>
+    async k1ref =>
+      u8_mix_aaab @ await kdf_inner(k1ref), k1ref
 
 
-const _ec_tail_len = 6
 export const opaque_ecdsa = @{}
   ... opaque_basic_api
 
   _hmac: u8_hmac_sha_256
-  _kdf1_ref: kdf_kctx_tail @ _ec_tail_len, kdf_sha_256
-  _kdf2_loc: kdf_key_tail @ _ec_tail_len, kdf_sha_256
+  _kdf1_ref: kdf_kctx_tail @ kdf_sha_256
+  _kdf2_loc: kdf_key_tail @ kdf_sha_256
 
   key_proto: bind_tahoe_ecdsa @:
     cipher: u8_aes_256_gcm
-    kdf_ec: kdf_ec(_ec_tail_len)
+    kdf_ec: u8_sha_256
     ecdsa_signer: u8_ecdsa_sha_256.p521
     ecdsa_verify: u8_ecdsa_sha_256.verify
 
@@ -102,9 +94,8 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
         return
 
       try ::
-        const _k_ec = await kdf_ec(ec)
-        const _loc_ec = _k2loc.subarray @ -_k_ec.length
-        if ! u8_fast_equal @ _k_ec, _loc_ec ::
+        if ! u8_test_aaab @ await kdf_ec(ec), _k2loc ::
+          console.log @ "NOPE"
           return
 
         if ! await ecdsa_verify @ {ec, sig}, body ::
@@ -124,4 +115,18 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
         as_session: null
         _init_eckey: (is_new, kctx) =>
           do_kctx_ec @ kctx, ec_sign
+
+
+export function u8_mix_aaab(a, b) ::
+  const alen = a.length
+  for let i=3; i<alen; i+=4 ::
+    a[i] = b[i]
+  return a
+
+export function u8_test_aaab(a, b) ::
+  const alen = a.length
+  for let i=3; i<alen; i+=4 ::
+    if a[i] !== b[i] ::
+      return false
+  return true
 
