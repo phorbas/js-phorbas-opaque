@@ -1,4 +1,5 @@
-import {opaque_basic_api} from './opaque_basic.jsy'
+import {u8_sha_256} from './subtle.jsy'
+import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
 import {bind_tahoe_cipher} from './opaque_tahoe.jsy'
 
 import @{}
@@ -9,18 +10,35 @@ import @{}
 from './subtle.jsy'
 
 
+export const kdf_ec = len_tail =>
+    u8 => u8_sha_256(u8, -len_tail)
+
+export const kdf_kctx_tail = @\ n, kdf_inner =>
+    @\ u8_k0, kctx ::>
+      const k1ref = await kdf_inner(u8_k0)
+      k1ref.set @ kctx.k_ec, k1ref.length - n
+      return k1ref
+
+export const kdf_key_tail = @\ n, kdf_inner =>
+    @\ k1ref, kctx ::>
+      const k2loc = await kdf_inner(k1ref)
+      k2loc.set @ k1ref.subarray(-n), k1ref.length - n
+      return k2loc
+
+
+const _ec_tail_len = 6
 export const opaque_ecdsa = @{}
   ... opaque_basic_api
 
   _hmac: u8_hmac_sha_256
+  _kdf1_ref: kdf_kctx_tail @ _ec_tail_len, kdf_sha_256
+  _kdf2_loc: kdf_key_tail @ _ec_tail_len, kdf_sha_256
+
   key_proto: bind_tahoe_ecdsa @:
+    cipher: u8_aes_256_gcm
+    kdf_ec: kdf_ec(_ec_tail_len)
     ecdsa_signer: u8_ecdsa_sha_256.p521
     ecdsa_verify: u8_ecdsa_sha_256.verify
-    cipher: u8_aes_256_gcm
-
-
-  _kdf1_ref(u8_k0, kctx) ::
-    return this._hmac(kctx.ec, u8_k0)
 
 
   async _init_key(is_new) ::
@@ -38,11 +56,10 @@ export const opaque_ecdsa = @{}
         this._kdf1_ref @ await hmac_sign(u8_key), kctx
 
 
-
-export function bind_tahoe_ecdsa({ecdsa_signer, ecdsa_verify, cipher}) ::
+export function bind_tahoe_ecdsa(kw_cfg) ::
   return @{}
-    ... bind_tahoe_cipher(cipher)
-    ... bind_ecdsa_codec(ecdsa_signer, ecdsa_verify)
+    ... bind_tahoe_cipher(kw_cfg.cipher)
+    ... bind_ecdsa_codec(kw_cfg)
 
     async validate(record) ::
       if record ::
@@ -50,7 +67,13 @@ export function bind_tahoe_ecdsa({ecdsa_signer, ecdsa_verify, cipher}) ::
         return undefined !== res
 
 
-export function bind_ecdsa_codec(ecdsa_signer, ecdsa_verify) ::
+export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
+  async function do_kctx_ec(kctx, ec_sign) ::
+    kctx._ec_sign = ec_sign
+    kctx.ec = await ec_sign.ec
+    kctx.k_ec = await kdf_ec(kctx.ec)
+    return kctx
+
   return @{}
     async _pack_opaque(obj_body) ::
       const {_ec_sign, _codec} = this
@@ -75,18 +98,23 @@ export function bind_ecdsa_codec(ecdsa_signer, ecdsa_verify) ::
       catch err :: return // ignore decoding error
 
       const {e: ec, l: _k2loc} = obj_body
-      if u8_fast_equal @ this.k2loc, _k2loc ::
-        try ::
-          if await ecdsa_verify @ {ec, sig}, body ::
-            return obj_body
-        catch err :: return // ignore verify errors
+      if ! u8_fast_equal @ this.k2loc, _k2loc ::
+        return
 
+      try ::
+        const _k_ec = await kdf_ec(ec)
+        const _loc_ec = _k2loc.subarray @ -_k_ec.length
+        if ! u8_fast_equal @ _k_ec, _loc_ec ::
+          return
 
-    async _init_eckey(is_new, kctx) ::
-      const ec_sign = ecdsa_signer()
-      kctx._ec_sign = ec_sign
-      kctx.ec = await ec_sign.ec
-      return kctx
+        if ! await ecdsa_verify @ {ec, sig}, body ::
+          return
+      catch err :: return // ignore verify errors
+
+      return obj_body
+
+    _init_eckey: (is_new, kctx) =>
+      do_kctx_ec @ kctx, ecdsa_signer()
 
     as_session(ec_sign) ::
       if ! ec_sign ::
@@ -94,8 +122,6 @@ export function bind_ecdsa_codec(ecdsa_signer, ecdsa_verify) ::
 
       return @{} __proto__: this,
         as_session: null
-        async _init_eckey(is_new, kctx) ::
-          kctx._ec_sign = ec_sign
-          kctx.ec = await ec_sign.ec
-          return kctx
+        _init_eckey: (is_new, kctx) =>
+          do_kctx_ec @ kctx, ec_sign
 

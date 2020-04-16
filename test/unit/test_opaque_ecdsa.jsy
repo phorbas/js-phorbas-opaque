@@ -19,9 +19,21 @@ describe @ 'opaque ecdsa', @::
 
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ '1bcc1892df1e4f45d84f84842ee54b8a347aa11f228b99ca770ac2beb6bcfc6f'
-    k2loc: hex_to_u8 @ '21d70227b4e9b728738583acebdd0ef4396ffc4a7bf7b93f961a4866557b65fc'
-    value: hex_to_u8 @ 'a2617a588400dbc302afa5be4555ccb164840a1332397d97d5ab4f0b30ba24827d7ddfda0d69ab03bd6f7441545e9e1654295f12f1faa7443a941d972a8ff7d14166becd25c55b00382a1739f4a823e8dd6c281954e1232a76a1b0a01012a784110343d027e10572b4f07f9d03e09b9f51681356e6df77ca36e39a7184968b8bcc45f59d59de375062616259010ba46163582da0c3d8d807ac4efe728ee7d0ec05732c623873c71e41797072664bfc40923610ca5f65cd0788cd5e6a9d91387d6176507bd9e153ba53814aa7c5239a02b6ab96616c582021d70227b4e9b728738583acebdd0ef4396ffc4a7bf7b93f961a4866557b65fc6165589e30819b301006072a8648ce3d020106052b81040023038186000400c8fae0e4cd2bbf153d63489074e3e2388bb8decd0da6447737d2d484c0e8a0a66f5e06dfb637e527d8fb44a84dae072b90b9cd00442aacdf3d382286ab45dee2ae01dbe875bcbbea14b6d90261e1c52028e0e43ee4e15005ae68e3bf653292ae3f22783e7c679e91115f4fffb536e2674420d7989db78879b368afb93d8745a76310b4'
+    k1ref: hex_to_u8 @ 'c80eadbe53f0cfc0b840b8fb8eeaf9728de4d9b121830959bdfdd9776754cf25'
+    k2loc: hex_to_u8 @ 'e0a61df1c5653aed61cbec88301e555175ab5ed071557eada88ed9776754cf25'
+    value: hex_to_u8 @ 'a2617a5884000e0ddcce8b15b59a8dc7ce64a26a32fd1b3023b1186da6c112224c90fba0b8646d409afd727aa672434207dee9a42919366c89609229ea45be0c700db5db3033b3003dbc57ad658fc4cd7b4c30dfcc81826f350a0c2229799b04395d10c47074f37f280d5ce641e77c7d71b27be9a7323aec34788d38551501f2aff92f1b9d071f9a19616259010ba46163582d47c24f1ccc6e3a1c7cdd0e875349bb0e674fb44b7ea3b58e01f1fad814bfb948fe5d0d1db4209514f94c95ec1d6176508f562e81ed6fe7fb7727f25a93c08eaa616c5820e0a61df1c5653aed61cbec88301e555175ab5ed071557eada88ed9776754cf256165589e30819b301006072a8648ce3d020106052b81040023038186000400d1397c4618a583d18fcd6607002e0d5539b5a93cdede43cc14fe0778e6a45f8662556b9d9878a9b80ababaed05ae6af2cb16862cda24947869d878e55c08b3c9de000a2766ce65ecfe5fbf5429de1647159b7fc25fe994d6bd05f38de6f06facbd9ce8f86210df7ea2a69be0589b53b3ce22c890f562a7991305f1405525f7933789c5'
+
+  if 0 ::
+    return it.only @ 'REGEN kv_test data', @::>
+      const okey = await opaque_ecdsa.from_random()
+      const rec = await okey.encipher(u8_test_content)
+
+      console.log @ `
+        const kv_test = @{}
+          k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
+          k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
+          value: hex_to_u8 @ '${u8_to_hex @ rec}'
+        `
 
 
   it @ 'two from_random', @::>
@@ -68,14 +80,6 @@ describe @ 'opaque ecdsa', @::
 
     expect(ans).to.be.an.instanceof(Uint8Array)
     expect(ans).to.be.deep.equal @ u8_test_content
-
-    if 0 ::
-      console.log @ `
-        const kv_test = @{}
-          k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
-          k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
-          value: hex_to_u8 @ '${u8_to_hex @ rec}'
-        `
 
   it @ 'from_k1ref', @::>
     const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)
