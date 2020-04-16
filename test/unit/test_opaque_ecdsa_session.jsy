@@ -30,10 +30,10 @@ describe @ 'opaque ecdsa session', @::
       const rec = await okey.encipher(u8_test_content)
 
       console.log @ `
-        const kv_test = @{}
-          k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
-          k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
-          value: hex_to_u8 @ '${u8_to_hex @ rec}'
+          const kv_test = @{}
+            k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
+            k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
+            value: hex_to_u8 @ '${u8_to_hex @ rec}'
         `
 
 
@@ -92,55 +92,56 @@ describe @ 'opaque ecdsa session', @::
     expect(ans).to.be.deep.equal @ u8_test_content
 
 
-  it @ 'from_k1ref', @::>
-    const okey = await opaque_session.from_k1ref(kv_test.k1ref)
+  describe @ 'known', @::
+    it @ 'from_k1ref', @::>
+      const okey = await opaque_session.from_k1ref(kv_test.k1ref)
 
-    const p_check = okey.validate(kv_test.value)
-    expect(p_check).to.be.a('promise')
-    const check = await p_check
-    expect(check).to.be.true
+      const p_check = okey.validate(kv_test.value)
+      expect(p_check).to.be.a('promise')
+      const check = await p_check
+      expect(check).to.be.true
 
-    const p_ans = okey.decipher(kv_test.value)
-    expect(p_ans).to.be.a('promise')
-    const ans = await p_ans
+      const p_ans = okey.decipher(kv_test.value)
+      expect(p_ans).to.be.a('promise')
+      const ans = await p_ans
 
-    expect(ans).to.be.an.instanceof(Uint8Array)
-    expect(ans).to.be.deep.equal @ u8_test_content
+      expect(ans).to.be.an.instanceof(Uint8Array)
+      expect(ans).to.be.deep.equal @ u8_test_content
 
-  it @ 'from_k2ref', @::>
-    const okey = await opaque_session.from_k2loc(kv_test.k2loc)
+    it @ 'from_k2ref', @::>
+      const okey = await opaque_session.from_k2loc(kv_test.k2loc)
 
-    const p_check = okey.validate(kv_test.value)
-    expect(p_check).to.be.a('promise')
-    const check = await p_check
-    expect(check).to.be.true
+      const p_check = okey.validate(kv_test.value)
+      expect(p_check).to.be.a('promise')
+      const check = await p_check
+      expect(check).to.be.true
 
-    const p_ans = okey.decipher(kv_test.value)
-    expect(p_ans).to.be.a('promise')
-    const ans = await p_ans
-    expect(ans).to.be.undefined
-
-
-  it @ 'from_k1ref invalid', @::>
-    const okey = await opaque_session.from_k1ref(kv_test.k1ref)
-
-    expect @ await okey.decipher(kv_test.value)
-    .to.be.deep.equal @ u8_test_content
-
-    for const slice_args of [ [15,-15], [0,-15], [15], ] ::
-      const part = kv_test.value.slice @ ...slice_args
-      expect @ await okey.decipher(part)
-      .to.be.undefined
+      const p_ans = okey.decipher(kv_test.value)
+      expect(p_ans).to.be.a('promise')
+      const ans = await p_ans
+      expect(ans).to.be.undefined
 
 
-  it @ 'from_k2ref invalid', @::>
-    const okey = await opaque_session.from_k2loc(kv_test.k2loc)
+    it @ 'from_k1ref invalid', @::>
+      const okey = await opaque_session.from_k1ref(kv_test.k1ref)
 
-    expect @ await okey.validate(kv_test.value)
-    .to.be.true
+      expect @ await okey.decipher(kv_test.value)
+      .to.be.deep.equal @ u8_test_content
 
-    for const slice_args of [ [15,-15], [0,-15], [15], ] ::
-      const part = kv_test.value.slice @ ...slice_args
-      expect @ await okey.validate(part)
-      .to.be.false
+      for const slice_args of [ [15,-15], [0,-15], [15], ] ::
+        const part = kv_test.value.slice @ ...slice_args
+        expect @ await okey.decipher(part)
+        .to.be.undefined
+
+
+    it @ 'from_k2ref invalid', @::>
+      const okey = await opaque_session.from_k2loc(kv_test.k2loc)
+
+      expect @ await okey.validate(kv_test.value)
+      .to.be.true
+
+      for const slice_args of [ [15,-15], [0,-15], [15], ] ::
+        const part = kv_test.value.slice @ ...slice_args
+        expect @ await okey.validate(part)
+        .to.be.false
 

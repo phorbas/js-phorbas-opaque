@@ -29,7 +29,7 @@ export const opaque_ecdsa = Object.freeze @:
   key_proto: Object.freeze @
     bind_tahoe_ecdsa @:
       cipher: u8_aes_256_gcm
-      kdf_ec: u8_sha_256
+      kdf_ec: kdf_sha_256
       ecdsa_signer: u8_ecdsa_sha_256.p521
       ecdsa_verify: u8_ecdsa_sha_256.verify
 
@@ -95,7 +95,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
         return
 
       try ::
-        if ! u8_test_aaab @ await kdf_ec(ec), _k2loc ::
+        if ! u8_test_aaab @ _k2loc, await kdf_ec(ec) ::
           return
 
         if ! await ecdsa_verify @ {ec, sig}, body ::
@@ -118,15 +118,15 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
 
 export function u8_mix_aaab(a, b) ::
-  const alen = a.length
+  const alen = a.length, blen = b.length
   for let i=3; i<alen; i+=4 ::
-    a[i] = b[i]
+    a[i] = b[i % blen]
   return a
 
 export function u8_test_aaab(a, b) ::
-  const alen = a.length
+  const alen = a.length, blen = b.length
   for let i=3; i<alen; i+=4 ::
-    if a[i] !== b[i] ::
+    if a[i] !== b[i % blen] ::
       return false
   return true
 
