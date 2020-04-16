@@ -69,6 +69,13 @@ describe @ 'opaque ecdsa', @::
     expect(ans).to.be.an.instanceof(Uint8Array)
     expect(ans).to.be.deep.equal @ u8_test_content
 
+    if 0 ::
+      console.log @ `
+        const kv_test = @{}
+          k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
+          k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
+          value: hex_to_u8 @ '${u8_to_hex @ rec}'
+        `
 
   it @ 'from_k1ref', @::>
     const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)

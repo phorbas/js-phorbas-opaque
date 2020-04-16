@@ -1,4 +1,4 @@
-import {utf8_to_u8} from './subtle/utils.jsy'
+import {u8_maybe_utf8} from './subtle/utils.jsy'
 import {init_opaque_shared_codec} from './subtle/codec.jsy'
 
 
@@ -24,10 +24,9 @@ export const opaque_core_api = @{}
     return this._finish_key(kctx)
 
   async from_content(u8_buf) ::
-    if 'string' === typeof u8_buf ::
-      u8_buf = utf8_to_u8(u8_buf)
     return this.from_k0 @
-      await this._kdf0_hash(u8_buf)
+      await this._kdf0_hash @
+        u8_maybe_utf8(u8_buf)
 
   from_random(kctx) ::
     return this.from_k0 @

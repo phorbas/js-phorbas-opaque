@@ -10,9 +10,9 @@ const { assert, expect } = require('chai')
 describe @ 'subtle/iso_aes_gcm', @::
   const content = utf8_to_u8 @ 'some test content'
 
-  const hm = u8_hmac @ utf8_to_u8('bad_secret')
-  const key_cipher = hm.sign @ utf8_to_u8('password')
-  const key_iv = hm.sign @ utf8_to_u8('iv')
+  const hm = u8_hmac @ 'bad_secret'
+  const key_cipher = hm.hmac_sign @ 'password'
+  const key_iv = hm.hmac_sign @ 'iv'
 
 
   it @ 'shape', @::>

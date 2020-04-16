@@ -1,33 +1,36 @@
+
 #IF PLAT_ABSTRACT
   export function _bind_hmac_sha(hash) ::
     return u8_key => @:
-      async sign(u8_buf) ::
-      async verify(u8_sig, u8_buf) ::
+      async sign(u8) ::
+      async verify(u8_sig, u8) ::
 
 
 #ELIF PLAT_WEB
-  import {utf8_to_u8} from './utils.jsy'
+  import {u8_maybe_utf8} from './utils.jsy'
 
   export function _bind_hmac_sha(hash) ::
     const {subtle} = crypto
-    return @\ u8_key ::
-      if 'string' === typeof u8_key ::
-        u8_key = utf8_to_u8(u8_key)
+    return @\ u8_key, u8 ::
+      u8_key = u8_maybe_utf8(u8_key)
 
-      const key = subtle.importKey @
+      const _hkey = subtle.importKey @
         'raw', u8_key, {name: 'HMAC', hash},
         false, ['sign', 'verify']
 
-      return @{}
-        async sign(u8_buf) ::
-          return new Uint8Array @
-            await subtle.sign @
-              {name: 'HMAC'}, await key, u8_buf
+      const hmac_sign = async u8 =>
+        new Uint8Array @ await subtle.sign @
+          {name: 'HMAC'}, await _hkey
+          u8_maybe_utf8(u8)
 
-        async verify(u8_sig, u8_buf) ::
+      if u8 ::
+        return hmac_sign(u8)
+
+      return @{} hash, hmac_sign,
+        async hmac_verify(u8_sig, u8) ::
           return subtle.verify @
-            {name: 'HMAC'}, await key,
-            u8_sig, u8_buf
+            {name: 'HMAC'}, await _hkey,
+            u8_sig, u8
 
 
 #ELIF PLAT_NODEJS
@@ -35,19 +38,21 @@
   import {u8_timing_equal} from './utils.jsy'
 
   export function _bind_hmac_sha(hash) ::
-    return u8_key => @:
-      async sign(u8_buf) ::
-        return _hmac(u8_key, u8_buf)
+    return @\ u8_key, u8 ::
+      const hmac_sign = async u8 =>
+        new Uint8Array @
+          createHmac(hash.replace('-',''), u8_key)
+            .update(u8)
+            .digest()
 
-      async verify(u8_sig, u8_buf) ::
-        const u8_actual = _hmac(u8_key, u8_buf)
-        return u8_timing_equal @ u8_actual, u8_sig
+      if u8 ::
+        return hmac_sign(u8)
 
-    function _hmac(u8_key, u8_buf) ::
-      return new Uint8Array @
-        createHmac(hash.replace('-',''), u8_key)
-          .update(u8_buf)
-          .digest()
+      return @{} hash, hmac_sign,
+        async hmac_verify(u8_sig, u8) ::
+          const u8_actual = await hmac_sign(u8)
+          return u8_timing_equal @ u8_actual, u8_sig
+
 
 
 export const u8_hmac_sha_256 = _bind_hmac_sha('SHA-256')
