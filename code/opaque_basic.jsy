@@ -21,6 +21,6 @@ export const opaque_basic_api = @{}
   _clone(ctx) :: return @{} __proto__: this, as_session: null, ...ctx
 
 
-export const opaque_basic = @{}
+export const opaque_basic = Object.freeze @:
   ... opaque_basic_api
 

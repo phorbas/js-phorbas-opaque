@@ -19,18 +19,19 @@ export const kdf_key_tail = kdf_inner =>
       u8_mix_aaab @ await kdf_inner(k1ref), k1ref
 
 
-export const opaque_ecdsa = @{}
+export const opaque_ecdsa = Object.freeze @:
   ... opaque_basic_api
 
   _hmac: u8_hmac_sha_256
   _kdf1_ref: kdf_kctx_tail @ kdf_sha_256
   _kdf2_loc: kdf_key_tail @ kdf_sha_256
 
-  key_proto: bind_tahoe_ecdsa @:
-    cipher: u8_aes_256_gcm
-    kdf_ec: u8_sha_256
-    ecdsa_signer: u8_ecdsa_sha_256.p521
-    ecdsa_verify: u8_ecdsa_sha_256.verify
+  key_proto: Object.freeze @
+    bind_tahoe_ecdsa @:
+      cipher: u8_aes_256_gcm
+      kdf_ec: u8_sha_256
+      ecdsa_signer: u8_ecdsa_sha_256.p521
+      ecdsa_verify: u8_ecdsa_sha_256.verify
 
 
   async _init_key(is_new) ::
@@ -95,7 +96,6 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
       try ::
         if ! u8_test_aaab @ await kdf_ec(ec), _k2loc ::
-          console.log @ "NOPE"
           return
 
         if ! await ecdsa_verify @ {ec, sig}, body ::
