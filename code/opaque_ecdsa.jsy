@@ -10,6 +10,9 @@ import @{}
 from './subtle.jsy'
 
 
+export const kdf_hmac_phorbas =
+  u8_hmac_sha_256('phorbas').hmac_sign
+
 export const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>
       u8_mix_aaab @ await kdf_inner(u8_k0), kctx.k_ec
@@ -104,6 +107,8 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
       return obj_body
 
+    // 1 of 4 bytes of k1ref are present in k2loc; hash the AES encryption key an additional time
+    _kdf_secret: kdf_hmac_phorbas 
     _init_eckey: (is_new, kctx) =>
       do_kctx_ec @ kctx, ecdsa_signer()
 

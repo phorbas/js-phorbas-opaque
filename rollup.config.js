@@ -1,4 +1,5 @@
 import rpi_jsy from 'rollup-plugin-jsy'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 
 const sourcemap = true
@@ -8,6 +9,7 @@ const cfg_node = {
   plugins: [
     rpi_jsy({defines: {PLAT_NODEJS: true}}),
     rpi_resolve({preferBuiltins: true}),
+    rpi_dgnotify(),
   ]}
 
 const cfg_web = {
@@ -15,6 +17,7 @@ const cfg_web = {
   plugins: [
     rpi_jsy({defines: {PLAT_WEB: true}}),
     rpi_resolve({preferBuiltins: true}),
+    rpi_dgnotify(),
   ]}
 
 

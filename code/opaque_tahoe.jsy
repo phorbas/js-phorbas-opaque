@@ -52,13 +52,13 @@ export function bind_tahoe_cipher(cipher) ::
         return u8_to_utf8(u8)
 
     async decipher(record) ::
-      const {k1ref, k2loc, _codec} = this
+      const {k1ref, k2loc, _codec, _kdf_secret} = this
       if record && k1ref && k2loc ::
         const {v:u8_iv, c:u8_enc} =
           await this._unpack_opaque(record) || {}
 
-        const u8_secret = ! _codec.kdf_secret ? k1ref
-          : await _codec.kdf_secret(k1ref)
+        const u8_secret = ! _kdf_secret ? k1ref
+          : await _kdf_secret(k1ref)
 
         if u8_enc && u8_secret && u8_iv ::
           return await cipher.decrypt @
