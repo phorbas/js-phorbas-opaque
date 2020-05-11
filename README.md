@@ -1,11 +1,26 @@
-# PHORBAS-Opaque
+# PHORBAS Opaque
 
-This project implements a persistent binary data storage scheme that
-accomodates opaque (encrypted) information. It is inspired by binary
-[content addressable data storage][CAS], replication features of
-[CouchDB][], the opaque data storage of [Tahoe-LAFS][], the eventual
-consistency of [CRDTs][], and persistent [Hash array mapped trie][HAMT]
-data structures.
+PHORBASE Opaque is inspired by [Content Addressable Stores][] and
+[Tahoe-LAFS][]. The techniques of Tahoe-LAFS are generalized and expanded to
+include HMAC and Digital Signatures, as well as alternate hashing and
+encryption schemes and algorithms. The Opaque library handles the principles of
+**Hashed**, **Opaque**, and part of **Addressable**, as well as necessitates
+**Binary key/content**.
+
+- [PHORBAS Store][] handles the principles of **Persistent**, **Binary key/content**, **Addressable**, and **Store**.
+- [PHORBAS HAMT][] handles the principle of **Replicable**.
+
+ [PHORBAS Store]: https://github.com/phorbas/js-phorbas-store
+ [PHORBAS HAMT]: https://github.com/phorbas/js-phorbas-hamt
+
+
+## About PHORBAS
+
+The PHORBAS project implements a persistent binary data storage scheme that
+accomodates opaque (encrypted) information. It is inspired by binary [content
+addressable data storage][CAS], replication features of [CouchDB][], the opaque
+data storage of [Tahoe-LAFS][], the eventual consistency of [CRDTs][], and
+persistent [Hash array mapped trie][HAMT] data structures.
 
 [Phorbas appears in in Greek mythology][myth] and is connected to "giving
 pasture" -- in this case, safe pasture to for data storage.
