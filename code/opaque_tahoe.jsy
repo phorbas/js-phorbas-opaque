@@ -29,11 +29,13 @@ export const tahoe_hmac = u8_key =>
 
 export function bind_tahoe_cipher(cipher) ::
   return @{}
+    __proto__: opaque_basic_api.key_proto
+
     encipher_utf8(utf8) ::
       return this.encipher @ utf8_to_u8(utf8)
 
     async encipher(u8_content) ::
-      const {k1ref, k2loc, _codec, _kdf_secret, _kdf_iv} = this
+      const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this
       if k1ref && k2loc ::
         const u8_secret = ! _kdf_secret ? k1ref
           : await _kdf_secret(k1ref)
@@ -52,7 +54,7 @@ export function bind_tahoe_cipher(cipher) ::
         return u8_to_utf8(u8)
 
     async decipher(record) ::
-      const {k1ref, k2loc, _codec, _kdf_secret} = this
+      const {k1ref, k2loc, _kdf_secret} = this
       if record && k1ref && k2loc ::
         const {v:u8_iv, c:u8_enc} =
           await this._unpack_opaque(record) || {}

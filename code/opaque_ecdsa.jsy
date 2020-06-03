@@ -72,17 +72,17 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
   return @{}
     async _pack_opaque(obj_body) ::
-      const {_ec_sign, _codec} = this
+      const {_ec_sign, _codec: {encode}} = this
 
       obj_body.e = await _ec_sign.ec
-      const body = _codec.encode(obj_body)
+      const body = encode(obj_body)
       const {sig} = await _ec_sign(body)
 
-      return _codec.encode @: z:sig, b:body
+      return encode @: z:sig, b:body
 
 
     async _unpack_opaque(record) ::
-      const {decode} = this._codec
+      const {k2loc, _codec: {decode}} = this
       let obj_sig
       try :: obj_sig = decode(record)
       catch err :: return // ignore decoding error
@@ -94,7 +94,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
       catch err :: return // ignore decoding error
 
       const {e: ec, l: _k2loc} = obj_body
-      if ! u8_fast_equal @ this.k2loc, _k2loc ::
+      if ! u8_fast_equal @ k2loc, _k2loc ::
         return
 
       try ::

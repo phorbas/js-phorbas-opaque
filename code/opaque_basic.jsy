@@ -14,7 +14,9 @@ export const opaque_basic_api = @{}
   _kdf1_ref: kdf_sha_256
   _kdf2_loc: kdf_sha_256
 
-  key_proto: {}
+  key_proto: @{}
+    k21pair() :: return [this.k2loc, this.k1ref]
+
   _init_key(is_new) :: return {__proto__: this.key_proto}
   _finish_key(kctx) :: return kctx
 

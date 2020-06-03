@@ -1,0 +1,82 @@
+import @{} opaque_tahoe
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web/index.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node/index.mjs'
+
+import {bkc_with_js_map} from '@phorbas/store'
+import {cbor_encode, cbor_decode} from 'cbor-codec'
+
+import {poem_lines} from './poem.jsy'
+
+const { assert } = require('chai')
+
+describe @ 'poem with opaque and phorbas-store', @::
+  opaque_tahoe.init_shared_codec @:
+    encode: cbor_encode
+    decode: cbor_decode
+
+  it @ 'with k1ref', @::>
+    const stg = await bkc_with_js_map()
+    const [_, k1ref] = await store_text_lines(poem_lines, stg, opaque_tahoe)
+    const rt_lines = await load_text_lines(k1ref, stg, opaque_tahoe)
+
+    let i=0
+    for await const ln of rt_lines ::
+      assert.equal(ln, poem_lines[i++])
+
+  it @ 'with k21pair', @::>
+    const stg = await bkc_with_js_map()
+    const k21pair = await store_text_lines(poem_lines, stg, opaque_tahoe)
+    const rt_lines = await load_text_lines(k21pair[1], stg, opaque_tahoe)
+
+    let i=0
+    for await const ln of rt_lines ::
+      assert.equal(ln, poem_lines[i++])
+
+
+
+async function store_text_lines(text_lines, stg, opaque) ::
+  text_lines = Array.from(text_lines)
+
+  const refs = [], u8_pairs = []
+  const q = []
+  for let idx=0; idx<text_lines.length; idx++ ::
+    q.push @!>
+      const ln = text_lines[idx]
+      const k = await opaque.from_content(ln)
+      refs[idx] = k.k21pair()
+      u8_pairs.push @# k.k2loc, await k.encipher_utf8(ln)
+
+  while q.length :: await q.pop()
+
+  const u8_refs = cbor_encode(refs)
+  const k_root = await opaque.from_content(u8_refs)
+  u8_pairs.push @# k_root.k2loc, await k_root.encipher(u8_refs)
+
+  await stg.bkc_store(u8_pairs)
+  return k_root.k21pair()
+
+
+async function load_text_lines(root_ref, stg, opaque) ::
+  let poem_refs
+  ::
+    const k = Array.isArray(root_ref)
+      ? await opaque.from_k21pair(root_ref)
+      : await opaque.from_k1ref(root_ref)
+
+    const [[, ans]] = await stg.bkc_fetch([k.k2loc])
+    poem_refs = cbor_decode @ await k.decipher(ans)
+
+  const poem_ref_map = new Map @
+    poem_refs.map @ ea => @#
+      ea[0], opaque.from_k21pair(ea)
+
+  const poem_ref_content = await
+    stg.bkc_fetch @
+      poem_refs.map(ea => ea[0])
+
+  return poem_ref_content.map @\ [k2loc, u8_enc] ::>
+    const k = await poem_ref_map.get(k2loc)
+    return await k.decipher_utf8(u8_enc)
+

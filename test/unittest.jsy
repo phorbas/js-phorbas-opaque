@@ -11,3 +11,5 @@ import './unit/test_opaque_basic.jsy'
 import './unit/test_opaque_ecdsa.jsy'
 import './unit/test_opaque_ecdsa_session.jsy'
 import './unit/test_opaque_ecdhe.jsy'
+
+import './unit/test_storage_opaque.jsy'

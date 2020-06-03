@@ -171,3 +171,11 @@ function _expect_okey(okey) ::
   .to.have.length(32)
   .to.be.an.instanceof(Uint8Array)
 
+  expect(okey.k21pair)
+  .to.be.a('function')
+
+  expect(okey.k21pair())
+  .to.be.an('array')
+  .to.have.length(2)
+  .to.deep.equal @# okey.k2loc, okey.k1ref
+
