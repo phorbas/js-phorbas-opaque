@@ -7,19 +7,17 @@
   "devDependencies": {
     "@phorbas/opaque": "file:..",
     "@phorbas/store": "^0.1.1",
-    "@rollup/plugin-node-resolve": "^7.1.3",
     "cbor-codec": "^0.2.2",
     "qsrv": "^0.1.7",
-    "rollup": "^2.6.1",
-    "rollup-plugin-jsy": "^1.6.4",
     "u8-utils": "^0.3.7"
   },
   "scripts": {
+    "serve": "qsrv -f unittest.html -- __unittest.iife.js",
+    "start": "npm -s run serve",
     "prebuild": "test -d ./node_modules || npm -s install",
-    "build": "rollup --config",
+    "build": "../node_modules/.bin/rollup --config",
     "clean": "rm ./__unittest.*",
     "watch": "npm -s run build -- --watch",
-    "serve": "qsrv --fallback unittest.html -- __unittest.iife.js",
     "pretest": "npm -s run build",
     "test": "npm -s run test:one",
     "test:one": "NODE_OPTIONS=--enable-source-maps  mocha ./__unittest.cjs.js",
