@@ -61,11 +61,10 @@ async function store_text_lines(text_lines, stg, opaque) ::
 async function load_text_lines(root_ref, stg, opaque) ::
   let poem_refs
   ::
-    const k = Array.isArray(root_ref)
-      ? await opaque.from_k21pair(root_ref)
-      : await opaque.from_k1ref(root_ref)
+    const k = await opaque.from_k21pair(root_ref)
 
     const [[, ans]] = await stg.bkc_fetch([k.k2loc])
+    if ! ans :: return
     poem_refs = cbor_decode @ await k.decipher(ans)
 
   const poem_ref_map = new Map @

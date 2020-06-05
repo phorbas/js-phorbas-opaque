@@ -3,8 +3,8 @@ export const opaque_shared_codec = @{}
   encode: @:: throw new Error @ 'Uninitialized codec.encode'
   decode: @:: throw new Error @ 'Uninitialized codec.decode'
 
-export function init_opaque_shared_codec(...args) ::
-  Object.assign @
-    opaque_shared_codec
-    ...args
+export function init_opaque_shared_codec({encode, decode}) ::
+  const o = opaque_shared_codec
+  o.encode = encode
+  o.decode = decode
 

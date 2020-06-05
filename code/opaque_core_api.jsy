@@ -23,10 +23,14 @@ export const opaque_core_api = @{}
     kctx.k2loc = k2loc
     return this._finish_key(kctx)
 
-  async from_k21pair([k2loc, k1ref]) ::
+  async from_k21pair(k21pair) ::
     const kctx = await this._init_key(false)
-    kctx.k1ref = k1ref
-    kctx.k2loc = k2loc
+    if ! Array.isArray(k21pair) ::
+      kctx.k1ref = k21pair
+      return this._from_kctx(kctx)
+
+    kctx.k1ref = k21pair[1]
+    kctx.k2loc = k21pair[0]
     return this._finish_key(kctx)
 
   async from_content(u8_buf) ::
