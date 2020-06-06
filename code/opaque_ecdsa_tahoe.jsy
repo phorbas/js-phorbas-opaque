@@ -4,8 +4,14 @@ import {bind_ecdsa_codec, opaque_ecdsa} from './opaque_ecdsa.jsy'
 
 import @{}
   u8_aes_256_gcm
+  u8_hmac_sha_256
   u8_ecdsa_sha_256
 from './subtle.jsy'
+
+
+export const kdf_hmac_phorbas =
+  u8_hmac_sha_256('phorbas').hmac_sign
+
 
 export const opaque_ecdsa_tahoe = Object.freeze @:
   ... opaque_ecdsa
@@ -23,3 +29,5 @@ export function bind_tahoe_ecdsa(kw_cfg) ::
     ... bind_tahoe_cipher(kw_cfg.cipher)
     ... bind_ecdsa_codec(kw_cfg)
 
+    // 1 of 4 bytes of k1ref are present in k2loc; hash the AES encryption key an additional time
+    _kdf_secret: kdf_hmac_phorbas

@@ -1,3 +1,4 @@
+import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
 import {opaque_core_api} from './opaque_core_api.jsy'
 import {u8_crypto_random, u8_sha_256} from './subtle.jsy'
 
@@ -5,13 +6,15 @@ import {u8_crypto_random, u8_sha_256} from './subtle.jsy'
 export const kdf_random_16 = @=> u8_crypto_random(16)
 export const kdf_sha_256 = u8 => u8_sha_256(u8)
 
+const _as_u8_promise = u8 =>
+  Promise.resolve @ new Uint8Array(u8)
 
 const opaque_basic_key_proto = @{}
   k21pair() :: return [this.k2loc, this.k1ref]
-  encode(u8) :: new Uint8Array(u8)
-  decode(u8) :: new Uint8Array(u8)
-  encode_utf8(u8) :: return utf8_to_u8(utf8)
-  decode_utf8(u8) :: return u8_to_utf8(u8)
+  encode: _as_u8_promise
+  decode: _as_u8_promise
+  encode_utf8: u8 => _as_u8_promise @ utf8_to_u8(utf8)
+  decode_utf8: u8 => _as_u8_promise @ u8_to_utf8(u8)
 
 
 export const opaque_basic_api = @{}

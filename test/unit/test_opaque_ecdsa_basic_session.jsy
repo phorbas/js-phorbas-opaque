@@ -1,4 +1,4 @@
-import @{} opaque_ecdsa_tahoe
+import @{} opaque_ecdsa
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -11,23 +11,23 @@ from 'cbor-codec'
 const { assert, expect } = require('chai')
 
 
-describe @ 'opaque ecdsa tahoe session', @::
-  opaque_ecdsa_tahoe.init_shared_codec @:
+describe @ 'opaque ecdsa basic session', @::
+  opaque_ecdsa.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
 
 
-  const opaque_session = opaque_ecdsa_tahoe.as_session()
+  const opaque_session = opaque_ecdsa.as_session()
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ '6c0f81a7b097afc5ecc374ae33049e941a4c1ea32a333a008293c6ba7203a586'
-    k2loc: hex_to_u8 @ '7fa7fda7e4de0cc5373548aebac82b949aeecca35353de00eaadf0ba66a21a86'
-    value: hex_to_u8 @ 'a2617a58840152c2d41bd344d134b0d41372f8fce9dfda8d37a3ac675a474f8329b0f47739cb37b991b370b7a382efdc60a7beef180389d5a7e3ed8d89b915a10fe3cf018060ab013e4a863c38d7befc4572e6386a246d87455afe0f88d058cb911f91bd496b823097fdc18a64ce335de20ded17574b65f2b50d6f688aafb66d1e42791c91e40623b7616259010ba46163582d43583e73c3d4825196fc51f70eefd49b74baa00a4f0a0cbfa99ec848ae0575f8a230ed9c4cef8c63547f21a01b61765000289abcaff5f3cf3a74375d2153ad47616c58207fa7fda7e4de0cc5373548aebac82b949aeecca35353de00eaadf0ba66a21a866165589e30819b301006072a8648ce3d020106052b810400230381860004002ab0c625c9bbfdf20f0468857a7d7ec90f0a1f62d4667d7e959733de8c884521d86549197f5f212d4b56a862d4f196f1718792498cc720a4db7a23a5116e76fc9300ff77285a0645e136e550a64c45e6f009b0c56680b670100220420b4b2dda1c26630d087da746e357b23449f7fa04ad4e58728ab85d65908c5fd222aec9101be7fe'
+    k1ref: hex_to_u8 @ '445b9be84fee281dd632bc9acc45bf604e58d5b7d88ce774dec0289abee05b0f'
+    k2loc: hex_to_u8 @ 'b7bf04e8ade9b81ddf6c779adf9f2a60f079b2b770579774b8f8f39a5bb6790f'
+    value: hex_to_u8 @ 'a2617a588401b8890626780fb4d5feddfff54464119f585cfd294a5aa74619134de07fe7f77e3439a7bdeaf232bcd552b982f97d7741add43f207fa8d591a158db3bcbd6067c9b01be277658bb362a4b5f5e8a2ff81f96ebb3a3a2e43eb574227f2afcefcb14392eb25590e998acf6fc242fee9bd88d3b8cc2874f3d8645dd9e87d80774db8a77f0f7616258e8a36163581d736f6d652073616d706c6520756e6974207465737420636f6e74656e74616c5820b7bf04e8ade9b81ddf6c779adf9f2a60f079b2b770579774b8f8f39a5bb6790f6165589e30819b301006072a8648ce3d020106052b81040023038186000401125e118570339d6db11029bffe3657671f15b2d12ac1d708e57e3be5ee03e256730379a5aabca5f46291636f911767a6376eda437f6ff52b5e4d8d16cfb675648201c26f87b79da946aa06ce9957d97ea77d9b2d89912f6b68d7ea75cdbc84e8b4c59eeabfab1baa1ede4395d3424c8cf32fb4c4ea31f129bedd4d736d1866b5c07139'
 
   if 0 ::
     return it.only @ 'REGEN kv_test data', @::>
       const okey = await opaque_session.from_random()
-      const rec = await okey.encipher(u8_test_content)
+      const rec = await okey.encode(u8_test_content)
 
       console.log @ `
           const kv_test = @{}
@@ -63,17 +63,17 @@ describe @ 'opaque ecdsa tahoe session', @::
 
 
     // ecdsa algorithm uses an ephemeral nonce
-    const a_rec = await okey_a.encipher(u8_test_content)
-    const a2_rec = await okey_a.encipher(u8_test_content)
+    const a_rec = await okey_a.encode(u8_test_content)
+    const a2_rec = await okey_a.encode(u8_test_content)
     expect(a_rec).to.not.deep.equal(a2_rec)
 
-    const b_rec = await okey_b.encipher(u8_test_content)
+    const b_rec = await okey_b.encode(u8_test_content)
     expect(b_rec).to.not.deep.equal(a_rec)
 
 
   it @ 'from_random', @::>
     const okey = await opaque_session.from_random()
-    const p_rec = okey.encipher(u8_test_content)
+    const p_rec = okey.encode(u8_test_content)
     expect(p_rec).to.be.a('promise')
 
     const rec = await p_rec
@@ -84,7 +84,7 @@ describe @ 'opaque ecdsa tahoe session', @::
     const check = await p_check
     expect(check).to.be.true
 
-    const p_ans = okey.decipher(rec)
+    const p_ans = okey.decode(rec)
     expect(p_ans).to.be.a('promise')
     const ans = await p_ans
 
@@ -101,7 +101,7 @@ describe @ 'opaque ecdsa tahoe session', @::
       const check = await p_check
       expect(check).to.be.true
 
-      const p_ans = okey.decipher(kv_test.value)
+      const p_ans = okey.decode(kv_test.value)
       expect(p_ans).to.be.a('promise')
       const ans = await p_ans
 
@@ -116,7 +116,7 @@ describe @ 'opaque ecdsa tahoe session', @::
       const check = await p_check
       expect(check).to.be.true
 
-      const p_ans = okey.decipher(kv_test.value)
+      const p_ans = okey.decode(kv_test.value)
       expect(p_ans).to.be.a('promise')
       const ans = await p_ans
       expect(ans).to.be.undefined
@@ -125,12 +125,12 @@ describe @ 'opaque ecdsa tahoe session', @::
     it @ 'from_k1ref invalid', @::>
       const okey = await opaque_session.from_k1ref(kv_test.k1ref)
 
-      expect @ await okey.decipher(kv_test.value)
+      expect @ await okey.decode(kv_test.value)
       .to.be.deep.equal @ u8_test_content
 
       for const slice_args of [ [15,-15], [0,-15], [15], ] ::
         const part = kv_test.value.slice @ ...slice_args
-        expect @ await okey.decipher(part)
+        expect @ await okey.decode(part)
         .to.be.undefined
 
 

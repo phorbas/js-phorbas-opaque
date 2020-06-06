@@ -1,4 +1,5 @@
-import {u8_sha_256} from './subtle.jsy'
+import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
+import {u8_sha_256, opaque_shared_codec} from './subtle.jsy'
 import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
 
 import @{}
@@ -7,9 +8,6 @@ import @{}
   u8_fast_equal
 from './subtle.jsy'
 
-
-export const kdf_hmac_phorbas =
-  u8_hmac_sha_256('phorbas').hmac_sign
 
 export const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>
@@ -51,8 +49,34 @@ export const opaque_ecdsa = Object.freeze @:
 
 export function bind_ecdsa_key_proto(kw_cfg) ::
   return @{}
-    ... opaque_basic_api.key_proto
+    ... bind_ecdsa_basic()
     ... bind_ecdsa_codec(kw_cfg)
+
+
+export function bind_ecdsa_basic() ::
+  return @{}
+    k21pair() :: return [this.k2loc, this.k1ref]
+
+    encode_utf8(utf8) ::
+      return this.encode @ utf8_to_u8(utf8)
+
+    async decode_utf8(record) ::
+      const u8 = await this.decode(record)
+      if undefined !== u8 ::
+        return u8_to_utf8(u8)
+
+    async encode(u8) ::
+      const {k1ref, k2loc} = this
+      if k1ref && k2loc ::
+        return await this._pack_opaque @:
+          c:u8, l:k2loc
+
+    async decode(record) ::
+      const {k1ref, k2loc, _kdf_secret} = this
+      if record && k1ref && k2loc ::
+        const {c:u8} = await this._unpack_opaque(record) || {}
+        return u8
+
 
 
 export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
@@ -105,8 +129,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
       return obj_body
 
-    // 1 of 4 bytes of k1ref are present in k2loc; hash the AES encryption key an additional time
-    _kdf_secret: kdf_hmac_phorbas
+    _codec: opaque_shared_codec
     _init_eckey: (is_new, kctx) =>
       do_kctx_ec @ kctx, ecdsa_signer()
 

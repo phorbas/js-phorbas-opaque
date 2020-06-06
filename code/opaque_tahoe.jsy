@@ -30,8 +30,7 @@ export const tahoe_hmac = u8_key =>
 
 export function bind_tahoe_cipher(cipher) ::
   return @{}
-    ... opaque_basic_api.key_proto
-
+    k21pair() :: return [this.k2loc, this.k1ref]
     encode(u8) :: return this.encipher_utf8(u8)
     decode(u8) :: return this.decode(u8)
     encode_utf8(utf8) :: return this.encipher_utf8(utf8)

@@ -9,6 +9,8 @@ import './unit/subtle/test_iso_ecdhe.jsy'
 
 import './unit/test_opaque_basic.jsy'
 
+import './unit/test_opaque_ecdsa_basic.jsy'
+import './unit/test_opaque_ecdsa_basic_session.jsy'
 import './unit/test_opaque_ecdsa_tahoe.jsy'
 import './unit/test_opaque_ecdsa_tahoe_session.jsy'
 
