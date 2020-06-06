@@ -31,8 +31,8 @@ export const tahoe_hmac = u8_key =>
 export function bind_tahoe_cipher(cipher) ::
   return @{}
     k21pair() :: return [this.k2loc, this.k1ref]
-    encode(u8) :: return this.encipher_utf8(u8)
-    decode(u8) :: return this.decode(u8)
+    encode_content(u8) :: return this.encipher(u8)
+    decode_content(u8) :: return this.decipher(u8)
     encode_utf8(utf8) :: return this.encipher_utf8(utf8)
     decode_utf8(u8) :: return this.decipher_utf8(u8)
 

@@ -11,6 +11,7 @@ from 'cbor-codec'
 
 const { assert, expect } = require('chai')
 
+
 describe @ 'opaque ecdsa basic', @::
   opaque_ecdsa.init_shared_codec @:
     encode: cbor_encode
@@ -27,7 +28,7 @@ describe @ 'opaque ecdsa basic', @::
   if 0 ::
     return it.only @ 'REGEN kv_test data', @::>
       const okey = await opaque_ecdsa.from_random()
-      const rec = await okey.encode(u8_test_content)
+      const rec = await okey.encode_content(u8_test_content)
 
       console.log @ `
           const kv_test = @{}
@@ -64,7 +65,7 @@ describe @ 'opaque ecdsa basic', @::
 
   it @ 'from_random', @::>
     const okey = await opaque_ecdsa.from_random()
-    const p_rec = okey.encode(u8_test_content)
+    const p_rec = okey.encode_content(u8_test_content)
     expect(p_rec).to.be.a('promise')
 
     const rec = await p_rec
@@ -75,7 +76,7 @@ describe @ 'opaque ecdsa basic', @::
     const check = await p_check
     expect(check).to.be.true
 
-    const p_ans = okey.decode(rec)
+    const p_ans = okey.decode_content(rec)
     expect(p_ans).to.be.a('promise')
     const ans = await p_ans
 
@@ -91,7 +92,7 @@ describe @ 'opaque ecdsa basic', @::
       const check = await p_check
       expect(check).to.be.true
 
-      const p_ans = okey.decode(kv_test.value)
+      const p_ans = okey.decode_content(kv_test.value)
       expect(p_ans).to.be.a('promise')
       const ans = await p_ans
 
@@ -107,7 +108,7 @@ describe @ 'opaque ecdsa basic', @::
       const check = await p_check
       expect(check).to.be.true
 
-      const p_ans = okey.decode(kv_test.value)
+      const p_ans = okey.decode_content(kv_test.value)
       expect(p_ans).to.be.a('promise')
       const ans = await p_ans
       expect(ans).to.be.undefined
@@ -116,12 +117,12 @@ describe @ 'opaque ecdsa basic', @::
     it @ 'from_k1ref invalid', @::>
       const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)
 
-      expect @ await okey.decode(kv_test.value)
+      expect @ await okey.decode_content(kv_test.value)
       .to.be.deep.equal @ u8_test_content
 
       for const slice_args of [ [15,-15], [0,-15], [15], ] ::
         const part = kv_test.value.slice @ ...slice_args
-        expect @ await okey.decode(part)
+        expect @ await okey.decode_content(part)
         .to.be.undefined
 
 

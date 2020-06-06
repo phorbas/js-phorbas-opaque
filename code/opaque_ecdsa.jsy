@@ -58,20 +58,20 @@ export function bind_ecdsa_basic() ::
     k21pair() :: return [this.k2loc, this.k1ref]
 
     encode_utf8(utf8) ::
-      return this.encode @ utf8_to_u8(utf8)
+      return this.encode_content(utf8_to_u8(utf8))
 
     async decode_utf8(record) ::
-      const u8 = await this.decode(record)
+      const u8 = await this.decode_content(record)
       if undefined !== u8 ::
         return u8_to_utf8(u8)
 
-    async encode(u8) ::
+    async encode_content(u8) ::
       const {k1ref, k2loc} = this
       if k1ref && k2loc ::
         return await this._pack_opaque @:
           c:u8, l:k2loc
 
-    async decode(record) ::
+    async decode_content(record) ::
       const {k1ref, k2loc, _kdf_secret} = this
       if record && k1ref && k2loc ::
         const {c:u8} = await this._unpack_opaque(record) || {}
