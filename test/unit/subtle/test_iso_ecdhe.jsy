@@ -79,7 +79,7 @@ describe @ 'subtle/iso_ecdhe', @::
 
 function _load_testable_ecdhe_p521() ::
   return _load_testable_ecdhe @:
-    namedCurve: 'P-521', namedCurve_node: 'secp521r1',
+    namedCurve: 'P-521',
 
     ec_pub_web:  hex_to_u8 @ '040189583c64d0fb7cf86cd65230eaf48f97c6bd8031bc12640d9d784cbb78c0d71ebebc185387f5f3b3abb0d4dddca3b3264a815d53c8305a56b5d7a0906b5d98f79001de8b1f5710c40a539b2568ab37f5e0b5ddfbf1f789ce47a08f789116ecdbeab52ff0f5804ef0f8df7c44f76885956491748f924ecf3077da36bcc17da2896cd4df'
     ec_pub_node: hex_to_u8 @ '04007e9b797f716f889ce7e341b3e66ef9746c85fcb6821be301e3b4a7230e0707fb470b00da57535ffea762fa7c75e7fd7d27423ff9df1a1decb024c453388fb1c3df01015fa497164ff0d825a5d485190d3b2130a197050135ec2fb6d7be885d38083c6491e9069d4a2ef43bdab4b23071bdd54dd8f8b680788f58bc4474b8ac2951a84c'
@@ -102,7 +102,7 @@ function _load_testable_ecdhe_p521() ::
 
 function _load_testable_ecdhe_p384() ::
   return _load_testable_ecdhe @:
-    namedCurve: 'P-384', namedCurve_node: 'secp384r1',
+    namedCurve: 'P-384',
 
     ec_pub_web:  hex_to_u8 @ '04a0b4b9bb255275cd3c3e5c21e55e6747804c4440480aa5c5cf00d3d2833c78c31d772978dad73511d21c97e15e369df1155306751fdb0c19c0ca449b5fdec02dc4e0c793cea430f9183000c057986b22da0be040fc11dbf5b847e6da61073872'
     ec_pub_node: hex_to_u8 @ '0451d49fe341824263142b0395275c4cf62028bfe2b2c282808cd1ac041cf3eab951bfcbc785151a7b24a3160fd6285977c18a2e20eabe22a115d6325404076d2830100ea1cb290ca1be4baf9302c7790077deaa1cb39b24fc980a5e492a920007'
@@ -125,7 +125,7 @@ function _load_testable_ecdhe_p384() ::
 
 function _load_testable_ecdhe_p256() ::
   return _load_testable_ecdhe @:
-    namedCurve: 'P-256', namedCurve_node: 'prime256v1',
+    namedCurve: 'P-256',
 
     ec_pub_web:  hex_to_u8 @ '04272fcfbfcefbca0d97ba1fcf88a8404e4c6d42fc361069a85669c5d4e990ce403bd91cd0465cfffbc59acfda991937a936caa6f4dbafb4dc5b60c072ea5e2d9b'
     ec_pub_node: hex_to_u8 @ '046bad6ea8e70ddde73cfa129ea5e50974eb3a0f0339c6928cc4a0e8cc89553b36d4b300114be57d27861fd7d9a7ac1934dc02f337b1d2ce25a88099b5c7138d25'
@@ -163,15 +163,16 @@ async function _load_testable_ecdhe(testable) ::
 
     testable.results = testable.from_web
     testable.known_ecdhe =
-      u8_ecdhe._with_ecdh @: _ec_, namedCurve
+      u8_ecdhe._with_ecdh(namedCurve, _ec_)
 
     if ! testable.ec_pub_web ::
       console.log @ `ec_pub_web:  hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`
     
   #ELIF PLAT_NODEJS
-    const {namedCurve, namedCurve_node, _known_node_raw} = testable
+    const {namedCurve, _known_node_raw} = testable
     const {createECDH} = require('crypto')
-    const _ecdh_ = createECDH(namedCurve_node)
+    const _ecdh_ = createECDH @
+      u8_ecdhe._node_namedCurves[namedCurve]
 
     if ! _known_node_raw ::
       _ecdh_.generateKeys()
@@ -182,7 +183,7 @@ async function _load_testable_ecdhe(testable) ::
 
     testable.results = testable.from_node
     testable.known_ecdhe =
-      u8_ecdhe._with_ecdh @: _ecdh_, namedCurve, namedCurve_node
+      u8_ecdhe._with_ecdh(namedCurve, _ecdh_)
 
     if ! testable.ec_pub_node ::
       console.log @ `ec_pub_node: hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`

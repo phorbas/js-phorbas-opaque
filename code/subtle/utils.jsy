@@ -34,12 +34,9 @@ export function u8_fast_equal(a, b) ::
 
 
 export function ecc_by_len(ec_len, p521='P-521', p384='P-384', p256='P-256', absent) ::
-  return 158===ec_len ? p521
-    : 120===ec_len ? p384
-    : 91===ec_len ? p256
-    : absent
-
-export function ecc_mirror(host, ec_len) ::
-  const key = ecc_by_len @ ec_len, 'p521', 'p384', 'p256'
-  return host[key]
+  switch ec_len ::
+    case 158: case 133: return p521
+    case 120: case 97: return p384
+    case 91: case 65: return p256
+    default: return absent
 

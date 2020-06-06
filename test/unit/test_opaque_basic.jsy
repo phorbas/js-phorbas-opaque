@@ -1,4 +1,10 @@
-import @{} opaque_core_api, opaque_basic, opaque_tahoe, tahoe_hmac
+import @{}
+  opaque_core_api, opaque_basic,
+  opaque_tahoe,
+  tahoe_hmac,
+  tahoe_ecdhe, tahoe_ecdhe_mirror, 
+  opaque_ecdsa, 
+
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -36,6 +42,40 @@ describe @ 'opaque core & basics', @::
   it @ 'shape of tahoe_hmac', @::>
     _expect_full_api @ tahoe_hmac @
       new Uint8Array @# 10,12,14,16
+
+  it @ 'shape of tahoe_ecdhe', @::>
+    const op_alice_key = tahoe_ecdhe()
+    const op_bob_p = tahoe_ecdhe_mirror(op_alice_key.ecdh)
+
+    expect(op_bob_p).to.be.a('promise')
+    const op_bob = await op_bob_p
+    _expect_full_api @ op_bob
+
+    const op_alice_p = op_alice_key.with_ecdh(op_bob.ecdh)
+    expect(op_alice_p).to.be.a('promise')
+    const op_alice = await op_alice_p
+    _expect_full_api @ op_alice
+
+
+  it @ 'shape of tahoe_ecdhe.as_core()', @::>
+    const op_alice_key = tahoe_ecdhe()
+    const op_bob_p = tahoe_ecdhe_mirror(op_alice_key.ecdh)
+
+    expect(op_bob_p).to.be.a('promise')
+    const op_bob = await op_bob_p
+    _expect_core_api @ op_bob.as_core()
+
+    const op_alice_p = op_alice_key.with_ecdh(op_bob.ecdh)
+    expect(op_alice_p).to.be.a('promise')
+    const op_alice = await op_alice_p
+    _expect_core_api @ op_alice.as_core()
+
+
+  it @ 'shape of opaque_ecdsa', @::>
+    _expect_full_api @ opaque_ecdsa
+
+  it @ 'shape of opaque_ecdsa.as_core()', @::>
+    _expect_core_api @ opaque_ecdsa.as_core()
 
 
   it @ 'opaque_basic.from_u8', @::>

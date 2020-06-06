@@ -1,7 +1,11 @@
 export * from './subtle.jsy'
 export * from './opaque_core_api.jsy'
 export * from './opaque_basic.jsy'
+
 export * from './opaque_tahoe.jsy'
+
 export * from './opaque_ecdsa.jsy'
+
 export * from './opaque_ecdhe.jsy'
+export * from './opaque_ecdhe_tahoe.jsy'
 

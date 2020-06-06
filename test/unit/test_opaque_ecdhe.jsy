@@ -1,4 +1,4 @@
-import @{} tahoe_ecdhe, init_opaque_shared_codec
+import @{} tahoe_ecdhe, tahoe_ecdhe_mirror, init_opaque_shared_codec
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -24,6 +24,20 @@ describe @ 'opaque ecdhe', @::
     expect(op_ecdhe).to.be.a('function')
     expect(op_ecdhe.ecdh).to.be.a('promise')
     expect(await op_ecdhe.ecdh).to.be.instanceof(Uint8Array)
+
+  it @ 'shape second', @::>
+    const op_alice = tahoe_ecdhe()
+    expect(op_alice.with_ecdh).to.be.a('function')
+    expect(op_alice.ecdh).to.be.a('promise')
+    expect(await op_alice.ecdh).to.be.instanceof(Uint8Array)
+
+    const op_bob_p = tahoe_ecdhe_mirror(op_alice.ecdh)
+
+    expect(op_bob_p).to.be.a('promise')
+    const op_bob = await op_bob_p
+    expect(op_bob.with_ecdh).to.be.a('function')
+    expect(op_bob.ecdh).to.be.a('promise')
+    expect(await op_bob.ecdh).to.be.instanceof(Uint8Array)
 
   it @ 'three', @::>
     const op_ecdhe = @{}
