@@ -49,6 +49,8 @@ export const opaque_core_api = @{}
   init_shared_codec: init_opaque_shared_codec
 
   as_core() :: return @{}
+    ciphered: this.ciphered
+
     from_k1ref: k1ref => this.from_k1ref(k1ref)
     from_k2loc: k2loc => this.from_k2loc(k2loc)
     from_k21pair: k21pair => this.from_k21pair(k21pair)

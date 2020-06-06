@@ -28,6 +28,15 @@ export default configs
 add_jsy('index')
 add_jsy('subtle')
 
+if (1) {
+  add_jsy('opaque_basic')
+  add_jsy('opaque_tahoe')
+  add_jsy('opaque_ecdsa')
+  add_jsy('opaque_ecdsa_tahoe')
+  add_jsy('opaque_ecdhe')
+  add_jsy('opaque_ecdhe_tahoe')
+}
+
 
 function add_jsy(src_name, opt={}) {
   const input = `code/${src_name}${opt.ext || '.jsy'}`

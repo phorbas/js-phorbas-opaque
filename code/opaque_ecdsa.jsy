@@ -1,9 +1,7 @@
 import {u8_sha_256} from './subtle.jsy'
 import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
-import {bind_tahoe_cipher} from './opaque_tahoe.jsy'
 
 import @{}
-  u8_aes_256_gcm
   u8_hmac_sha_256
   u8_ecdsa_sha_256
   u8_fast_equal
@@ -30,8 +28,7 @@ export const opaque_ecdsa = Object.freeze @:
   _kdf2_loc: kdf_key_tail @ kdf_sha_256
 
   key_proto: Object.freeze @
-    bind_tahoe_ecdsa @:
-      cipher: u8_aes_256_gcm
+    bind_ecdsa_key_proto @:
       kdf_ec: kdf_sha_256
       ecdsa_signer: u8_ecdsa_sha_256.p521
       ecdsa_verify: u8_ecdsa_sha_256.verify
@@ -52,15 +49,10 @@ export const opaque_ecdsa = Object.freeze @:
         this._kdf1_ref @ await hmac_sign(u8_key), kctx
 
 
-export function bind_tahoe_ecdsa(kw_cfg) ::
+export function bind_ecdsa_key_proto(kw_cfg) ::
   return @{}
-    ... bind_tahoe_cipher(kw_cfg.cipher)
+    ... opaque_basic_api.key_proto
     ... bind_ecdsa_codec(kw_cfg)
-
-    async validate(record) ::
-      if record ::
-        const res = await this._unpack_opaque(record)
-        return undefined !== res
 
 
 export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
@@ -71,6 +63,12 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
     return kctx
 
   return @{}
+    async validate(record) ::
+      if record ::
+        const res = await this._unpack_opaque(record)
+        return undefined !== res
+
+
     async _pack_opaque(obj_body) ::
       const {_ec_sign, _codec: {encode}} = this
 
@@ -108,7 +106,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
       return obj_body
 
     // 1 of 4 bytes of k1ref are present in k2loc; hash the AES encryption key an additional time
-    _kdf_secret: kdf_hmac_phorbas 
+    _kdf_secret: kdf_hmac_phorbas
     _init_eckey: (is_new, kctx) =>
       do_kctx_ec @ kctx, ecdsa_signer()
 

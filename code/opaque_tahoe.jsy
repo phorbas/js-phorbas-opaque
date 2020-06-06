@@ -5,6 +5,7 @@ import {u8_aes_256_gcm, u8_hmac_sha_256, opaque_shared_codec} from './subtle.jsy
 
 export const opaque_tahoe = Object.freeze @:
   ... opaque_basic_api
+  ciphered: true
 
   _hmac: u8_hmac_sha_256
   key_proto:
@@ -29,7 +30,12 @@ export const tahoe_hmac = u8_key =>
 
 export function bind_tahoe_cipher(cipher) ::
   return @{}
-    __proto__: opaque_basic_api.key_proto
+    ... opaque_basic_api.key_proto
+
+    encode(u8) :: return this.encipher_utf8(u8)
+    decode(u8) :: return this.decode(u8)
+    encode_utf8(utf8) :: return this.encipher_utf8(utf8)
+    decode_utf8(u8) :: return this.decipher_utf8(u8)
 
     encipher_utf8(utf8) ::
       return this.encipher @ utf8_to_u8(utf8)
