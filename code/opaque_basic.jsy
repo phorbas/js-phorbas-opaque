@@ -6,7 +6,7 @@ import {u8_crypto_random, u8_sha_256} from './subtle.jsy'
 export const kdf_random_16 = @=> u8_crypto_random(16)
 export const kdf_sha_256 = u8 => u8_sha_256(u8)
 
-const _as_u8_async = async u8 => new Uint8Array(u8)
+const _as_u8_async = async u8 => u8 && new Uint8Array(u8)
 
 const opaque_basic_key_proto = @{}
   k21pair() :: return [this.k2loc, this.k1ref]
