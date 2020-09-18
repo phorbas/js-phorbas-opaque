@@ -14,6 +14,12 @@ encryption schemes and algorithms. The Opaque library handles the principles of
  [PHORBAS HAMT]: https://github.com/phorbas/js-phorbas-hamt
 
 
+## API & Use
+
+- See [`test/example.mjs`](test/example.mjs).
+- API docs [`docs/api.md`](docs/api.md).
+
+
 ## About PHORBAS
 
 The PHORBAS project implements a persistent binary data storage scheme that

@@ -18,7 +18,7 @@ export const kdf_key_tail = kdf_inner =>
       u8_mix_aaab @ await kdf_inner(k1ref), k1ref
 
 
-export const opaque_ecdsa = Object.freeze @:
+export const opaque_ecdsa_basic = Object.freeze @:
   ... opaque_basic_api
 
   _hmac: u8_hmac_sha_256

@@ -1,0 +1,14 @@
+import {u8_ecdhe} from './subtle.jsy'
+import {opaque_basic_hmac} from './opaque_basic_hmac.jsy'
+import {create_opaque_ecdhe, bind_opaque_ecdhe_mirror} from './opaque_ecdhe.jsy'
+
+export const opaque_ecdhe_basic = () =>
+  create_opaque_ecdhe @
+    opaque_basic_hmac,
+    u8_ecdhe.p256()
+
+export const opaque_ecdhe_basic_mirror =
+  bind_opaque_ecdhe_mirror @
+    opaque_basic_hmac
+
+

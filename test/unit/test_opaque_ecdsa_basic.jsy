@@ -1,4 +1,4 @@
-import @{} opaque_ecdsa
+import @{} opaque_ecdsa_basic
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -13,7 +13,7 @@ const { assert, expect } = require('chai')
 
 
 describe @ 'opaque ecdsa basic', @::
-  opaque_ecdsa.init_shared_codec @:
+  opaque_ecdsa_basic.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
 
@@ -27,7 +27,7 @@ describe @ 'opaque ecdsa basic', @::
 
   if 0 ::
     return it.only @ 'REGEN kv_test data', @::>
-      const okey = await opaque_ecdsa.from_random()
+      const okey = await opaque_ecdsa_basic.from_random()
       const rec = await okey.encode_content(u8_test_content)
 
       console.log @ `
@@ -39,8 +39,8 @@ describe @ 'opaque ecdsa basic', @::
 
 
   it @ 'two from_random', @::>
-    const okey_a = await opaque_ecdsa.from_random()
-    const okey_b = await opaque_ecdsa.from_random()
+    const okey_a = await opaque_ecdsa_basic.from_random()
+    const okey_b = await opaque_ecdsa_basic.from_random()
 
     expect @ okey_a.ec
     .to.not.deep.equal @ okey_b.ec
@@ -50,8 +50,8 @@ describe @ 'opaque ecdsa basic', @::
 
 
   it @ 'two from_content', @::>
-    const okey_a = await opaque_ecdsa.from_content @ u8_test_content
-    const okey_b = await opaque_ecdsa.from_content @ u8_test_content
+    const okey_a = await opaque_ecdsa_basic.from_content @ u8_test_content
+    const okey_b = await opaque_ecdsa_basic.from_content @ u8_test_content
 
     expect @ okey_a.ec
     .to.not.deep.equal @ okey_b.ec
@@ -64,7 +64,7 @@ describe @ 'opaque ecdsa basic', @::
 
 
   it @ 'from_random', @::>
-    const okey = await opaque_ecdsa.from_random()
+    const okey = await opaque_ecdsa_basic.from_random()
     const p_rec = okey.encode_content(u8_test_content)
     expect(p_rec).to.be.a('promise')
 
@@ -85,7 +85,7 @@ describe @ 'opaque ecdsa basic', @::
 
   describe @ 'known', @::
     it @ 'from_k1ref', @::>
-      const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)
+      const okey = await opaque_ecdsa_basic.from_k1ref(kv_test.k1ref)
 
       const p_check = okey.validate(kv_test.value)
       expect(p_check).to.be.a('promise')
@@ -101,7 +101,7 @@ describe @ 'opaque ecdsa basic', @::
 
 
     it @ 'from_k2ref', @::>
-      const okey = await opaque_ecdsa.from_k2loc(kv_test.k2loc)
+      const okey = await opaque_ecdsa_basic.from_k2loc(kv_test.k2loc)
 
       const p_check = okey.validate(kv_test.value)
       expect(p_check).to.be.a('promise')
@@ -115,7 +115,7 @@ describe @ 'opaque ecdsa basic', @::
 
 
     it @ 'from_k1ref invalid', @::>
-      const okey = await opaque_ecdsa.from_k1ref(kv_test.k1ref)
+      const okey = await opaque_ecdsa_basic.from_k1ref(kv_test.k1ref)
 
       expect @ await okey.decode_content(kv_test.value)
       .to.be.deep.equal @ u8_test_content
@@ -127,7 +127,7 @@ describe @ 'opaque ecdsa basic', @::
 
 
     it @ 'from_k2ref invalid', @::>
-      const okey = await opaque_ecdsa.from_k2loc(kv_test.k2loc)
+      const okey = await opaque_ecdsa_basic.from_k2loc(kv_test.k2loc)
 
       expect @ await okey.validate(kv_test.value)
       .to.be.true

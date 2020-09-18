@@ -14,6 +14,7 @@ import './unit/test_opaque_ecdsa_basic_session.jsy'
 import './unit/test_opaque_ecdsa_tahoe.jsy'
 import './unit/test_opaque_ecdsa_tahoe_session.jsy'
 
+import './unit/test_opaque_ecdhe_basic.jsy'
 import './unit/test_opaque_ecdhe_tahoe.jsy'
 
 import './unit/test_storage_opaque.jsy'

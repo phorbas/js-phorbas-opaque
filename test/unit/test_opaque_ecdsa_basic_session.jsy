@@ -1,4 +1,4 @@
-import @{} opaque_ecdsa
+import @{} opaque_ecdsa_basic
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/index.mjs'
 #ELIF PLAT_NODEJS
@@ -13,12 +13,12 @@ const { assert, expect } = require('chai')
 
 
 describe @ 'opaque ecdsa basic session', @::
-  opaque_ecdsa.init_shared_codec @:
+  opaque_ecdsa_basic.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
 
 
-  const opaque_session = opaque_ecdsa.as_session()
+  const opaque_session = opaque_ecdsa_basic.as_session()
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
   const kv_test = @{}
     k1ref: hex_to_u8 @ '445b9be84fee281dd632bc9acc45bf604e58d5b7d88ce774dec0289abee05b0f'

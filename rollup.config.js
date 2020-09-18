@@ -30,10 +30,12 @@ add_jsy('subtle')
 
 if (1) {
   add_jsy('opaque_basic')
+  add_jsy('opaque_basic_hmac')
   add_jsy('opaque_tahoe')
-  add_jsy('opaque_ecdsa')
+  add_jsy('opaque_ecdsa_basic')
   add_jsy('opaque_ecdsa_tahoe')
   add_jsy('opaque_ecdhe')
+  add_jsy('opaque_ecdhe_basic')
   add_jsy('opaque_ecdhe_tahoe')
 }
 

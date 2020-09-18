@@ -1,6 +1,6 @@
 import {kdf_sha_256} from './opaque_basic.jsy'
 import {bind_tahoe_cipher} from './opaque_tahoe.jsy'
-import {bind_ecdsa_codec, opaque_ecdsa} from './opaque_ecdsa.jsy'
+import {bind_ecdsa_codec, opaque_ecdsa_basic} from './opaque_ecdsa_basic.jsy'
 
 import @{}
   u8_aes_256_gcm
@@ -14,7 +14,7 @@ export const kdf_hmac_phorbas =
 
 
 export const opaque_ecdsa_tahoe = Object.freeze @:
-  ... opaque_ecdsa
+  ... opaque_ecdsa_basic
   ciphered: true
 
   key_proto: Object.freeze @

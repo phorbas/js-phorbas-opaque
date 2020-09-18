@@ -3,7 +3,7 @@ import @{}
   opaque_tahoe,
   tahoe_hmac,
   tahoe_ecdhe, tahoe_ecdhe_mirror, 
-  opaque_ecdsa, 
+  opaque_ecdsa_basic, 
   opaque_ecdsa_tahoe, 
 
 #IF PLAT_WEB
@@ -72,11 +72,11 @@ describe @ 'opaque core & basics', @::
     await _expect_core_api @ op_alice.as_core()
 
 
-  it @ 'shape of opaque_ecdsa', @::>
-    await _expect_full_api @ opaque_ecdsa
+  it @ 'shape of opaque_ecdsa_basic', @::>
+    await _expect_full_api @ opaque_ecdsa_basic
 
-  it @ 'shape of opaque_ecdsa.as_core()', @::>
-    await _expect_core_api @ opaque_ecdsa.as_core()
+  it @ 'shape of opaque_ecdsa_basic.as_core()', @::>
+    await _expect_core_api @ opaque_ecdsa_basic.as_core()
 
 
   it @ 'shape of opaque_ecdsa_tahoe', @::>

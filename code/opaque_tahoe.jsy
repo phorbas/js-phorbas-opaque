@@ -1,25 +1,16 @@
 import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
-import {opaque_basic_api, kdf_random_16} from './opaque_basic.jsy'
+import {opaque_basic_hmac_api, kdf_random_16} from './opaque_basic_hmac.jsy'
 import {u8_aes_256_gcm, u8_hmac_sha_256, opaque_shared_codec} from './subtle.jsy'
 
 
 export const opaque_tahoe = Object.freeze @:
-  ... opaque_basic_api
+  ... opaque_basic_hmac_api
   ciphered: true
 
-  _hmac: u8_hmac_sha_256
   key_proto:
     Object.freeze @
       bind_tahoe_cipher(u8_aes_256_gcm)
 
-  as_session(u8_key) ::
-    return u8_key ? this.with_hmac(u8_key) : this._clone()
-
-  with_hmac(u8_key) ::
-    const {hmac_sign} = this._hmac(u8_key)
-    return this._clone @: _kdf1_ref: hmac_sign
-
-  _clone(ctx) :: return @{} __proto__: this, as_session: null, ...ctx
 
 export const tahoe = @=> @: __proto__: opaque_tahoe
 
