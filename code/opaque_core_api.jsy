@@ -26,8 +26,11 @@ export const opaque_core_api = @{}
   async from_k21pair(k21pair) ::
     const kctx = await this._init_key(false)
     if ! Array.isArray(k21pair) ::
-      kctx.k1ref = k21pair
-      return this._from_kctx(kctx)
+      if 'function' !== typeof k21pair.k21pair ::
+        kctx.k1ref = k21pair
+        return this._from_kctx(kctx)
+
+      k21pair = k21pair.k21pair()
 
     kctx.k1ref = k21pair[1]
     kctx.k2loc = k21pair[0]
