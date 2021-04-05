@@ -1,13 +1,13 @@
 {
   "private": true,
   "dependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^7.1.1"
+    "chai": "^4.3.4",
+    "mocha": "^8.3.2"
   },
   "devDependencies": {
     "@phorbas/opaque": "file:..",
-    "@phorbas/store": "^0.1.1",
-    "cbor-codec": "^0.2.2",
+    "@phorbas/store": "^0.1.5",
+    "cbor-codec": "^0.8.0",
     "qsrv": "^0.1.7",
     "u8-utils": "^0.3.7"
   },

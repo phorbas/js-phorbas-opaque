@@ -1,6 +1,6 @@
 {
   "name": "@phorbas/opaque",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Persistent, hashed, opaque, replicable, binary key/content, addressable, storage",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
@@ -25,13 +25,12 @@
     "./": "./",
     ".": "./esm/node/index.mjs"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^8.0.1",
-    "ecc-codec": "0.0.4",
-    "rollup": "^2.13.1",
+    "@rollup/plugin-node-resolve": "^11.2.1",
+    "ecc-codec": "0.0.5",
+    "rollup": "^2.44.0",
     "rollup-plugin-dgnotify": "^0.1.7",
-    "rollup-plugin-jsy": "^1.7.1",
+    "rollup-plugin-jsy": "^1.7.2",
     "u8-utils": "^0.3.7"
   },
   "scripts": {
