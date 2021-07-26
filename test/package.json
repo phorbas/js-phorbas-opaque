@@ -6,10 +6,10 @@
   },
   "devDependencies": {
     "@phorbas/opaque": "file:..",
-    "@phorbas/store": "^0.1.5",
+    "@phorbas/store": "^0.2.0",
     "cbor-codec": "^0.8.0",
     "qsrv": "^0.1.7",
-    "u8-utils": "^0.3.7"
+    "u8-utils": "^0.3.8"
   },
   "scripts": {
     "serve": "qsrv -f unittest.html -- __unittest.iife.js",
