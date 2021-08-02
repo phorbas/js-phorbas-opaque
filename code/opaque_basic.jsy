@@ -9,7 +9,9 @@ export const kdf_sha_256 = u8 => u8_sha_256(u8)
 const _as_u8_async = async u8 => u8 && new Uint8Array(u8)
 
 const opaque_basic_key_proto = @{}
+  ciphered: false
   k21pair() :: return [this.k2loc, this.k1ref]
+
   encode_content: _as_u8_async
   decode_content: _as_u8_async
   encode_utf8: async utf8 => utf8_to_u8(utf8)

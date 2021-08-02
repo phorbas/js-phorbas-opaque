@@ -21,7 +21,9 @@ export const tahoe_hmac = u8_key =>
 
 export function bind_tahoe_cipher(cipher) ::
   return @{}
+    ciphered: true
     k21pair() :: return [this.k2loc, this.k1ref]
+
     encode_content(u8) :: return this.encipher(u8)
     decode_content(u8) :: return this.decipher(u8)
     encode_utf8(utf8) :: return this.encipher_utf8(utf8)
@@ -44,16 +46,16 @@ export function bind_tahoe_cipher(cipher) ::
         return await this._pack_opaque @:
           c:u8_enc, v:u8_iv, l:k2loc
 
-    async decipher_utf8(record) ::
-      const u8 = await this.decipher(record)
+    async decipher_utf8(u8_record) ::
+      const u8 = await this.decipher(u8_record)
       if undefined !== u8 ::
         return u8_to_utf8(u8)
 
-    async decipher(record) ::
-      const {k1ref, k2loc, _kdf_secret} = this
-      if record && k1ref && k2loc ::
+    async decipher(u8_record) ::
+      const {k1ref, _kdf_secret} = this
+      if u8_record && k1ref ::
         const {v:u8_iv, c:u8_enc} =
-          await this._unpack_opaque(record) || {}
+          await this._unpack_opaque(u8_record) || {}
 
         const u8_secret = ! _kdf_secret ? k1ref
           : await _kdf_secret(k1ref)
@@ -69,6 +71,6 @@ export function bind_tahoe_cipher(cipher) ::
 
     _pack_opaque(obj_body) ::
       return this._codec.encode(obj_body)
-    _unpack_opaque(record) ::
-      return this._codec.decode(record)
+    _unpack_opaque(u8_record) ::
+      return this._codec.decode(u8_record)
 

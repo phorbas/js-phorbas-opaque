@@ -55,6 +55,7 @@ export function bind_ecdsa_key_proto(kw_cfg) ::
 
 export function bind_ecdsa_basic() ::
   return @{}
+    ciphered: false
     k21pair() :: return [this.k2loc, this.k1ref]
 
     encode_utf8(utf8) ::

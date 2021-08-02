@@ -226,6 +226,7 @@ async function _expect_okey(okey, ciphered) ::
   .to.have.length(32)
   .to.be.an.instanceof(Uint8Array)
 
+  expect(okey.ciphered).to.be.a('boolean')
   expect(okey.k21pair).to.be.a('function')
 
   expect(okey.k21pair())

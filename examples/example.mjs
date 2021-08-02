@@ -1,0 +1,22 @@
+import { cbor_encode, cbor_decode } from 'cbor-codec'
+import { opaque_tahoe, init_opaque_shared_codec } from '@phorbas/opaque'
+
+init_opaque_shared_codec({ encode: cbor_encode, decode: cbor_decode })
+
+
+async function tahoe_put(msg) {
+  const okey = await opaque_tahoe.from_content(msg)
+  return {
+    cas_addr: okey.k21pair(),
+    enc_data: await okey.encipher_utf8(msg), }
+}
+
+async function tahoe_get({cas_addr, enc_data}) {
+  const okey = await opaque_tahoe.from_k21pair(cas_addr)
+  return await okey.decipher_utf8(enc_data)
+}
+
+tahoe_put('Hello @phorbas/opaque')
+  .then(tahoe_get)
+  .then(out => { console.log('Got: %s', out) })
+

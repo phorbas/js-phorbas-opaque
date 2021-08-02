@@ -16,7 +16,7 @@ encryption schemes and algorithms. The Opaque library handles the principles of
 
 ## API & Use
 
-- See [`test/example.mjs`](test/example.mjs).
+- See [`examples/`](./examples/).
 - API docs [`docs/api.md`](docs/api.md).
 
 

@@ -5,15 +5,15 @@ import { opaque_ecdsa_tahoe, init_opaque_shared_codec } from '@phorbas/opaque/es
 init_opaque_shared_codec({ encode: cbor_encode, decode: cbor_decode })
 
 // run demo with following function
-_run_demo(demo_opaque_ecdsa_tahoe)
+_run_demo(demo_opaque_ecdsa_tahoe,
+  'Hello from @phorbas/opaque demo_opaque_ecdsa_tahoe')
 
-async function demo_opaque_ecdsa_tahoe() {
-  const msg = 'Hello from @phorbas/opaque demo_opaque_ecdsa_tahoe'
-
+async function demo_opaque_ecdsa_tahoe(msg) {
   console.log('')
   console.log('msg: %o', msg)
 
   const okey = await opaque_ecdsa_tahoe.from_content(msg)
+  console.log('ciphered?:', opaque_ecdsa_tahoe.ciphered, okey.ciphered)
   console.log('okey:', okey)
 
   const rec = await okey.encode_utf8(msg)
@@ -25,11 +25,11 @@ async function demo_opaque_ecdsa_tahoe() {
 }
 
 
-async function _run_demo(demo_main) {
+async function _run_demo(demo_main, ...args) {
   // use timer to keep NodeJS from exiting
   let tid = setTimeout(Boolean, 15000)
   try {
-    await demo_main()
+    await demo_main(...args)
   } finally {
     clearTimeout(tid)
   }

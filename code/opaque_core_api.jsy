@@ -3,28 +3,41 @@ import {init_opaque_shared_codec} from './subtle/codec.jsy'
 
 
 export const opaque_core_api = @{}
-  async _from_kctx(kctx) ::
-    kctx.k2loc = await this._kdf2_loc(kctx.k1ref, kctx)
-    return this._finish_key(kctx)
+  // k0 is source material for k1ref derivation
 
-  async from_k0(u8_k0) ::
+  from_random() :: // k0
+    return this.from_u8(this._kdf0_random())
+
+  async from_content(u8_buf) :: // k0
+    u8_buf = await this._kdf0_hash(
+      u8_maybe_utf8(u8_buf))
+    return this.from_u8(u8_buf)
+
+  async from_u8(u8_k0) :: // k0
     const kctx = await this._init_key(true)
     kctx.k1ref = await this._kdf1_ref(u8_k0, kctx)
     return this._from_kctx(kctx)
 
+
+  // k1ref is privlaged reference
+
   async from_k1ref(k1ref) ::
-    const kctx = await this._init_key(false)
+    const kctx = await this._init_key()
     kctx.k1ref = k1ref
     return this._from_kctx(kctx)
 
+  // k2loc is observable location
+
   async from_k2loc(k2loc) ::
-    const kctx = await this._init_key(false)
+    const kctx = await this._init_key()
     kctx.k1ref = undefined
     kctx.k2loc = k2loc
     return this._finish_key(kctx)
 
+  // k21pair may be tuple of `[k1ref, k2pair]` or `k1ref` alone; lazily avoids rehashing `k2loc`
+
   async from_k21pair(k21pair) ::
-    const kctx = await this._init_key(false)
+    const kctx = await this._init_key()
     if ! Array.isArray(k21pair) ::
       if 'function' !== typeof k21pair.k21pair ::
         kctx.k1ref = k21pair
@@ -36,17 +49,19 @@ export const opaque_core_api = @{}
     kctx.k2loc = k21pair[0]
     return this._finish_key(kctx)
 
-  async from_content(u8_buf) ::
-    return this.from_k0 @
-      await this._kdf0_hash @
-        u8_maybe_utf8(u8_buf)
 
-  from_random(kctx) ::
-    return this.from_k0 @
-      this._kdf0_random()
+  //
+  // Protected extension api
 
-  from_u8(u8_k0) ::
-    return this.from_k0 @ u8_k0
+  // _init_key(is_new) : kctx // subclass responsibility
+  // _finish_key(kctx) : kctx // subclass responsibility
+  async _from_kctx(kctx) ::
+    kctx.k2loc = await this._kdf2_loc(kctx.k1ref, kctx)
+    return this._finish_key(kctx)
+
+
+  //
+  // Addtional public api
 
   as_session() :: return this
   init_shared_codec: init_opaque_shared_codec
@@ -59,10 +74,11 @@ export const opaque_core_api = @{}
     from_k21pair: k21pair => this.from_k21pair(k21pair)
     from_content: u8_buf => this.from_content(u8_buf)
     from_random: () => this.from_random()
-    from_u8: u8_raw => this.from_u8(u8_raw)
+    from_u8: u8_k0 => this.from_u8(u8_k0)
 
     as_session: (...args) => this.as_session(...args).as_core()
 
-    init_shared_codec: init_opaque_shared_codec
-    as_core() :: return this
+    as_core: _self
+
+function _self() :: return this
 

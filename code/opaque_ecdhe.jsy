@@ -7,7 +7,8 @@ export function create_opaque_ecdhe(opaque_base, _ecdh_) ::
     with_ecdh
 
   return Object.assign @ with_ecdh, @{}
-    with_ecdh, ecdh: _ecdh_.ecdh
+    with_ecdh, ecdh: _ecdh_.ecdh,
+    ciphered: opaque_base.ciphered
 
   async function with_ecdh(ec_other) ::
     return opaque.with_hmac @
