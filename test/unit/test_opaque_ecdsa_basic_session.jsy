@@ -1,8 +1,8 @@
 import @{} opaque_ecdsa_basic
 #IF PLAT_WEB
-  from '@phorbas/opaque/esm/web/index.mjs'
+  from '@phorbas/opaque/esm/web-codec/index.mjs'
 #ELIF PLAT_NODEJS
-  from '@phorbas/opaque/esm/node/index.mjs'
+  from '@phorbas/opaque/esm/node-codec/index.mjs'
 
 import @{}
   cbor_encode, cbor_decode,

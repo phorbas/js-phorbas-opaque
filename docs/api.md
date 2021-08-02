@@ -30,7 +30,7 @@ async function tahoe_get({cas_addr, enc_data}) {
 
 tahoe_put('Hello @phorbas/opaque')
   .then(tahoe_get)
-  .then(out => { console.log('Got: %s', out) })
+  .then(out => { console.log('Round-trip: %s', out) })
 ```
 
 

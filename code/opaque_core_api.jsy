@@ -1,5 +1,7 @@
 import {u8_maybe_utf8} from './subtle/utils.jsy'
-import {init_opaque_shared_codec} from './subtle/codec.jsy'
+
+#IF NO_CBOR
+  import {init_opaque_shared_codec} from './subtle/codec.jsy'
 
 
 export const opaque_core_api = @{}
@@ -64,7 +66,9 @@ export const opaque_core_api = @{}
   // Addtional public api
 
   as_session() :: return this
-  init_shared_codec: init_opaque_shared_codec
+
+  #IF NO_CBOR
+    init_shared_codec: init_opaque_shared_codec,
 
   as_core() :: return @{}
     ciphered: this.ciphered

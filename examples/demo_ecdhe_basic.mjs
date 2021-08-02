@@ -1,8 +1,4 @@
-import {cbor_encode, cbor_decode} from 'cbor-codec'
-import { opaque_ecdhe_basic, init_opaque_shared_codec } from '@phorbas/opaque/esm/node/index.mjs'
-
-// init @phorbas/opaque to use cbor-codec
-init_opaque_shared_codec({ encode: cbor_encode, decode: cbor_decode })
+import { opaque_ecdhe_basic } from '@phorbas/opaque'
 
 // run demo with following function
 _run_demo(demo_opaque_ecdhe_basic,

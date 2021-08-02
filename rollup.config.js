@@ -3,21 +3,24 @@ import rpi_jsy from 'rollup-plugin-jsy'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 
+const _rpis_ = defines => [
+  rpi_jsy({defines}),
+  rpi_resolve(),
+  rpi_dgnotify()]
+
 const cfg_node = {
   external: id => builtinModules.includes(id),
-  plugins: [
-    rpi_jsy({defines: {PLAT_NODEJS: true}}),
-    rpi_resolve(),
-    rpi_dgnotify(),
-  ]}
+  plugins: _rpis_({PLAT_NODEJS: true}) }
 
 const cfg_web = {
   external: [],
-  plugins: [
-    rpi_jsy({defines: {PLAT_WEB: true}}),
-    rpi_resolve(),
-    rpi_dgnotify(),
-  ]}
+  plugins: _rpis_({PLAT_WEB: true}) }
+
+const cfg_node_codec = { ... cfg_node,
+  plugins: _rpis_({PLAT_NODEJS: true, NO_CBOR: true}) }
+
+const cfg_web_codec = { ... cfg_web,
+  plugins: _rpis_({PLAT_WEB: true, NO_CBOR: true}) }
 
 const _out_ = { sourcemap: true }
 
@@ -48,4 +51,10 @@ function add_jsy(src_name, opt={}) {
 
   configs.push({ ... cfg_web, input,
     output: { ..._out_, file: `esm/web/${src_name}.mjs`, format: 'es' }})
+
+  configs.push({ ... cfg_node_codec, input,
+    output: { ..._out_, file: `esm/node-codec/${src_name}.mjs`, format: 'es' }})
+
+  configs.push({ ... cfg_web_codec, input,
+    output: { ..._out_, file: `esm/web-codec/${src_name}.mjs`, format: 'es' }})
 }
