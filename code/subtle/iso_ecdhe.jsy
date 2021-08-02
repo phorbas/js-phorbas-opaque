@@ -12,9 +12,9 @@ import {ecc_by_len} from './utils.jsy'
     const {subtle} = crypto
 
     return @{}
-      p521: @=> _gen_ecdhe('P-521')
-      p384: @=> _gen_ecdhe('P-384')
-      p256: @=> _gen_ecdhe('P-256')
+      p521: () => _gen_ecdhe('P-521')
+      p384: () => _gen_ecdhe('P-384')
+      p256: () => _gen_ecdhe('P-256')
       mirror: other => _ecdhe_mirror(other, _gen_ecdhe)
       _with_ecdh
 
@@ -54,9 +54,9 @@ import {ecc_by_len} from './utils.jsy'
 
   export function _bind_ecdhe() ::
     return @{}
-      p521: @=> _gen_ecdhe('P-521')
-      p384: @=> _gen_ecdhe('P-384')
-      p256: @=> _gen_ecdhe('P-256')
+      p521: () => _gen_ecdhe('P-521')
+      p384: () => _gen_ecdhe('P-384')
+      p256: () => _gen_ecdhe('P-256')
       mirror: other => _ecdhe_mirror(other, _gen_ecdhe)
       _with_ecdh
       _node_namedCurves

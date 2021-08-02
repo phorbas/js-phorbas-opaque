@@ -13,9 +13,9 @@
   export function _bind_ecdsa(hash) ::
     const {subtle} = crypto
     return @{}
-      p521: @=> _ecdsa_signer @ 'P-521'
-      p384: @=> _ecdsa_signer @ 'P-384'
-      p256: @=> _ecdsa_signer @ 'P-256'
+      p521: () => _ecdsa_signer @ 'P-521'
+      p384: () => _ecdsa_signer @ 'P-384'
+      p256: () => _ecdsa_signer @ 'P-256'
       verify: ecdsa_verify
       hash
 
@@ -63,9 +63,9 @@
 
   export function _bind_ecdsa(hash) ::
     return @{}
-      p521: @=> _ecdsa_signer @ 'P-521', 'secp521r1'
-      p384: @=> _ecdsa_signer @ 'P-384', 'secp384r1'
-      p256: @=> _ecdsa_signer @ 'P-256', 'prime256v1'
+      p521: () => _ecdsa_signer @ 'P-521', 'secp521r1'
+      p384: () => _ecdsa_signer @ 'P-384', 'secp384r1'
+      p256: () => _ecdsa_signer @ 'P-256', 'prime256v1'
       verify: ecdsa_verify
       hash
 

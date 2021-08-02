@@ -1,10 +1,23 @@
+function _codec_uninit() ::
+  throw new Error('Uninitialized @phorbas/opaque codec')
 
 export const opaque_shared_codec = @{}
-  encode: @:: throw new Error @ 'Uninitialized codec.encode'
-  decode: @:: throw new Error @ 'Uninitialized codec.decode'
+  encode: _codec_uninit,
+  decode: _codec_uninit,
 
-export function init_opaque_shared_codec({encode, decode}) ::
-  const o = opaque_shared_codec
-  o.encode = encode
-  o.decode = decode
+export function init_opaque_shared_codec({encode, decode}, on_absent) ::
+  let o = opaque_shared_codec
+
+  if encode === o.encode && decode === o.decode ::
+    return 2
+
+  if _codec_uninit === o.encode || true === on_absent ::
+    o.encode = encode
+    o.decode = decode
+    return 1
+
+  let msg = 'Re-initialized @phorbas/opaque codec'
+  if on_absent ::
+    return on_absent(msg, o)
+  else throw new Error(msg)
 

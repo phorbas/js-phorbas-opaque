@@ -58,7 +58,7 @@ export const opaque_core_api = @{}
     from_k2loc: k2loc => this.from_k2loc(k2loc)
     from_k21pair: k21pair => this.from_k21pair(k21pair)
     from_content: u8_buf => this.from_content(u8_buf)
-    from_random: @=> this.from_random()
+    from_random: () => this.from_random()
     from_u8: u8_raw => this.from_u8(u8_raw)
 
     as_session: (...args) => this.as_session(...args).as_core()

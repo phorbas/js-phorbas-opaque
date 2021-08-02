@@ -12,7 +12,7 @@ export const opaque_tahoe = Object.freeze @:
       bind_tahoe_cipher(u8_aes_256_gcm)
 
 
-export const tahoe = @=> @: __proto__: opaque_tahoe
+export const tahoe = () => ({ __proto__: opaque_tahoe })
 
 export const tahoe_hmac = u8_key =>
   opaque_tahoe.with_hmac(u8_key)
