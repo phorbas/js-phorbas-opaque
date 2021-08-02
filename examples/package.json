@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {},
+  "dependencies": {
+    "@phorbas/opaque": "file:..",
+    "cbor-codec": "^0.8.0"
+  },
+  "scripts": {}
+}
