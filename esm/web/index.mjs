@@ -1998,8 +1998,8 @@ function bind_ecdsa_basic() {
   , encode_utf8(utf8) {
       return this.encode_content(utf8_to_u8$1(utf8))}
 
-  , async decode_utf8(record) {
-      const u8 = await this.decode_content(record);
+  , async decode_utf8(u8_record) {
+      const u8 = await this.decode_content(u8_record);
       if (undefined !== u8) {
         return u8_to_utf8$1(u8)} }
 
@@ -2009,10 +2009,10 @@ function bind_ecdsa_basic() {
         return await this._pack_opaque({
           c:u8, l:k2loc}) } }
 
-  , async decode_content(record) {
+  , async decode_content(u8_record) {
       const {k1ref, k2loc, _kdf_secret} = this;
-      if (record && k1ref && k2loc) {
-        const {c:u8} = await this._unpack_opaque(record) || {};
+      if (u8_record && k1ref && k2loc) {
+        const {c:u8} = await this._unpack_opaque(u8_record) || {};
         return u8} } } }
 
 
@@ -2025,9 +2025,9 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
     return kctx}
 
   return {
-    async validate(record) {
-      if (record) {
-        const res = await this._unpack_opaque(record);
+    async validate(u8_record) {
+      if (u8_record) {
+        const res = await this._unpack_opaque(u8_record);
         return undefined !== res} }
 
 
@@ -2041,10 +2041,10 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
       return encode({z:sig, b:body}) }
 
 
-  , async _unpack_opaque(record) {
+  , async _unpack_opaque(u8_record) {
       const {k2loc, _codec: {decode}} = this;
       let obj_sig;
-      try {obj_sig = decode(record);}
+      try {obj_sig = decode(u8_record);}
       catch (err) {return }// ignore decoding error
 
       const {z:sig, b:body} = obj_sig;

@@ -25,6 +25,15 @@ See:
   Returns a cloned ECDSA opaque object with `k1ref` derivation bound to HMAC-SHA-256 hashing.
 
 
+Attached Key Contexts APIs:
+- `async validate(u8_record) : boolean`
+  Returns true if `u8_record` is properly signed and decoded;
+  `false` for decoding errors; `undefined` if `u8_record` is falsey.
+- `as_session()`
+  Re-uses a single ECDSA keypair between operations of this key context instance.
+  
+
+
 ## Use of `opaque_ecdsa_tahoe`
 
 Try it at [`examples/example_ecdsa.mjs`](../examples/example_ecdsa.mjs)
