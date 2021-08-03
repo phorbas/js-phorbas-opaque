@@ -13,6 +13,8 @@ The `k1ref` corresponds to [Tahoe-LAFS][] ciphering secret, as well as the multi
 
 ## Use
 
+Try it at [`examples/example_tahoe.mjs`](../examples/example_tahoe.mjs)
+
 ```javascript
 import { opaque_tahoe } from '@phorbas/opaque'
 
@@ -29,6 +31,7 @@ async function tahoe_get({cas_addr, enc_data}) {
 }
 
 tahoe_put('Hello @phorbas/opaque')
+  .then(info => { console.log(info); return info })
   .then(tahoe_get)
   .then(out => { console.log('Round-trip: %s', out) })
 ```
@@ -65,17 +68,17 @@ See [`./opaque_api.md`](./opaque_api.md) for more docs on the core api.
 
 Tahoe (ciphered) Opaque Variants:
 
-- `opaque_tahoe` -- AES encrypted
-- `opaque_ecdsa_tahoe` -- ECDSA signed, AES encrypted
-- `opaque_ecdhe_tahoe` -- ECDHE shared HMAC secret for k1, AES encrypted
+- [`opaque_tahoe`](./opaque_tahoe.md) -- AES encrypted
+- [`opaque_ecdsa_tahoe`](./opaque_ecdsa.md) -- ECDSA signed, AES encrypted
+- [`opaque_ecdhe_tahoe`](./opaque_ecdhe.md) -- ECDHE shared HMAC secret for `k2loc`, AES encrypted
 
 
 Basic (cleartext) Opaque Variants:
 
-- `opaque_basic` -- plaintext
-- `opaque_basic_hmac` -- plaintext with HMAC for `k1ref` and `k2loc`
-- `opaque_ecdsa_basic` -- ECDSA signed, plaintext
-- `opaque_ecdhe_basic` -- ECDHE shared HMAC secret for k1, plaintext
+- [`opaque_basic`](./opaque_basic.md) -- plaintext
+- [`opaque_basic_hmac`](./opaque_basic.md) -- plaintext with HMAC for `k1ref` and `k2loc`
+- [`opaque_ecdsa_basic`](./opaque_ecdsa.md) -- ECDSA signed, plaintext
+- [`opaque_ecdhe_basic`](./opaque_ecdhe.md) -- ECDHE shared HMAC secret for `k1ref`, plaintext
 
 
 ### Key Context APIs:

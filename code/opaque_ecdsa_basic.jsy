@@ -11,11 +11,11 @@ from './subtle.jsy'
 
 export const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>
-      u8_mix_aaab @ await kdf_inner(u8_k0), kctx.k_ec
+      _u8_mix_aaab( await kdf_inner(u8_k0), kctx.k_ec )
 
 export const kdf_key_tail = kdf_inner =>
     async k1ref =>
-      u8_mix_aaab @ await kdf_inner(k1ref), k1ref
+      _u8_mix_aaab( await kdf_inner(k1ref), k1ref )
 
 
 export const opaque_ecdsa_basic = Object.freeze @:
@@ -121,7 +121,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
         return
 
       try ::
-        if ! u8_test_aaab @ _k2loc, await kdf_ec(ec) ::
+        if ! _u8_test_aaab( _k2loc, await kdf_ec(ec) ) ::
           return
 
         if ! await ecdsa_verify @ {ec, sig}, body ::
@@ -144,13 +144,13 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
           do_kctx_ec @ kctx, ec_sign
 
 
-export function u8_mix_aaab(a, b) ::
+export function _u8_mix_aaab(a, b) ::
   const alen = a.length, blen = b.length
   for let i=3; i<alen; i+=4 ::
     a[i] = b[i % blen]
   return a
 
-export function u8_test_aaab(a, b) ::
+export function _u8_test_aaab(a, b) ::
   const alen = a.length, blen = b.length
   for let i=3; i<alen; i+=4 ::
     if a[i] !== b[i % blen] ::

@@ -1,5 +1,7 @@
 # Opaque Core API (abstract)
 
+See [`kctx` API](./kctx_api.md) for Key Context API returned from most methods.
+
 ##### `k0` sources
 
 Key zero `k0` is source material to derive `k1ref` from using a cryptographic hash.
@@ -43,6 +45,9 @@ Combining both, a `k21pair` is a privileged reference key with precomputed `k2lo
 
 
 #### Other public methods
+
+- `with_hmac(u8_key) : opaque_api`
+  Returns a cloned opaque object with `k1ref` derivation bound to HMAC-SHA-256 hashing.
 
 - `as_core()`
   Returns an object closure supporting Core API, preventing introspection.

@@ -1867,7 +1867,7 @@ const opaque_basic_hmac_api ={
 
 , with_hmac(u8_key) {
     const {hmac_sign} = this._hmac(u8_key);
-    return this._clone({_kdf1_ref: hmac_sign}) }
+    return this._clone({_kdf1_ref: hmac_sign})}
 
 , _clone(ctx) {return {__proto__: this, as_session: null, ...ctx}} };
 
@@ -1948,11 +1948,11 @@ function bind_tahoe_cipher(cipher) {
 
 const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>
-      u8_mix_aaab(await kdf_inner(u8_k0), kctx.k_ec);
+      _u8_mix_aaab( await kdf_inner(u8_k0), kctx.k_ec );
 
 const kdf_key_tail = kdf_inner =>
     async k1ref =>
-      u8_mix_aaab(await kdf_inner(k1ref), k1ref);
+      _u8_mix_aaab( await kdf_inner(k1ref), k1ref );
 
 
 const opaque_ecdsa_basic = Object.freeze({
@@ -2058,7 +2058,7 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
         return}
 
       try {
-        if (! u8_test_aaab(_k2loc, await kdf_ec(ec)) ) {
+        if (! _u8_test_aaab( _k2loc, await kdf_ec(ec) )) {
           return}
 
         if (! await ecdsa_verify({ec, sig}, body) ) {
@@ -2081,13 +2081,13 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
           do_kctx_ec(kctx, ec_sign) } } } }
 
 
-function u8_mix_aaab(a, b) {
+function _u8_mix_aaab(a, b) {
   const alen = a.length, blen = b.length;
   for (let i=3; i<alen; i+=4) {
     a[i] = b[i % blen];}
   return a}
 
-function u8_test_aaab(a, b) {
+function _u8_test_aaab(a, b) {
   const alen = a.length, blen = b.length;
   for (let i=3; i<alen; i+=4) {
     if (a[i] !== b[i % blen]) {
@@ -2156,5 +2156,5 @@ const opaque_ecdhe_tahoe_mirror =
   bind_opaque_ecdhe_mirror(
     opaque_tahoe);
 
-export { _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, ecc_by_len, hex_to_u8, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_mix_aaab, u8_sha_256, u8_sha_384, u8_sha_512, u8_test_aaab, u8_timing_equal, u8_to_hex, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
+export { _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, ecc_by_len, hex_to_u8, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_hex, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
 //# sourceMappingURL=index.mjs.map
