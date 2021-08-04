@@ -1,6 +1,6 @@
 # PHORBAS Opaque
 
-PHORBASE Opaque is inspired by [Content Addressable Stores][CAS] and
+PHORBAS Opaque is inspired by [Content Addressable Stores][CAS] and
 [Tahoe-LAFS][]. The techniques of Tahoe-LAFS are generalized and expanded to
 include HMAC and Digital Signatures, as well as alternate hashing and
 encryption schemes and algorithms. The Opaque library handles the principles of
