@@ -7,7 +7,7 @@
   "devDependencies": {
     "@phorbas/opaque": "file:..",
     "@phorbas/store": "^0.2.0",
-    "cbor-codec": "^0.8.0",
+    "cbor-codec": "^0.9.0",
     "qsrv": "^0.1.7",
     "u8-utils": "^0.3.8"
   },

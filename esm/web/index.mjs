@@ -73,9 +73,6 @@ function ecc_by_len(ec_len, p521='P-521', p384='P-384', p256='P-256', absent) {
     case 91: case 65: return p256
     default: return absent} }
 
-const cbor_decode_sym = Symbol('CBOR-decode');
-const cbor_encode_sym = Symbol('CBOR-encode');
-
 const cbor_break_sym = Symbol('CBOR-break');
 const cbor_done_sym = Symbol('CBOR-done');
 const cbor_eoc_sym = Symbol('CBOR-EOC');
@@ -83,7 +80,7 @@ const cbor_eoc_sym = Symbol('CBOR-EOC');
 const cbor_tagged_proto ={
   [Symbol.toStringTag]: 'cbor_tag',
 
-  [cbor_encode_sym](enc_ctx, v) {
+  to_cbor_encode(enc_ctx, v) {
     enc_ctx.tag_encode(v.tag, v.body);} };
 
 
@@ -185,8 +182,8 @@ function bind_encode_dispatch(ctx, api) {
         ctx.simple(sv);
         return} }
 
-    if (undefined !== v[cbor_encode_sym]) {
-      v[cbor_encode_sym](ctx, v);
+    if (undefined !== v.to_cbor_encode) {
+      v.to_cbor_encode(ctx, v);
       return}
 
     let encoder = lut_types.get(_obj_kind_(v));
@@ -1040,8 +1037,8 @@ const _cbor_jmp_base ={
       if (Array.isArray(tip)) {
         q.push(... tip);}
 
-      else if (tip[cbor_decode_sym]) {
-        tip[cbor_decode_sym](lut, cbor_accum);}
+      else if (tip.from_cbor_decode) {
+        tip.from_cbor_decode(lut, cbor_accum);}
 
       else if ('function' === typeof tip) {
         tip(lut, cbor_accum);}
@@ -1195,12 +1192,12 @@ const _cbor_jmp_sync ={
 
 class CBORDecoderBasic extends CBORDecoderBase {
   // decode(u8) ::
-  static decode(u8) {
-    return new this().decode(u8)}
+  static get decode() {
+    return new this().decode}
 
   // *iter_decode(u8) ::
-  static iter_decode(u8) {
-    return new this().iter_decode(u8)}
+  static get iter_decode() {
+    return new this().iter_decode}
 
   _bind_cbor_jmp(options, jmp) {
     return _cbor_jmp_sync.bind_jmp(options, jmp)}
@@ -1424,12 +1421,12 @@ const _cbor_jmp_async ={
 
 class CBORAsyncDecoderBasic extends CBORDecoderBase {
   // async decode_stream(u8_stream, opt) ::
-  static decode_stream(u8_stream, opt) {
-    return new this().decode_stream(u8_stream, opt)}
+  static get decode_stream() {
+    return new this().decode_stream}
 
   // async *aiter_decode_stream(u8_stream, opt) ::
-  static aiter_decode_stream(u8_stream, opt) {
-    return new this().aiter_decode_stream(u8_stream, opt)}
+  static get aiter_decode_stream() {
+    return new this().aiter_decode_stream}
 
   _bind_cbor_jmp(options, jmp) {
     return _cbor_jmp_async.bind_jmp(options, jmp)}
