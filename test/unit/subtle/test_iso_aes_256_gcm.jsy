@@ -12,7 +12,17 @@ describe @ 'subtle/iso_aes_gcm', @::
 
   const hm = u8_hmac @ 'bad_secret'
   const key_cipher = hm.hmac_sign @ 'password'
+  const key_cipher_wrong = hm.hmac_sign @ 'wrong password'
   const key_iv = hm.hmac_sign @ 'iv'
+  const key_iv_wrong = hm.hmac_sign @ 'iv wrong'
+
+  const enc_content_from_nodejs = new Uint8Array @#
+    254, 156, 138, 216,  37,  66, 135, 172, 71, 126, 162,  41,  93,  15,  43,  56, 235, 112, 106,  88, 245, 203,  14, 219, 28, 159, 163,  41,  25, 189, 226,  51, 27
+  const enc_content_from_webcrypto = new Uint8Array @#
+    254, 156, 138, 216, 37, 66, 135, 172, 71, 126, 162, 41, 93, 15, 43, 56, 235, 112, 106, 88, 245, 203, 14, 219, 28, 159, 163, 41, 25, 189, 226, 51, 27
+
+  const enc_content_one = enc_content_from_webcrypto
+
 
 
   it @ 'shape', @::>
@@ -23,7 +33,9 @@ describe @ 'subtle/iso_aes_gcm', @::
 
   it @ 'encrypt & decrypt', @::>
     const pe = u8_aes_gcm.encrypt @
-      content, await key_cipher, await key_iv
+      content,
+      await key_cipher,
+      await key_iv
 
     expect(pe).to.be.a('promise')
 
@@ -31,7 +43,9 @@ describe @ 'subtle/iso_aes_gcm', @::
     expect(enc_content).to.be.an.instanceof(Uint8Array)
 
     const pd = u8_aes_gcm.decrypt @
-      enc_content, await key_cipher, await key_iv
+      enc_content,
+      await key_cipher,
+      await key_iv
     expect(pd).to.be.a('promise')
 
     const dec_content = await pd
@@ -40,11 +54,10 @@ describe @ 'subtle/iso_aes_gcm', @::
 
 
   it @ 'from NodeJS', @::>
-    const enc_content = new Uint8Array @#
-      254, 156, 138, 216,  37,  66, 135, 172, 71, 126, 162,  41,  93,  15,  43,  56, 235, 112, 106,  88, 245, 203,  14, 219, 28, 159, 163,  41,  25, 189, 226,  51, 27
-
     const pd = u8_aes_gcm.decrypt @
-      enc_content, await key_cipher, await key_iv
+      enc_content_from_nodejs,
+      await key_cipher,
+      await key_iv
     expect(pd).to.be.a('promise')
 
     const dec_content = await pd
@@ -53,15 +66,95 @@ describe @ 'subtle/iso_aes_gcm', @::
 
 
   it @ 'from Web Crypto', @::>
-    const enc_content = new Uint8Array @#
-      254, 156, 138, 216, 37, 66, 135, 172, 71, 126, 162, 41, 93, 15, 43, 56, 235, 112, 106, 88, 245, 203, 14, 219, 28, 159, 163, 41, 25, 189, 226, 51, 27
-
     const pd = u8_aes_gcm.decrypt @
-      enc_content, await key_cipher, await key_iv
+      enc_content_from_webcrypto,
+      await key_cipher,
+      await key_iv
     expect(pd).to.be.a('promise')
 
     const dec_content = await pd
     expect(dec_content).to.be.an.instanceof(Uint8Array)
     expect(dec_content).to.deep.equal(content)
+
+
+  it @ 'wrong cipher with absent', @::>
+    let v_absent = Symbol('absent')
+    const pd = u8_aes_gcm.decrypt @
+      enc_content_one,
+      await key_cipher_wrong,
+      await key_iv,
+      v_absent
+
+    expect(pd).to.be.a('promise')
+    expect(await pd).to.be.equal(v_absent)
+
+
+  it @ 'wrong cipher', @::>
+    const pd = u8_aes_gcm.decrypt @
+      enc_content_one,
+      await key_cipher_wrong,
+      await key_iv
+    expect(pd).to.be.a('promise')
+
+    try ::
+      await pd
+      expect.fail @ 'expected an exception'
+    catch err ::
+      expect(err).to.be.an.instanceOf(AggregateError)
+      expect(err.aes_decrypt).to.be.true
+
+
+  it @ 'wrong iv', @::>
+    const pd = u8_aes_gcm.decrypt @
+      enc_content_one,
+      await key_cipher,
+      await key_iv_wrong
+    expect(pd).to.be.a('promise')
+
+    try ::
+      await pd
+      expect.fail @ 'expected an exception'
+    catch err ::
+      expect(err).to.be.an.instanceOf(AggregateError)
+      expect(err.aes_decrypt).to.be.true
+
+
+  it @ 'null content', @::>
+    const pd = u8_aes_gcm.decrypt @
+      null, await key_cipher, await key_iv
+    expect(pd).to.be.a('promise')
+
+    try ::
+      await pd
+      expect.fail @ 'expected an exception'
+    catch err ::
+      expect(err).to.be.an.instanceOf(AggregateError)
+      expect(err.aes_decrypt).to.be.true
+
+
+  it @ 'null cipher', @::>
+    const pd = u8_aes_gcm.decrypt @
+      enc_content_one, null, await key_iv
+    expect(pd).to.be.a('promise')
+
+    try ::
+      await pd
+      expect.fail @ 'expected an exception'
+    catch err ::
+      expect(err).to.be.an.instanceOf(AggregateError)
+      expect(err.aes_decrypt).to.be.true
+
+
+  it @ 'null iv', @::>
+    const pd = u8_aes_gcm.decrypt @
+      enc_content_one, await key_cipher, null
+    expect(pd).to.be.a('promise')
+
+    try ::
+      await pd
+      expect.fail @ 'expected an exception'
+    catch err ::
+      expect(err).to.be.an.instanceOf(AggregateError)
+      expect(err.aes_decrypt).to.be.true
 
 

@@ -1461,18 +1461,26 @@ const _import_aes_gcm_raw = aeskey =>
 
 const u8_aes_256_gcm ={
   async encrypt(raw_content, key_cipher, key_iv) {
+    key_cipher = await _import_aes_gcm_raw(key_cipher);
     return new Uint8Array(await crypto.subtle.encrypt(
       {name: 'AES-GCM', tagLength: 128,
           iv: key_iv.subarray(-12) }// IV of 96 bits (12 bytes) 
-      , await _import_aes_gcm_raw(key_cipher)
-      , raw_content) ) }
+      , key_cipher, raw_content) ) }
 
-  , async decrypt(enc_content, key_cipher, key_iv) {
-    return new Uint8Array(await crypto.subtle.decrypt(
-      {name: 'AES-GCM', tagLength: 128,
-          iv: key_iv.subarray(-12) }// IV of 96 bits (12 bytes) 
-      , await _import_aes_gcm_raw(key_cipher)
-      , enc_content) ) } };
+  , async decrypt(enc_content, key_cipher, key_iv, absent) {
+    try {
+      key_cipher = await _import_aes_gcm_raw(key_cipher);
+      return new Uint8Array(await crypto.subtle.decrypt(
+        {name: 'AES-GCM', tagLength: 128,
+            iv: key_iv.subarray(-12) }// IV of 96 bits (12 bytes) 
+        , key_cipher, enc_content) ) }
+    catch (err) {
+      if (undefined !== absent) {
+        return absent}
+
+      err = new AggregateError([err]);
+      err.aes_decrypt = true;
+      throw err} } };
 
 function _bind_sha_digest(hash) {
   const _digest_ = crypto.subtle
