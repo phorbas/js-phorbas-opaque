@@ -77,17 +77,40 @@ const cbor_break_sym = Symbol('CBOR-break');
 const cbor_done_sym = Symbol('CBOR-done');
 const cbor_eoc_sym = Symbol('CBOR-EOC');
 
-const cbor_tagged_proto ={
-  [Symbol.toStringTag]: 'cbor_tag',
-
-  to_cbor_encode(enc_ctx, v) {
-    enc_ctx.tag_encode(v.tag, v.body);} };
-
-
 function cbor_accum(base) {
   return iv => ({
     __proto__: base,
     res: base.init(iv) })}
+
+const cbor_tag ={
+  [Symbol.toStringTag]: 'cbor_tag',
+
+  from(tag, body) {
+    return {__proto__: this, tag, body}}
+
+, to_cbor_encode(enc_ctx, v) {
+    enc_ctx.tag_encode(v.tag, v.body);} };
+
+
+const cbor_nest ={
+  [Symbol.toStringTag]: 'cbor_nest',
+
+  from(body) {
+    return {__proto__: this, body}}
+
+, to_cbor_encode(enc_ctx, v) {
+    let {body, u8} = v;
+    enc_ctx.nest(body, 'body' in v ? null : u8); }
+
+, with_ctx(ctx) {
+    let self ={
+      __proto__: this
+    , decode_cbor() {
+        return this.body = ctx
+          .from_nested_u8(this.u8)
+          .decode_cbor()} };
+
+    return u8 =>({__proto__: self, u8}) } };
 
 Array.from(Array(256),
   (_, v) => v.toString(2).padStart(8, '0'));
@@ -317,9 +340,16 @@ function bind_ctx_prototype() {
       return end_tag()}
 
   , tag(tag, with_tag) {
-      if (true === tag) {tag = 0xd9f7;}
+      if (true === tag) {tag = 0xd9f7; }// CBOR tag
       this.add_int(0xc0, tag);
       return with_tag || this.host.with_tag(tag)}
+
+  , nest(v, u8) {
+      if (! u8) {
+        u8 = this.cbor_encode(v);}
+      const end_tag = this.tag(24);
+      this.add_buffer(0x40, u8);
+      return end_tag()}
 
   , bytes_stream(iterable) {
       const {add_w0, add_bytes} = this;
@@ -413,6 +443,7 @@ function bind_encoder_context(stream) {
   const ctx ={
     __proto__: ctx_prototype
   , raw_frame
+  , cbor_encode
 
   , add_w0(bkind) {
       next_frame(bkind, 1);}
@@ -659,11 +690,6 @@ class CBORDecoderBase {
 const decode_types ={
   __proto__: null
 
-, nested_cbor(u8, ctx) {
-    ctx = ctx.from_nested_u8(u8);
-    u8.decode_cbor = () => ctx.decode_cbor();
-    return u8}
-
 , u32(u8, idx) {
     const u32 = (u8[idx] << 24) | (u8[idx+1] << 16) | (u8[idx+2] << 8) | u8[idx+3];
     return u32 >>> 0 }// unsigned int32
@@ -759,7 +785,7 @@ function basic_tags(tags_lut) {
   // tags_lut.set @ 23, () => v => v
 
   // Encoded CBOR data item; see Section 2.4.4.1
-  tags_lut.set(24, ctx => u8 => ctx.types.nested_cbor(u8, ctx));
+  tags_lut.set(24, ctx => cbor_nest.with_ctx(ctx));
 
   // URI; see Section 2.4.4.3
   tags_lut.set(32, () => url_sz => new URL(url_sz));
@@ -1034,6 +1060,9 @@ const _cbor_jmp_base ={
     while (0 !== q.length) {
       let tip = q.pop();
 
+      if (true === tip) {
+        tip = basic_tags;}
+
       if (Array.isArray(tip)) {
         q.push(... tip);}
 
@@ -1186,9 +1215,7 @@ const _cbor_jmp_sync ={
         const body = ctx.next_value();
         return undefined === res ? body : res(body)}
 
-      return {
-        __proto__: cbor_tagged_proto,
-        tag, body: ctx.next_value()} } } };
+      return cbor_tag.from(tag, ctx.next_value())} } };
 
 class CBORDecoderBasic extends CBORDecoderBase {
   // decode(u8) ::
@@ -1214,7 +1241,7 @@ class CBORDecoder extends CBORDecoderBasic {}
 
 CBORDecoder.compile({
   types: decode_types,
-  tags: basic_tags(new Map()),});
+  tags: [true] /* [true] is an alias for [basic_tags] built-in  */});
 
 const {decode, iter_decode} = new CBORDecoder();
 
@@ -1222,6 +1249,10 @@ async function * _aiter_move_stream(u8_stream) {
   let n = yield;
   let i0=0, i1=n;
   let u8_tail;
+
+  if (u8_stream.subarray) {
+    // make an iterable of Uint8Array
+    u8_stream = [u8_stream];}
 
   for await (let u8 of u8_stream) {
     u8 = as_u8_buffer(u8);
@@ -1415,9 +1446,7 @@ const _cbor_jmp_async ={
         const body = await ctx.next_value();
         return undefined === res ? body : res(body)}
 
-      return {
-        __proto__: cbor_tagged_proto,
-        tag, body: await ctx.next_value()} } } };
+      return cbor_tag.from(tag, await ctx.next_value())} } };
 
 class CBORAsyncDecoderBasic extends CBORDecoderBase {
   // async decode_stream(u8_stream, opt) ::
@@ -1443,7 +1472,7 @@ class CBORAsyncDecoder extends CBORAsyncDecoderBasic {}
 
 CBORAsyncDecoder.compile({
   types: decode_types,
-  tags: basic_tags(new Map()),});
+  tags: [true] /* [true] is an alias for [basic_tags] built-in  */});
 
 new CBORAsyncDecoder();
 

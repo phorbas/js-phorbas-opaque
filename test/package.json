@@ -2,14 +2,12 @@
   "private": true,
   "dependencies": {
     "chai": "^4.3.4",
-    "mocha": "^8.3.2"
+    "mocha": "^9.1.0"
   },
   "devDependencies": {
     "@phorbas/opaque": "file:..",
     "@phorbas/store": "^0.2.0",
-    "cbor-codec": "^0.9.0",
-    "qsrv": "^0.1.7",
-    "u8-utils": "^0.3.8"
+    "qsrv": "^0.1.7"
   },
   "scripts": {
     "serve": "qsrv -f unittest.html -- __unittest.iife.js",
