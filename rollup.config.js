@@ -9,7 +9,7 @@ const _rpis_ = defines => [
   rpi_dgnotify()]
 
 const cfg_node = {
-  external: id => builtinModules.includes(id),
+  external: id => id.startsWith('node:') || builtinModules.includes(id),
   plugins: _rpis_({PLAT_NODEJS: true}) }
 
 const cfg_web = {

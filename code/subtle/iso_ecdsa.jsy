@@ -1,11 +1,12 @@
-import {subtle_api} from './iso_crypto_api.jsy'
+import {subtle_api, U8} from './iso_crypto_api.jsy'
 import {ecc_by_len} from './utils.jsy'
 
 export function _bind_ecdsa(hash) ::
+  const name = 'ECDSA'
   return @{}
-    p521: () => _ecdsa_signer @ 'P-521'
-    p384: () => _ecdsa_signer @ 'P-384'
-    p256: () => _ecdsa_signer @ 'P-256'
+    p521: () => _ecdsa_signer('P-521')
+    p384: () => _ecdsa_signer('P-384')
+    p256: () => _ecdsa_signer('P-256')
     verify: ecdsa_verify
     hash
 
@@ -15,7 +16,7 @@ export function _bind_ecdsa(hash) ::
     const namedCurve = ecc_by_len(ec.length)
     if ! namedCurve :: return
 
-    const _kind = @{} name: 'ECDSA', hash, namedCurve
+    const _kind = @{} name, hash, namedCurve
     const ec_pub = subtle_api.importKey @
       'spki', ec, _kind, false, ['verify']
 
@@ -24,11 +25,11 @@ export function _bind_ecdsa(hash) ::
 
 
   function _ecdsa_signer(namedCurve) ::
-    const _kind = {name: 'ECDSA', namedCurve, hash}
+    const _kind = {name, namedCurve, hash}
     const _ec_ = subtle_api.generateKey @
       _kind, false, ['sign']
 
-    const ec = _ec_.then @ async _ec_ => new Uint8Array @
+    const ec = _ec_.then @ async _ec_ => new U8 @
       await subtle_api.exportKey('spki', _ec_.publicKey)
     return Object.assign @ ecdsa_sign, @{}
       ec, ecdsa_sign, ecdsa_verify
@@ -37,7 +38,7 @@ export function _bind_ecdsa(hash) ::
 
     async function ecdsa_sign(u8) ::
       const {privateKey} = await _ec_
-      const u8_sig = new Uint8Array @
+      const u8_sig = new U8 @
         await subtle_api.sign @
           _kind, privateKey, u8
 

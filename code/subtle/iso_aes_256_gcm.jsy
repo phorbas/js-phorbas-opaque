@@ -1,32 +1,35 @@
-import {subtle_api} from './iso_crypto_api.jsy'
+import {subtle_api, U8} from './iso_crypto_api.jsy'
 
-const _import_aes_gcm_raw = aeskey =>
-  subtle_api.importKey @ 'raw', aeskey.subarray(-32),
-    {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']
+export function _bind_aes_256_gcm() ::
+  const name = 'AES-GCM', tagLength = 128
 
-export const u8_aes_256_gcm = /* #__PURE__ */ @{}
-  async encrypt(raw_content, key_cipher, key_iv) ::
-    key_cipher = await _import_aes_gcm_raw(key_cipher)
-    return new Uint8Array @ await subtle_api.encrypt @
-      @{} name: 'AES-GCM', tagLength: 128,
-          iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
-      key_cipher, raw_content
+  const _import_aes_gcm_raw = aeskey =>
+    subtle_api.importKey @ 'raw', aeskey.subarray(-32),
+      {name, length: 256}, false, ['encrypt', 'decrypt']
 
-  async decrypt(enc_content, key_cipher, key_iv, absent) ::
-    try ::
+  return @{}
+    async encrypt(raw_content, key_cipher, key_iv) ::
       key_cipher = await _import_aes_gcm_raw(key_cipher)
-      return new Uint8Array @ await subtle_api.decrypt @
-        @{} name: 'AES-GCM', tagLength: 128,
+      return new U8 @ await subtle_api.encrypt @
+        @{} name, tagLength,
             iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
-        key_cipher, enc_content
-    catch err ::
-      if undefined !== absent ::
-        return absent
+        key_cipher, raw_content
 
-      err = new AggregateError([err])
-      err.aes_decrypt = true
-      throw err
+    async decrypt(enc_content, key_cipher, key_iv, absent) ::
+      try ::
+        key_cipher = await _import_aes_gcm_raw(key_cipher)
+        return new U8 @ await subtle_api.decrypt @
+          @{} name, tagLength,
+              iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
+          key_cipher, enc_content
+      catch err ::
+        if undefined !== absent ::
+          return absent
 
-export @{}
-  u8_aes_256_gcm as u8_aes_gcm,
+        err = new AggregateError([err])
+        err.aes_decrypt = true
+        throw err
+
+export const u8_aes_256_gcm = /* #__PURE__ */ _bind_aes_256_gcm()
+export {u8_aes_256_gcm as u8_aes_gcm}
 

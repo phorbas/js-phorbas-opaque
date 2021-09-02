@@ -1,17 +1,18 @@
-import {subtle_api} from './iso_crypto_api.jsy'
+import {subtle_api, U8} from './iso_crypto_api.jsy'
 import {u8_maybe_utf8} from './utils.jsy'
 
 export function _bind_hmac_sha(hash) ::
+  const name = 'HMAC'
   return @\ u8_key, u8 ::
     u8_key = u8_maybe_utf8(u8_key)
 
     const _hkey = subtle_api.importKey @
-      'raw', u8_key, {name: 'HMAC', hash},
+      'raw', u8_key, {name, hash},
       false, ['sign', 'verify']
 
     const hmac_sign = async u8 =>
-      new Uint8Array @ await subtle_api.sign @
-        {name: 'HMAC'}, await _hkey
+      new U8 @ await subtle_api.sign @
+        {name}, await _hkey
         u8_maybe_utf8(u8)
 
     if u8 ::
@@ -20,7 +21,7 @@ export function _bind_hmac_sha(hash) ::
     return @{} hash, hmac_sign,
       async hmac_verify(u8_sig, u8) ::
         return subtle_api.verify @
-          {name: 'HMAC'}, await _hkey,
+          {name}, await _hkey,
           u8_sig, u8
 
 

@@ -1,8 +1,9 @@
 #IF PLAT_NODEJS
-  import {webcrypto} from 'crypto'
+  import {webcrypto} from 'node:crypto'
   export const crypto_api = webcrypto
 
 #ELSE
   export const crypto_api = globalThis.crypto
 
 export const subtle_api = crypto_api.subtle
+export const U8 = Uint8Array

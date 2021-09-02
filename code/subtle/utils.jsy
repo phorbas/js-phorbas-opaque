@@ -29,10 +29,10 @@ export function u8_fast_equal(a, b) ::
   return true
 
 
-export function ecc_by_len(ec_len, p521='P-521', p384='P-384', p256='P-256', absent) ::
+export function ecc_by_len(ec_len, absent) ::
   switch ec_len ::
-    case 158: case 133: return p521
-    case 120: case 97: return p384
-    case 91: case 65: return p256
+    case 158: case 133: return 'P-521'
+    case 120: case 97: return 'P-384'
+    case 91: case 65: return 'P-256'
     default: return absent
 

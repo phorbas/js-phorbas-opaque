@@ -1,6 +1,5 @@
-import {crypto_api} from './iso_crypto_api.jsy'
+import {crypto_api, U8} from './iso_crypto_api.jsy'
 
 export function u8_crypto_random(n) ::
-  return crypto_api.getRandomValues @
-    new Uint8Array(n)
+  return crypto_api.getRandomValues(new U8(n))
 

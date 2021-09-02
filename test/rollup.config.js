@@ -1,10 +1,11 @@
+import {builtinModules} from 'module'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_jsy from 'rollup-plugin-jsy'
 
 const sourcemap = 'inline'
 
 const cfg_nodejs = {
-  external: ['crypto', 'util'],
+  external: id => id.startsWith('node:') || builtinModules.includes(id),
   plugins: [
     rpi_resolve(),
     rpi_jsy({defines: {PLAT_NODEJS: true}}),

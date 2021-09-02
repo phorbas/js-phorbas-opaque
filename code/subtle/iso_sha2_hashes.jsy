@@ -1,4 +1,4 @@
-import {subtle_api} from './iso_crypto_api.jsy'
+import {subtle_api, U8} from './iso_crypto_api.jsy'
 import {u8_maybe_utf8} from './utils.jsy'
 
 export function _bind_sha_digest(hash) ::
@@ -6,7 +6,7 @@ export function _bind_sha_digest(hash) ::
     subtle_api.digest({ name: hash }, buf)
 
   return @\ data, n ::>
-    const u8 = new Uint8Array @
+    const u8 = new U8 @
       await _digest_ @
         u8_maybe_utf8 @ await data
 
