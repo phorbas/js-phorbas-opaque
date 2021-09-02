@@ -1,5 +1,6 @@
 import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
-import {u8_sha_256, opaque_shared_codec} from './subtle.jsy'
+import {u8_sha_256} from './subtle.jsy'
+import {opaque_shared_codec} from './codec.jsy'
 import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
 
 import @{}

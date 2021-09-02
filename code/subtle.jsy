@@ -1,5 +1,4 @@
 export * from './subtle/utils.jsy'
-export * from './subtle/codec.jsy'
 export * from './subtle/iso_random.jsy'
 export * from './subtle/iso_aes_256_gcm.jsy'
 export * from './subtle/iso_sha2_hashes.jsy'
