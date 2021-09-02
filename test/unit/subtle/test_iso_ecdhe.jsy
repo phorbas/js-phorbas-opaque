@@ -1,5 +1,6 @@
 import @{}
   u8_ecdhe
+  subtle_api
 
 #IF PLAT_WEB
   from '@phorbas/opaque/esm/web/subtle.mjs'
@@ -147,46 +148,25 @@ function _load_testable_ecdhe_p256() ::
 
 
 async function _load_testable_ecdhe(testable) ::
-  #IF PLAT_WEB
-    const {namedCurve, _known_web_jwk} = testable
-    const _ecdh_kind = {name: 'ECDH', namedCurve}
-    if ! _known_web_jwk ::
-      const {privateKey} = await crypto.subtle.generateKey @ _ecdh_kind, true, ['deriveBits']
-      const jwk = await crypto.subtle.exportKey @ 'jwk', privateKey
-      console.log @ '_known_web_jwk:', JSON.stringify(jwk, null, 2)
-      return assert @ false, 'FIX WEB ECDH JWK'
+  const {namedCurve, _known_web_jwk} = testable
+  const _ecdh_kind = {name: 'ECDH', namedCurve}
+  if ! _known_web_jwk ::
+    const {privateKey} = await subtle_api.generateKey @ _ecdh_kind, true, ['deriveBits']
+    const jwk = await subtle_api.exportKey @ 'jwk', privateKey
+    console.log @ '_known_web_jwk:', JSON.stringify(jwk, null, 2)
+    return assert @ false, 'FIX WEB ECDH JWK'
 
-    const {kty, crv, x, y, d} = _known_web_jwk
-    const _ec_ = Promise.resolve @:
-      privateKey: await crypto.subtle.importKey @ 'jwk', _known_web_jwk, _ecdh_kind, false, ['deriveBits']
-      publicKey: await crypto.subtle.importKey @ 'jwk', {kty, crv, x, y}, _ecdh_kind, true, []
+  const {kty, crv, x, y, d} = _known_web_jwk
+  const _ec_ = Promise.resolve @:
+    privateKey: await subtle_api.importKey @ 'jwk', _known_web_jwk, _ecdh_kind, false, ['deriveBits']
+    publicKey: await subtle_api.importKey @ 'jwk', {kty, crv, x, y}, _ecdh_kind, true, []
 
-    testable.results = testable.from_web
-    testable.known_ecdhe =
-      u8_ecdhe._with_ecdh(namedCurve, _ec_)
+  testable.results = testable.from_web
+  testable.known_ecdhe =
+    u8_ecdhe._with_ecdh(namedCurve, _ec_)
 
-    if ! testable.ec_pub_web ::
-      console.log @ `ec_pub_web:  hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`
+  if ! testable.ec_pub_web ::
+    console.log @ `ec_pub_web:  hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`
     
-  #ELIF PLAT_NODEJS
-    const {namedCurve, _known_node_raw} = testable
-    const {createECDH} = require('crypto')
-    const _ecdh_ = createECDH @
-      u8_ecdhe._node_namedCurves[namedCurve]
-
-    if ! _known_node_raw ::
-      _ecdh_.generateKeys()
-      console.log @ `_known_node_raw: '${u8_to_hex @ _ecdh_.getPrivateKey()}'`
-      return assert @ false, 'FIX NODE ECDH'
-
-    _ecdh_.setPrivateKey @ hex_to_u8(_known_node_raw)
-
-    testable.results = testable.from_node
-    testable.known_ecdhe =
-      u8_ecdhe._with_ecdh(namedCurve, _ecdh_)
-
-    if ! testable.ec_pub_node ::
-      console.log @ `ec_pub_node: hex_to_u8 @ '${u8_to_hex @ testable.known_ecdhe.ecdh}'`
-
   return testable
 

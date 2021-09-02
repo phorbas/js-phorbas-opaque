@@ -1,0 +1,11 @@
+#IF PLAT_WEB
+  export const crypto_api = window.crypto
+
+#ELIF PLAT_NODEJS
+  import {webcrypto} from 'crypto'
+  export const crypto_api = webcrypto
+
+#ELSE
+  export const crypto_api = globalThis.crytpo
+
+export const subtle_api = crypto_api.subtle

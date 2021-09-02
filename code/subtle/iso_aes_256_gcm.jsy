@@ -1,82 +1,31 @@
-#IF PLAT_ABSTRACT
-  export const u8_aes_256_gcm = @{}
-    async encrypt(raw_content, key_cipher, key_iv) ::
-    async decrypt(enc_content, key_cipher, key_iv) ::
+import {subtle_api} from './iso_crypto_api.jsy'
 
+const _import_aes_gcm_raw = aeskey =>
+  subtle_api.importKey @ 'raw', aeskey.subarray(-32),
+    {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']
 
-#ELIF PLAT_WEB
-  const _import_aes_gcm_raw = aeskey =>
-    crypto.subtle.importKey @ 'raw', aeskey.subarray(-32),
-      {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']
+export const u8_aes_256_gcm = /* #__PURE__ */ @{}
+  async encrypt(raw_content, key_cipher, key_iv) ::
+    key_cipher = await _import_aes_gcm_raw(key_cipher)
+    return new Uint8Array @ await subtle_api.encrypt @
+      @{} name: 'AES-GCM', tagLength: 128,
+          iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
+      key_cipher, raw_content
 
-  export const u8_aes_256_gcm = @{}
-    async encrypt(raw_content, key_cipher, key_iv) ::
+  async decrypt(enc_content, key_cipher, key_iv, absent) ::
+    try ::
       key_cipher = await _import_aes_gcm_raw(key_cipher)
-      return new Uint8Array @ await crypto.subtle.encrypt @
+      return new Uint8Array @ await subtle_api.decrypt @
         @{} name: 'AES-GCM', tagLength: 128,
             iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
-        key_cipher, raw_content
+        key_cipher, enc_content
+    catch err ::
+      if undefined !== absent ::
+        return absent
 
-    async decrypt(enc_content, key_cipher, key_iv, absent) ::
-      try ::
-        key_cipher = await _import_aes_gcm_raw(key_cipher)
-        return new Uint8Array @ await crypto.subtle.decrypt @
-          @{} name: 'AES-GCM', tagLength: 128,
-              iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
-          key_cipher, enc_content
-      catch err ::
-        if undefined !== absent ::
-          return absent
-
-        err = new AggregateError([err])
-        err.aes_decrypt = true
-        throw err
-
-
-#ELIF PLAT_NODEJS
-  import {createSecretKey, createCipheriv, createDecipheriv} from 'crypto'
-
-  export const u8_aes_256_gcm = @{}
-    async encrypt(raw_content, key_cipher, key_iv) ::
-      key_cipher = key_cipher && 
-        createSecretKey(key_cipher.subarray(-32))
-
-      const cipher = createCipheriv @
-        'aes-256-gcm', key_cipher, 
-        key_iv && key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
-
-      const lst = @[]
-        cipher.update(raw_content)
-        cipher.final()
-        cipher.getAuthTag() // NodeJS uses GCM auth tags of 128 bits (16 bytes)
-
-      return new Uint8Array @ Buffer.concat(lst)
-
-    async decrypt(enc_content, key_cipher, key_iv, absent) ::
-      key_cipher = key_cipher && 
-        createSecretKey(key_cipher.subarray(-32))
-
-      if enc_content ::
-        // NodeJS uses GCM auth tags of 128 bits (16 bytes)
-        var auth_tag = enc_content.subarray(-16)
-        enc_content = enc_content.subarray(0, -16)
-
-      try ::
-        const cipher = createDecipheriv @
-          'aes-256-gcm', key_cipher, 
-          key_iv && key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
-
-        cipher.setAuthTag(auth_tag)
-        return new Uint8Array @ Buffer.concat @#
-          cipher.update(enc_content)
-          cipher.final()
-      catch err ::
-        if undefined !== absent ::
-          return absent
-
-        err = new AggregateError([err])
-        err.aes_decrypt = true
-        throw err
+      err = new AggregateError([err])
+      err.aes_decrypt = true
+      throw err
 
 export @{}
   u8_aes_256_gcm as u8_aes_gcm,
