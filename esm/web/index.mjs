@@ -44,29 +44,33 @@ function ecc_by_len(ec_len, p521='P-521', p384='P-384', p256='P-256', absent) {
     case 91: case 65: return p256
     default: return absent} }
 
+const crypto_api = globalThis.crypto;
+
+const subtle_api = crypto_api.subtle;
+
 function u8_crypto_random(n) {
-  return crypto.getRandomValues(
+  return crypto_api.getRandomValues(
     new Uint8Array(n)) }
 
 const _import_aes_gcm_raw = aeskey =>
-  crypto.subtle.importKey('raw', aeskey.subarray(-32),
+  subtle_api.importKey('raw', aeskey.subarray(-32),
     {name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']);
 
-const u8_aes_256_gcm ={
+const u8_aes_256_gcm = {
   async encrypt(raw_content, key_cipher, key_iv) {
     key_cipher = await _import_aes_gcm_raw(key_cipher);
-    return new Uint8Array(await crypto.subtle.encrypt(
+    return new Uint8Array(await subtle_api.encrypt(
       {name: 'AES-GCM', tagLength: 128,
           iv: key_iv.subarray(-12) }// IV of 96 bits (12 bytes) 
-      , key_cipher, raw_content) ) }
+    , key_cipher, raw_content) ) }
 
-  , async decrypt(enc_content, key_cipher, key_iv, absent) {
+, async decrypt(enc_content, key_cipher, key_iv, absent) {
     try {
       key_cipher = await _import_aes_gcm_raw(key_cipher);
-      return new Uint8Array(await crypto.subtle.decrypt(
+      return new Uint8Array(await subtle_api.decrypt(
         {name: 'AES-GCM', tagLength: 128,
             iv: key_iv.subarray(-12) }// IV of 96 bits (12 bytes) 
-        , key_cipher, enc_content) ) }
+      , key_cipher, enc_content) ) }
     catch (err) {
       if (undefined !== absent) {
         return absent}
@@ -76,8 +80,8 @@ const u8_aes_256_gcm ={
       throw err} } };
 
 function _bind_sha_digest(hash) {
-  const _digest_ = crypto.subtle
-    .digest.bind(crypto.subtle, { name: hash });
+  const _digest_ = buf =>
+    subtle_api.digest({ name: hash }, buf);
 
   return (async ( data, n ) => {
     const u8 = new Uint8Array(
@@ -88,81 +92,44 @@ function _bind_sha_digest(hash) {
       : u8.subarray(n)}) }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-const u8_sha_256 = _bind_sha_digest('SHA-256');
-const u8_sha_384 = _bind_sha_digest('SHA-384');
-const u8_sha_512 = _bind_sha_digest('SHA-512');
+const u8_sha_256 = /* #__PURE__ */ _bind_sha_digest('SHA-256');
+const u8_sha_384 = /* #__PURE__ */ _bind_sha_digest('SHA-384');
+const u8_sha_512 = /* #__PURE__ */ _bind_sha_digest('SHA-512');
 
 function _bind_hmac_sha(hash) {
-  const {subtle} = crypto;
   return (( u8_key, u8 ) => {
     u8_key = u8_maybe_utf8(u8_key);
 
-    const _hkey = subtle.importKey(
+    const _hkey = subtle_api.importKey(
       'raw', u8_key, {name: 'HMAC', hash},
       false, ['sign', 'verify']);
 
     const hmac_sign = async u8 =>
-      new Uint8Array(await subtle.sign(
+      new Uint8Array(await subtle_api.sign(
         {name: 'HMAC'}, await _hkey
-        , u8_maybe_utf8(u8)) );
+      , u8_maybe_utf8(u8)) );
 
     if (u8) {
       return hmac_sign(u8)}
 
     return {hash, hmac_sign,
       async hmac_verify(u8_sig, u8) {
-        return subtle.verify(
+        return subtle_api.verify(
           {name: 'HMAC'}, await _hkey,
           u8_sig, u8) } } }) }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const u8_hmac_sha_256 = _bind_hmac_sha('SHA-256');
-const u8_hmac_sha_384 = _bind_hmac_sha('SHA-384');
-const u8_hmac_sha_512 = _bind_hmac_sha('SHA-512');
+const u8_hmac_sha_256 = /* #__PURE__ */ _bind_hmac_sha('SHA-256');
+const u8_hmac_sha_384 = /* #__PURE__ */ _bind_hmac_sha('SHA-384');
+const u8_hmac_sha_512 = /* #__PURE__ */ _bind_hmac_sha('SHA-512');
 
 function _bind_ecdsa(hash) {
-  const {subtle} = crypto;
   return {
     p521: () => _ecdsa_signer('P-521')
-    , p384: () => _ecdsa_signer('P-384')
-    , p256: () => _ecdsa_signer('P-256')
-    , verify: ecdsa_verify
-    , hash}
+  , p384: () => _ecdsa_signer('P-384')
+  , p256: () => _ecdsa_signer('P-256')
+  , verify: ecdsa_verify
+  , hash}
 
 
   async function ecdsa_verify(ec_sig_obj, u8) {
@@ -171,107 +138,50 @@ function _bind_ecdsa(hash) {
     if (! namedCurve) {return}
 
     const _kind ={name: 'ECDSA', hash, namedCurve};
-    const ec_pub = subtle.importKey(
+    const ec_pub = subtle_api.importKey(
       'spki', ec, _kind, false, ['verify']);
 
-    return subtle.verify(
+    return subtle_api.verify(
       _kind, await ec_pub, sig, u8) }
 
 
   function _ecdsa_signer(namedCurve) {
     const _kind = {name: 'ECDSA', namedCurve, hash};
-    const _ec_ = subtle.generateKey(
+    const _ec_ = subtle_api.generateKey(
       _kind, false, ['sign']);
 
     const ec = _ec_.then(async _ec_ => new Uint8Array(
-      await subtle.exportKey('spki', _ec_.publicKey)) );
+      await subtle_api.exportKey('spki', _ec_.publicKey)) );
     return Object.assign(ecdsa_sign,{
       ec, ecdsa_sign, ecdsa_verify
-      , hash, namedCurve} )
+    , hash, namedCurve} )
 
 
     async function ecdsa_sign(u8) {
       const {privateKey} = await _ec_;
       const u8_sig = new Uint8Array(
-        await subtle.sign(
+        await subtle_api.sign(
           _kind, privateKey, u8) );
 
       return {ec: await ec, sig: u8_sig} } } }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const u8_ecdsa_sha_256 = _bind_ecdsa('SHA-256');
-const u8_ecdsa_sha_384 = _bind_ecdsa('SHA-384');
-const u8_ecdsa_sha_512 = _bind_ecdsa('SHA-512');
+const u8_ecdsa_sha_256 = /* #__PURE__ */ _bind_ecdsa('SHA-256');
+const u8_ecdsa_sha_384 = /* #__PURE__ */ _bind_ecdsa('SHA-384');
+const u8_ecdsa_sha_512 = /* #__PURE__ */ _bind_ecdsa('SHA-512');
 
 function _bind_ecdhe() {
   const n_bits ={'P-521': 528, 'P-384': 384, 'P-256': 256,};
-  const {subtle} = crypto;
 
   return {
     p521: () => _gen_ecdhe('P-521')
-    , p384: () => _gen_ecdhe('P-384')
-    , p256: () => _gen_ecdhe('P-256')
-    , mirror: other => _ecdhe_mirror(other, _gen_ecdhe)
-    , _with_ecdh}
+  , p384: () => _gen_ecdhe('P-384')
+  , p256: () => _gen_ecdhe('P-256')
+  , mirror: other => _ecdhe_mirror(other, _gen_ecdhe)
+  , _with_ecdh}
 
   function _gen_ecdhe(namedCurve) {
-    const _ec_ = subtle.generateKey(
+    const _ec_ = subtle_api.generateKey(
       {name: 'ECDH', namedCurve}, false, ['deriveBits']);
     return _with_ecdh(namedCurve, _ec_)}
 
@@ -280,56 +190,21 @@ function _bind_ecdhe() {
     const _kind ={name: 'ECDH', namedCurve};
     return Object.assign(ecdh_derive,{
       ecdh: _ec_.then (async ( _ec_ ) => new Uint8Array(
-        await subtle.exportKey('raw', _ec_.publicKey)) )
+        await subtle_api.exportKey('raw', _ec_.publicKey)) )
 
-      , ecdh_derive
-      , namedCurve} )
+    , ecdh_derive
+    , namedCurve} )
 
     async function ecdh_derive(ecdh) {
-      const ec_pub = await subtle.importKey(
+      const ec_pub = await subtle_api.importKey(
         'raw', await ecdh, _kind, false, []);
 
       return new Uint8Array(
-        await subtle.deriveBits(
+        await subtle_api.deriveBits(
           {... _kind, public: ec_pub}
-          , (await _ec_).privateKey
-          , n_bits[namedCurve]) ) } } }
+        , (await _ec_).privateKey
+        , n_bits[namedCurve]) ) } } }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const u8_ecdhe = _bind_ecdhe();
 
 function _ecdhe_mirror(ecdh_other, _gen_ecdhe) {
   const ec_len = (0 | ecdh_other) === ecdh_other
@@ -338,6 +213,9 @@ function _ecdhe_mirror(ecdh_other, _gen_ecdhe) {
 
   const namedCurve = ecc_by_len(ec_len);
   return _gen_ecdhe(namedCurve)}
+
+
+const u8_ecdhe = /* #__PURE__ */ _bind_ecdhe();
 
 const cbor_break_sym = Symbol('CBOR-break');
 const cbor_done_sym = Symbol('CBOR-done');
@@ -2161,5 +2039,5 @@ const opaque_ecdhe_tahoe_mirror =
   bind_opaque_ecdhe_mirror(
     opaque_tahoe);
 
-export { _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, ecc_by_len, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
+export { _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, crypto_api, ecc_by_len, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, subtle_api, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
 //# sourceMappingURL=index.mjs.map
