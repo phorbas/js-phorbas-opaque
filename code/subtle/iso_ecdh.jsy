@@ -1,0 +1,60 @@
+import {subtle_api, U8} from './iso_crypto_api.jsy'
+
+export function _bind_ecdh(namedCurve, _nc_bits) ::
+  const alg = {name: 'ECDH', namedCurve}
+  const extractable = true
+  const usages = ['deriveBits', 'deriveKey']
+
+  const ecdh_api = @{}
+    get with_ec() :: return ec => ({ __proto__: this, ec})
+
+    namedCurve
+
+    async exportKey(format) ::
+      let v = await subtle_api.exportKey(format, this.ec)
+      return v.byteLength ? new U8(v) : v
+
+    async deriveBits(ecdh_pub, n_bits=_nc_bits) ::
+      return new U8 @ await subtle_api.deriveBits @
+        { ... alg, public: await _as_ecdh_pub(ecdh_pub) }, this.ec, n_bits
+
+    async deriveKey(ecdh_pub, alg_dk, usages_dk) ::
+      return await subtle_api.deriveKey @
+        { ... alg, public: await _as_ecdh_pub(ecdh_pub) }, this.ec,
+        alg_dk, true, usages_dk
+
+
+  return Object.assign @ gen_ecdh, @{}
+    generateKey, importKey
+
+  async function gen_ecdh(usages_dk=usages) ::
+    let {publicKey, privateKey} = await generateKey()
+    return Object.assign @ privateKey, @{}
+      ecdh: publicKey.exportKey('raw')
+      publicKey, privateKey
+
+  async function generateKey(usages_dk=usages, as_raw) ::
+    let ec = await subtle_api.generateKey(alg, extractable, usages_dk)
+    return as_raw ? ec : @{}
+      publicKey: ecdh_api.with_ec(ec.publicKey)
+      privateKey: ecdh_api.with_ec(ec.privateKey)
+
+  async function _as_ecdh_pub(ecdh_pub) ::
+    ecdh_pub = await ecdh_pub
+    return ecdh_pub.buffer
+      ? await importKey('raw', ecdh_pub, false)
+      : ecdh_pub
+
+  async function importKey(format, keyData, usages_dk=usages) ::
+    let ec = await subtle_api.importKey @
+      format, await keyData,
+      alg, extractable, usages_dk || []
+
+    return false === usages_dk ? ec : ecdh_api.with_ec(ec)
+
+
+
+export const u8_ecdh_p256 = /* #__PURE__ */ _bind_ecdh('P-256', 256)
+export const u8_ecdh_p384 = /* #__PURE__ */ _bind_ecdh('P-384', 384)
+export const u8_ecdh_p521 = /* #__PURE__ */ _bind_ecdh('P-521', 528)
+

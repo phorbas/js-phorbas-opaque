@@ -211,19 +211,77 @@ function _bind_ecdhe() {
         await subtle_api.deriveBits(
           {... _kind, public: ec_pub}
         , (await _ec_).privateKey
-        , n_bits[namedCurve]) ) } } }
+        , n_bits[namedCurve]) ) } }
 
 
-function _ecdhe_mirror(ecdh_other, _gen_ecdhe) {
-  const ec_len = (0 | ecdh_other) === ecdh_other
-    ? 0 | ecdh_other
-    : ecdh_other.byteLength || ecdh_other.length;
+  function _ecdhe_mirror(ecdh_other, _gen_ecdhe) {
+    const ec_len = (0 | ecdh_other) === ecdh_other
+      ? 0 | ecdh_other
+      : ecdh_other.byteLength || ecdh_other.length;
 
-  const namedCurve = ecc_by_len(ec_len);
-  return _gen_ecdhe(namedCurve)}
+    const namedCurve = ecc_by_len(ec_len);
+    return _gen_ecdhe(namedCurve)} }
 
 
 const u8_ecdhe = /* #__PURE__ */ _bind_ecdhe();
+
+function _bind_ecdh(namedCurve, _nc_bits) {
+  const alg = {name: 'ECDH', namedCurve};
+  const extractable = true;
+  const usages = ['deriveBits', 'deriveKey'];
+
+  const ecdh_api ={
+    get with_ec() {return ec => ({ __proto__: this, ec})}
+
+  , namedCurve
+
+  , async exportKey(format) {
+      let v = await subtle_api.exportKey(format, this.ec);
+      return v.byteLength ? new U8(v) : v}
+
+  , async deriveBits(ecdh_pub, n_bits=_nc_bits) {
+      return new U8(await subtle_api.deriveBits(
+        { ... alg, public: await _as_ecdh_pub(ecdh_pub) }, this.ec, n_bits) ) }
+
+  , async deriveKey(ecdh_pub, alg_dk, usages_dk) {
+      return await subtle_api.deriveKey(
+        { ... alg, public: await _as_ecdh_pub(ecdh_pub) }, this.ec,
+        alg_dk, true, usages_dk) } };
+
+
+  return Object.assign(gen_ecdh,{
+    generateKey, importKey} )
+
+  async function gen_ecdh(usages_dk=usages) {
+    let {publicKey, privateKey} = await generateKey();
+    return Object.assign(privateKey,{
+      ecdh: publicKey.exportKey('raw')
+    , publicKey, privateKey} ) }
+
+  async function generateKey(usages_dk=usages, as_raw) {
+    let ec = await subtle_api.generateKey(alg, extractable, usages_dk);
+    return as_raw ? ec :{
+      publicKey: ecdh_api.with_ec(ec.publicKey)
+    , privateKey: ecdh_api.with_ec(ec.privateKey)} }
+
+  async function _as_ecdh_pub(ecdh_pub) {
+    ecdh_pub = await ecdh_pub;
+    return ecdh_pub.buffer
+      ? await importKey('raw', ecdh_pub, false)
+      : ecdh_pub}
+
+  async function importKey(format, keyData, usages_dk=usages) {
+    let ec = await subtle_api.importKey(
+      format, await keyData,
+      alg, extractable, usages_dk || []);
+
+    return false === usages_dk ? ec : ecdh_api.with_ec(ec)} }
+
+
+
+const u8_ecdh_p256 = /* #__PURE__ */ _bind_ecdh('P-256', 256);
+const u8_ecdh_p384 = /* #__PURE__ */ _bind_ecdh('P-384', 384);
+const u8_ecdh_p521 = /* #__PURE__ */ _bind_ecdh('P-521', 528);
 
 const cbor_break_sym = Symbol('CBOR-break');
 const cbor_done_sym = Symbol('CBOR-done');
@@ -2047,5 +2105,5 @@ const opaque_ecdhe_tahoe_mirror =
   bind_opaque_ecdhe_mirror(
     opaque_tahoe);
 
-export { U8, _bind_aes_256_gcm, _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, crypto_api, ecc_by_len, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, subtle_api, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
+export { U8, _bind_aes_256_gcm, _bind_ecdh, _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, crypto_api, ecc_by_len, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, subtle_api, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdh_p256, u8_ecdh_p384, u8_ecdh_p521, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
 //# sourceMappingURL=index.mjs.map

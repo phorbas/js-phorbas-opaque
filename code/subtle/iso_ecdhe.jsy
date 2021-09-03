@@ -39,13 +39,13 @@ export function _bind_ecdhe() ::
           n_bits[namedCurve]
 
 
-function _ecdhe_mirror(ecdh_other, _gen_ecdhe) ::
-  const ec_len = (0 | ecdh_other) === ecdh_other
-    ? 0 | ecdh_other
-    : ecdh_other.byteLength || ecdh_other.length
+  function _ecdhe_mirror(ecdh_other, _gen_ecdhe) ::
+    const ec_len = (0 | ecdh_other) === ecdh_other
+      ? 0 | ecdh_other
+      : ecdh_other.byteLength || ecdh_other.length
 
-  const namedCurve = ecc_by_len(ec_len)
-  return _gen_ecdhe(namedCurve)
+    const namedCurve = ecc_by_len(ec_len)
+    return _gen_ecdhe(namedCurve)
 
 
 export const u8_ecdhe = /* #__PURE__ */ _bind_ecdhe()
