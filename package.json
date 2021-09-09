@@ -1,6 +1,6 @@
 {
   "name": "@phorbas/opaque",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Persistent, hashed, opaque, replicable, binary key/content, addressable, storage",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
@@ -29,7 +29,7 @@
     "cbor-codec": "^0.9.1",
     "rollup": "^2.56.3",
     "rollup-plugin-dgnotify": "^0.1.7",
-    "rollup-plugin-jsy": "^1.7.2",
+    "rollup-plugin-jsy": "^1.7.3",
     "u8-utils": "^0.3.8"
   },
   "scripts": {

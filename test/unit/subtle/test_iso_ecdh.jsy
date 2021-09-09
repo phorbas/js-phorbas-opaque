@@ -13,7 +13,7 @@ import {hex_to_u8, u8_to_hex} from 'cbor-codec'
 const { assert, expect } = require('chai')
 
 
-describe.only @ 'subtle/iso_ecdh', @::
+describe @ 'subtle/iso_ecdh', @::
 
   for let [ecdh_namedCurve, u8_ecdh_fn] of [
       ['P-521', u8_ecdh_p521],

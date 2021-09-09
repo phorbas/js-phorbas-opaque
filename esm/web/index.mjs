@@ -1738,6 +1738,8 @@ const opaque_core_api ={
     return this._finish_key(kctx)}
 
 
+, codec: opaque_shared_codec
+
 , //
   // Protected extension api
 
@@ -1758,6 +1760,7 @@ const opaque_core_api ={
 
   as_core() {return {
     ciphered: this.ciphered
+  , codec: this.codec
 
   , from_k1ref: k1ref => this.from_k1ref(k1ref)
   , from_k2loc: k2loc => this.from_k2loc(k2loc)
@@ -1886,14 +1889,14 @@ function bind_tahoe_cipher(cipher) {
             u8_enc, u8_secret, u8_iv) } } }
 
 
-  , _codec: opaque_shared_codec
+  , codec: opaque_basic_hmac_api.codec
   , _kdf_iv: kdf_random_16
   , // _kdf_secret: k1ref => k1ref
 
     _pack_opaque(obj_body) {
-      return this._codec.encode(obj_body)}
+      return this.codec.encode(obj_body)}
   , _unpack_opaque(u8_record) {
-      return this._codec.decode(u8_record)} } }
+      return this.codec.decode(u8_record)} } }
 
 const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>
@@ -1981,7 +1984,7 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
 
 
   , async _pack_opaque(obj_body) {
-      const {_ec_sign, _codec: {encode}} = this;
+      const {_ec_sign, codec: {encode}} = this;
 
       obj_body.e = await _ec_sign.ec;
       const body = encode(obj_body);
@@ -1991,7 +1994,7 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
 
 
   , async _unpack_opaque(u8_record) {
-      const {k2loc, _codec: {decode}} = this;
+      const {k2loc, codec: {decode}} = this;
       let obj_sig;
       try {obj_sig = decode(u8_record);}
       catch (err) {return }// ignore decoding error
@@ -2016,7 +2019,7 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
 
       return obj_body}
 
-  , _codec: opaque_shared_codec
+  , codec: opaque_basic_api.codec
   , _init_eckey: (is_new, kctx) =>
       do_kctx_ec(kctx, ecdsa_signer())
 
