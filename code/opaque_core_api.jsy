@@ -1,7 +1,9 @@
 import {u8_maybe_utf8} from './subtle/utils.jsy'
 
 #IF NO_CBOR
-  import {init_opaque_shared_codec} from './codec.jsy'
+  import {opaque_shared_codec, init_opaque_shared_codec} from './codec.jsy'
+#ELSE
+  import {opaque_shared_codec} from './codec.jsy'
 
 
 export const opaque_core_api = @{}
@@ -52,6 +54,8 @@ export const opaque_core_api = @{}
     return this._finish_key(kctx)
 
 
+  codec: opaque_shared_codec
+
   //
   // Protected extension api
 
@@ -72,6 +76,7 @@ export const opaque_core_api = @{}
 
   as_core() :: return @{}
     ciphered: this.ciphered
+    codec: this.codec
 
     from_k1ref: k1ref => this.from_k1ref(k1ref)
     from_k2loc: k2loc => this.from_k2loc(k2loc)

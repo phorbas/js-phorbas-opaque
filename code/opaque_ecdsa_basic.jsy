@@ -1,6 +1,5 @@
 import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
 import {u8_sha_256} from './subtle.jsy'
-import {opaque_shared_codec} from './codec.jsy'
 import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
 
 import @{}
@@ -96,7 +95,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
 
     async _pack_opaque(obj_body) ::
-      const {_ec_sign, _codec: {encode}} = this
+      const {_ec_sign, codec: {encode}} = this
 
       obj_body.e = await _ec_sign.ec
       const body = encode(obj_body)
@@ -106,7 +105,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
 
     async _unpack_opaque(u8_record) ::
-      const {k2loc, _codec: {decode}} = this
+      const {k2loc, codec: {decode}} = this
       let obj_sig
       try :: obj_sig = decode(u8_record)
       catch err :: return // ignore decoding error
@@ -131,7 +130,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
       return obj_body
 
-    _codec: opaque_shared_codec
+    codec: opaque_basic_api.codec
     _init_eckey: (is_new, kctx) =>
       do_kctx_ec @ kctx, ecdsa_signer()
 
