@@ -3,13 +3,15 @@ import rpi_jsy from 'rollup-plugin-jsy'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 
-const _rpis_ = defines => [
+
+const _rpis_ = (defines, ...args) => [
   rpi_jsy({defines}),
   rpi_resolve(),
+  ...args,
   rpi_dgnotify()]
 
 const cfg_node = {
-  external: id => id.startsWith('node:') || builtinModules.includes(id),
+  external: id => /^node:/.test(id) || builtinModules.includes(id),
   plugins: _rpis_({PLAT_NODEJS: true}) }
 
 const cfg_web = {

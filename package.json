@@ -16,13 +16,12 @@
     "code/",
     "esm/"
   ],
-  "type": "module",
-  "module": "./esm/node/index.mjs",
-  "browser": "./esm/web/index.mjs",
   "exports": {
-    "./": "./",
-    "./*": "./*",
-    ".": "./esm/node/index.mjs"
+    ".": {
+      "node": "./esm/node/index.mjs",
+      "default": "./esm/web/index.mjs"
+    },
+    "./esm/*": "./esm/*"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.0.4",
