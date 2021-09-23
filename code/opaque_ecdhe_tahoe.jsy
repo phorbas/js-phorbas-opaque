@@ -7,7 +7,7 @@ export const opaque_ecdhe_tahoe = () =>
     opaque_tahoe,
     u8_ecdhe.p521()
 
-export const opaque_ecdhe_tahoe_mirror =
+export const opaque_ecdhe_tahoe_mirror = /* #__PURE__ */ 
   bind_opaque_ecdhe_mirror @
     opaque_tahoe
 

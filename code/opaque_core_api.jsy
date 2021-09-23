@@ -6,7 +6,7 @@ import {u8_maybe_utf8} from './subtle/utils.jsy'
   import {opaque_shared_codec} from './codec.jsy'
 
 
-export const opaque_core_api = @{}
+export const opaque_core_api = /* #__PURE__ */ @{}
   // k0 is source material for k1ref derivation
 
   from_random() :: // k0

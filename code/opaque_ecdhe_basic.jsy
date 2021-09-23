@@ -7,7 +7,7 @@ export const opaque_ecdhe_basic = () =>
     opaque_basic_hmac,
     u8_ecdhe.p256()
 
-export const opaque_ecdhe_basic_mirror =
+export const opaque_ecdhe_basic_mirror = /* #__PURE__ */ 
   bind_opaque_ecdhe_mirror @
     opaque_basic_hmac
 

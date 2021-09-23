@@ -9,11 +9,11 @@ import @{}
 from './subtle.jsy'
 
 
-export const kdf_hmac_phorbas =
+export const kdf_hmac_phorbas = /* #__PURE__ */
   u8_hmac_sha_256('phorbas').hmac_sign
 
 
-export const opaque_ecdsa_tahoe = Object.freeze @:
+export const opaque_ecdsa_tahoe = /* #__PURE__ */ Object.freeze @:
   ... opaque_ecdsa_basic
   ciphered: true
 

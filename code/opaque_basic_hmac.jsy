@@ -3,7 +3,7 @@ import {u8_hmac_sha_256} from './subtle.jsy'
 
 export {kdf_random_16, kdf_sha_256} from './opaque_basic.jsy'
 
-export const opaque_basic_hmac_api = @{}
+export const opaque_basic_hmac_api = /* #__PURE__ */ @{}
   ... opaque_basic_api
   _hmac: u8_hmac_sha_256
 
@@ -17,6 +17,6 @@ export const opaque_basic_hmac_api = @{}
   _clone(ctx) :: return {__proto__: this, as_session: null, ...ctx}
 
 
-export const opaque_basic_hmac = Object.freeze @:
+export const opaque_basic_hmac = /* #__PURE__ */ Object.freeze @:
   ... opaque_basic_hmac_api
 

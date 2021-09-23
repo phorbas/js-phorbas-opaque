@@ -8,7 +8,7 @@ export const kdf_sha_256 = u8 => u8_sha_256(u8)
 
 const _as_u8_async = async u8 => u8 && new Uint8Array(u8)
 
-const opaque_basic_key_proto = @{}
+export const opaque_key_proto = @{}
   ciphered: false
   k21pair() :: return [this.k2loc, this.k1ref]
 
@@ -18,7 +18,7 @@ const opaque_basic_key_proto = @{}
   decode_utf8: async u8 => u8_to_utf8(u8)
 
 
-export const opaque_basic_api = @{}
+export const opaque_basic_api = /* #__PURE__ */ @{}
   ... opaque_core_api
   ciphered: false
 
@@ -27,7 +27,7 @@ export const opaque_basic_api = @{}
   _kdf1_ref: kdf_sha_256
   _kdf2_loc: kdf_sha_256
 
-  key_proto: opaque_basic_key_proto
+  key_proto: opaque_key_proto
 
   _init_key(is_new) :: return {__proto__: this.key_proto}
   _finish_key(kctx) :: return kctx
@@ -35,6 +35,6 @@ export const opaque_basic_api = @{}
   _clone(ctx) :: return {__proto__: this, as_session: null, ...ctx}
 
 
-export const opaque_basic = Object.freeze @:
+export const opaque_basic = /* #__PURE__ */ Object.freeze @:
   ... opaque_basic_api
 
