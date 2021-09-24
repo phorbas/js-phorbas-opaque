@@ -30,12 +30,12 @@ const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
     return this.opaque_a._kdf1_ref(u8_k0, kctx.kx_a)
 
   async _kdf2_loc(k1ref, kctx) ::
-    kctx.k1ref_b = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a)
-    return this.opaque_b._kdf2_loc(kctx.k1ref_b, kctx.kx_b)
+    kctx.k1mid = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a)
+    return this.opaque_b._kdf2_loc(kctx.k1mid, kctx.kx_b)
 
 
 function _with_k21(k1ref, k2loc, tgt) ::
-  tgt.k1ref = k1ref; tgt.k2loc = k2loc; return tgt
+  return @{} __proto__: tgt, k1ref, k2loc
 
 const okey_kx_a = /* #__PURE__ */ Object.freeze @:
   ... okey_ciphered
@@ -47,9 +47,9 @@ const okey_kx_a = /* #__PURE__ */ Object.freeze @:
 const okey_kx_b = /* #__PURE__ */ Object.freeze @:
   ... okey_ciphered
   encipher(...args) ::
-    return _with_k21(this.k1ref_b, this.k2loc, this.kx_b).encipher(...args)
+    return _with_k21(this.k1mid, this.k2loc, this.kx_b).encipher(...args)
   decipher(...args) ::
-    return _with_k21(this.k1ref_b, this.k2loc, this.kx_b).decipher(...args)
+    return _with_k21(this.k1mid, this.k2loc, this.kx_b).decipher(...args)
 
 
 export function opaque_compose(opaque_a, opaque_b) ::
