@@ -1,0 +1,67 @@
+import {opaque_core_api} from './opaque_core_api.jsy'
+import {okey_basic} from './key_basic.jsy'
+import {okey_ciphered} from './key_ciphered.jsy'
+
+
+const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
+  ... opaque_core_api
+  //opaque_a: opaque
+  //opaque_b: opaque
+  //key_proto: okey_basic or okey_kx_a or okey_kx_b
+
+  _init_key(is_new) ::
+    return @{}
+      __proto__: this.key_proto
+      kx_a: this.opaque_a._init_key(is_new)
+      kx_b: this.opaque_b._init_key(is_new)
+
+  _finish_key(kctx) ::
+    kctx.kx_a = this.opaque_a._finish_key(kctx.kx_a)
+    kctx.kx_b = this.opaque_b._finish_key(kctx.kx_b)
+    return kctx
+
+  _kdf0_random() ::
+    return this.opaque_a._kdf0_random()
+
+  _kdf0_hash(u8) ::
+    return this.opaque_a._kdf0_hash(u8)
+
+  _kdf1_ref(u8_k0, kctx) ::
+    return this.opaque_a._kdf1_ref(u8_k0, kctx.kx_a)
+
+  async _kdf2_loc(k1ref, kctx) ::
+    let k1ref_b = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a)
+    return this.opaque_b._kdf2_loc(k1ref_b, kctx.kx_b)
+
+function _with_k21({k1ref, k2loc}, tgt) ::
+  tgt.k1ref = k1ref
+  tgt.k2loc = k2loc
+  return tgt
+
+const okey_kx_a = /* #__PURE__ */ Object.freeze @:
+  ... okey_ciphered
+  encipher(...args) ::
+    return _with_k21(this, this.kx_a).encipher(...args)
+  decipher(...args) ::
+    return _with_k21(this, this.kx_a).decipher(...args)
+
+const okey_kx_b = /* #__PURE__ */ Object.freeze @:
+  ... okey_ciphered
+  encipher(...args) ::
+    console.log @ "TODO: this should use k1ref_b"
+    return _with_k21(this, this.kx_b).encipher(...args)
+  decipher(...args) ::
+    console.log @ "TODO: this should use k1ref_b"
+    return _with_k21(this, this.kx_b).decipher(...args)
+
+
+export function opaque_compose(opaque_a, opaque_b) ::
+  let res = @{} __proto__: opaque_comp_api, opaque_a, opaque_b
+  let key_proto = opaque_b.ciphered ? okey_kx_b
+    : opaque_a.ciphered ? okey_kx_a
+    : okey_basic
+
+  res.ciphered = key_proto.ciphered
+  res.key_proto = key_proto
+  return res
+

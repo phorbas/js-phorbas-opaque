@@ -33,9 +33,10 @@ export default configs
 add_jsy('index')
 add_jsy('subtle')
 
-if (1) {
+if (0) {
   add_jsy('opaque_basic')
   add_jsy('opaque_basic_hmac')
+  add_jsy('opaque_composite')
   add_jsy('opaque_tahoe')
   add_jsy('opaque_ecdsa_basic')
   add_jsy('opaque_ecdsa_tahoe')

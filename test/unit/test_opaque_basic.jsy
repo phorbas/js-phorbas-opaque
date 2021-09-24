@@ -1,6 +1,8 @@
 import @{}
   opaque_core_api, opaque_basic,
+  opaque_basic_hmac,
   opaque_tahoe,
+  opaque_compose,
   tahoe_hmac,
   tahoe_ecdhe, tahoe_ecdhe_mirror, 
   opaque_ecdsa_basic, 
@@ -30,6 +32,9 @@ describe @ 'opaque core & basics', @::
 
   it @ 'shape of opaque_basic', @::>
     await _expect_full_api @ opaque_basic
+
+  it @ 'shape of opaque_basic_hmac', @::>
+    await _expect_full_api @ opaque_basic_hmac
 
   it @ 'shape of opaque_tahoe', @::>
     await _expect_full_api @ opaque_tahoe
@@ -181,6 +186,20 @@ describe @ 'opaque core & basics', @::
     .to.deep.equal @ hex_to_u8 @ "7334974a0cba50f7a836731efb1e3dcfe0c739c393cc5ac8e1fb8f3991341fcc"
 
 
+describe @ 'opaque composed', @::
+  let opaque_algs = Object.entries @:
+    opaque_basic,
+    opaque_basic_hmac,
+    "opaque_basic_hmac('test')": opaque_basic_hmac.with_hmac('test'),
+    opaque_tahoe
+
+  for let [name_oa, opaque_a] of opaque_algs ::
+    for let [name_ob, opaque_b] of opaque_algs ::
+
+      it @ `shape of opaque_compose(${name_oa}, ${name_ob})`, @::>
+        let oc = opaque_compose(opaque_a, opaque_b)
+        await _expect_full_api(oc)
+
 
 
 
@@ -207,12 +226,12 @@ async function _expect_core_api(opaque, opt={}) ::
       opaque.ciphered
 
 async function _expect_full_api(opaque) ::
-  await _expect_core_api @ opaque, {skip_kdf: true}
-
   expect(opaque._kdf0_hash).to.be.a('function')
   expect(opaque._kdf0_random).to.be.a('function')
   expect(opaque._kdf1_ref).to.be.a('function')
   expect(opaque._kdf2_loc).to.be.a('function')
+
+  await _expect_core_api @ opaque, {skip_kdf: true}
 
 
 async function _expect_okey(okey, ciphered) ::

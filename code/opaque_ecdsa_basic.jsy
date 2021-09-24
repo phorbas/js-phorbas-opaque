@@ -49,7 +49,7 @@ export const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze @:
 
 export function bind_ecdsa_key_proto(kw_cfg) ::
   return @{}
-    ... bind_ecdsa_basic()
+    __proto__: bind_ecdsa_basic()
     ... bind_ecdsa_codec(kw_cfg)
 
 
@@ -69,13 +69,13 @@ export function bind_ecdsa_basic() ::
     async encode_content(u8) ::
       const {k1ref, k2loc} = this
       if k1ref && k2loc ::
-        return await this._pack_opaque @:
+        return await this._rec_pack @:
           c:u8, l:k2loc
 
     async decode_content(u8_record) ::
       const {k1ref, k2loc, _kdf_secret} = this
       if u8_record && k1ref && k2loc ::
-        const {c:u8} = await this._unpack_opaque(u8_record) || {}
+        const {c:u8} = await this._rec_unpack(u8_record) || {}
         return u8
 
 
@@ -90,11 +90,11 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
   return @{}
     async validate(u8_record) ::
       if u8_record ::
-        const res = await this._unpack_opaque(u8_record)
+        const res = await this._rec_unpack(u8_record)
         return undefined !== res
 
 
-    async _pack_opaque(obj_body) ::
+    async _rec_pack(obj_body) ::
       const {_ec_sign, codec: {encode}} = this
 
       obj_body.e = await _ec_sign.ec
@@ -104,7 +104,7 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
       return encode @: z:sig, b:body
 
 
-    async _unpack_opaque(u8_record) ::
+    async _rec_unpack(u8_record) ::
       const {k2loc, codec: {decode}} = this
       let obj_sig
       try :: obj_sig = decode(u8_record)

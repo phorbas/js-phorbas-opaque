@@ -1,0 +1,15 @@
+import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
+import {opaque_shared_codec} from './codec.jsy'
+
+const _as_u8_async = async u8 => u8 && new Uint8Array(u8)
+
+export const okey_basic = /* #__PURE__ */ Object.freeze @:
+  k21pair() :: return [this.k2loc, this.k1ref]
+  codec: opaque_shared_codec
+  ciphered: false
+
+  encode_content: _as_u8_async
+  decode_content: _as_u8_async
+  encode_utf8: async utf8 => utf8_to_u8(utf8)
+  decode_utf8: async u8 => u8_to_utf8(u8)
+

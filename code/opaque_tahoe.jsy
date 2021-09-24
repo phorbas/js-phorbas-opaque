@@ -1,6 +1,6 @@
-import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
-import {opaque_basic_hmac_api, kdf_random_16} from './opaque_basic_hmac.jsy'
-import {u8_aes_256_gcm, u8_hmac_sha_256} from './subtle.jsy'
+import {bind_okey_ciphered} from './key_ciphered.jsy'
+import {opaque_basic_hmac_api} from './opaque_basic_hmac.jsy'
+import {u8_aes_256_gcm} from './subtle.jsy'
 
 
 export const opaque_tahoe = /* #__PURE__ */ Object.freeze @:
@@ -8,68 +8,12 @@ export const opaque_tahoe = /* #__PURE__ */ Object.freeze @:
   ciphered: true
 
   key_proto: Object.freeze @
-    bind_tahoe_cipher(u8_aes_256_gcm)
+    bind_okey_ciphered(u8_aes_256_gcm)
 
 
-export const tahoe = () => ({ __proto__: opaque_tahoe })
+export const tahoe = () =>
+  ({ __proto__: opaque_tahoe })
 
 export const tahoe_hmac = u8_key =>
   opaque_tahoe.with_hmac(u8_key)
-
-
-
-export function bind_tahoe_cipher(cipher) ::
-  return @{}
-    ciphered: true
-    k21pair() :: return [this.k2loc, this.k1ref]
-
-    encode_content(u8) :: return this.encipher(u8)
-    decode_content(u8) :: return this.decipher(u8)
-    encode_utf8(utf8) :: return this.encipher_utf8(utf8)
-    decode_utf8(u8) :: return this.decipher_utf8(u8)
-
-    encipher_utf8(utf8) ::
-      return this.encipher @ utf8_to_u8(utf8)
-
-    async encipher(u8_content) ::
-      const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this
-      if k1ref && k2loc ::
-        const u8_secret = ! _kdf_secret ? k1ref
-          : await _kdf_secret(k1ref)
-
-        const u8_iv = await _kdf_iv(k2loc)
-
-        const u8_enc = await cipher.encrypt @
-          u8_content, u8_secret, u8_iv
-
-        return await this._pack_opaque @:
-          c:u8_enc, v:u8_iv, l:k2loc
-
-    async decipher_utf8(u8_record) ::
-      const u8 = await this.decipher(u8_record)
-      if undefined !== u8 ::
-        return u8_to_utf8(u8)
-
-    async decipher(u8_record) ::
-      const {k1ref, _kdf_secret} = this
-      if u8_record && k1ref ::
-        const {v:u8_iv, c:u8_enc} =
-          await this._unpack_opaque(u8_record) || {}
-
-        const u8_secret = ! _kdf_secret ? k1ref
-          : await _kdf_secret(k1ref)
-
-        if u8_enc && u8_secret && u8_iv ::
-          return await cipher.decrypt @
-            u8_enc, u8_secret, u8_iv
-
-
-    codec: opaque_basic_hmac_api.codec
-    _kdf_iv: kdf_random_16
-    // _kdf_secret: k1ref => k1ref
-
-    _pack_opaque(obj_body) ::
-      return this.codec.encode(obj_body)
-    _unpack_opaque(u8_record) ::
-      return this.codec.decode(u8_record)
 

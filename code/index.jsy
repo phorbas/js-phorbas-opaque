@@ -5,6 +5,8 @@ export * from './opaque_core_api.jsy'
 export * from './opaque_basic.jsy'
 export * from './opaque_basic_hmac.jsy'
 
+export * from './opaque_composite.jsy'
+
 export * from './opaque_tahoe.jsy'
 
 export * from './opaque_ecdsa_basic.jsy'

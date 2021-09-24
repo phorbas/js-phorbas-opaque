@@ -1,7 +1,7 @@
-Array.from(Array(256),
+/* #__PURE__ */ Array.from(Array(256),
   (_, v) => v.toString(2).padStart(8, '0'));
 
-Array.from(Array(256),
+/* #__PURE__ */ Array.from(Array(256),
   (_, v) => v.toString(16).padStart(2, '0'));
 
 function u8_to_utf8$1(u8) {
@@ -1690,7 +1690,7 @@ const opaque_shared_codec ={
   encode: encode,
   decode: decode,};
 
-const opaque_core_api ={
+const opaque_core_api = {
   // k0 is source material for k1ref derivation
 
   from_random() {// k0
@@ -1775,22 +1775,22 @@ const opaque_core_api ={
 
 function _self() {return this}
 
-const kdf_random_16 = () => u8_crypto_random(16);
-const kdf_sha_256 = u8 => u8_sha_256(u8);
-
 const _as_u8_async = async u8 => u8 && new Uint8Array(u8);
 
-const opaque_basic_key_proto ={
-  ciphered: false
-, k21pair() {return [this.k2loc, this.k1ref]}
+const okey_basic = /* #__PURE__ */ Object.freeze({
+  k21pair() {return [this.k2loc, this.k1ref]}
+, codec: opaque_shared_codec
+, ciphered: false
 
 , encode_content: _as_u8_async
 , decode_content: _as_u8_async
 , encode_utf8: async utf8 => utf8_to_u8$1(utf8)
-, decode_utf8: async u8 => u8_to_utf8$1(u8)};
+, decode_utf8: async u8 => u8_to_utf8$1(u8)});
 
+const kdf_random_16 = () => u8_crypto_random(16);
+const kdf_sha_256 = u8 => u8_sha_256(u8);
 
-const opaque_basic_api ={
+const opaque_basic_api = {
   ... opaque_core_api
 , ciphered: false
 
@@ -1799,7 +1799,7 @@ const opaque_basic_api ={
 , _kdf1_ref: kdf_sha_256
 , _kdf2_loc: kdf_sha_256
 
-, key_proto: opaque_basic_key_proto
+, key_proto: okey_basic
 
 , _init_key(is_new) {return {__proto__: this.key_proto}}
 , _finish_key(kctx) {return kctx}
@@ -1807,10 +1807,10 @@ const opaque_basic_api ={
 , _clone(ctx) {return {__proto__: this, as_session: null, ...ctx}} };
 
 
-const opaque_basic = Object.freeze({
+const opaque_basic = /* #__PURE__ */ Object.freeze({
   ... opaque_basic_api});
 
-const opaque_basic_hmac_api ={
+const opaque_basic_hmac_api = {
   ... opaque_basic_api
 , _hmac: u8_hmac_sha_256
 
@@ -1824,37 +1824,39 @@ const opaque_basic_hmac_api ={
 , _clone(ctx) {return {__proto__: this, as_session: null, ...ctx}} };
 
 
-const opaque_basic_hmac = Object.freeze({
+const opaque_basic_hmac = /* #__PURE__ */ Object.freeze({
   ... opaque_basic_hmac_api});
 
-const opaque_tahoe = Object.freeze({
-  ... opaque_basic_hmac_api
+const okey_ciphered = /* #__PURE__ */ Object.freeze({
+  k21pair() {return [this.k2loc, this.k1ref]}
+, codec: opaque_shared_codec
 , ciphered: true
 
-, key_proto:
-    Object.freeze(
-      bind_tahoe_cipher(u8_aes_256_gcm)) });
+, encode_content(u8) {return this.encipher(u8)}
+, decode_content(u8) {return this.decipher(u8)}
+, encode_utf8(utf8) {return this.encipher_utf8(utf8)}
+, decode_utf8(u8) {return this.decipher_utf8(u8)}
+
+, encipher_utf8(utf8) {
+    return this.encipher(utf8_to_u8$1(utf8)) }
+
+, async decipher_utf8(u8_record) {
+    const u8 = await this.decipher(u8_record);
+    if (undefined !== u8) {
+      return u8_to_utf8$1(u8)} }
+
+, // async encipher(u8_content) ::
+  // async decipher(u8_record) ::
+
+  _rec_pack(rec) {
+    return this.codec.encode(rec)}
+, _rec_unpack(u8_record) {
+    return this.codec.decode(u8_record)} });
 
 
-const tahoe = () => ({ __proto__: opaque_tahoe });
-
-const tahoe_hmac = u8_key =>
-  opaque_tahoe.with_hmac(u8_key);
-
-
-
-function bind_tahoe_cipher(cipher) {
+function bind_okey_ciphered(cipher) {
   return {
-    ciphered: true
-  , k21pair() {return [this.k2loc, this.k1ref]}
-
-  , encode_content(u8) {return this.encipher(u8)}
-  , decode_content(u8) {return this.decipher(u8)}
-  , encode_utf8(utf8) {return this.encipher_utf8(utf8)}
-  , decode_utf8(u8) {return this.decipher_utf8(u8)}
-
-  , encipher_utf8(utf8) {
-      return this.encipher(utf8_to_u8$1(utf8)) }
+    __proto__: okey_ciphered
 
   , async encipher(u8_content) {
       const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this;
@@ -1867,19 +1869,14 @@ function bind_tahoe_cipher(cipher) {
         const u8_enc = await cipher.encrypt(
           u8_content, u8_secret, u8_iv);
 
-        return await this._pack_opaque({
+        return await this._rec_pack({
           c:u8_enc, v:u8_iv, l:k2loc}) } }
-
-  , async decipher_utf8(u8_record) {
-      const u8 = await this.decipher(u8_record);
-      if (undefined !== u8) {
-        return u8_to_utf8$1(u8)} }
 
   , async decipher(u8_record) {
       const {k1ref, _kdf_secret} = this;
       if (u8_record && k1ref) {
         const {v:u8_iv, c:u8_enc} =
-          await this._unpack_opaque(u8_record) || {};
+          await this._rec_unpack(u8_record) || {};
 
         const u8_secret = ! _kdf_secret ? k1ref
           : await _kdf_secret(k1ref);
@@ -1889,14 +1886,84 @@ function bind_tahoe_cipher(cipher) {
             u8_enc, u8_secret, u8_iv) } } }
 
 
-  , codec: opaque_basic_hmac_api.codec
   , _kdf_iv: kdf_random_16
-  , // _kdf_secret: k1ref => k1ref
+  , } }// _kdf_secret: k1ref => k1ref
 
-    _pack_opaque(obj_body) {
-      return this.codec.encode(obj_body)}
-  , _unpack_opaque(u8_record) {
-      return this.codec.decode(u8_record)} } }
+const opaque_comp_api = /* #__PURE__ */ Object.freeze({
+  ... opaque_core_api
+, //opaque_a: opaque
+  //opaque_b: opaque
+  //key_proto: okey_basic or okey_kx_a or okey_kx_b
+
+  _init_key(is_new) {
+    return {
+      __proto__: this.key_proto
+    , kx_a: this.opaque_a._init_key(is_new)
+    , kx_b: this.opaque_b._init_key(is_new)} }
+
+, _finish_key(kctx) {
+    kctx.kx_a = this.opaque_a._finish_key(kctx.kx_a);
+    kctx.kx_b = this.opaque_b._finish_key(kctx.kx_b);
+    return kctx}
+
+, _kdf0_random() {
+    return this.opaque_a._kdf0_random()}
+
+, _kdf0_hash(u8) {
+    return this.opaque_a._kdf0_hash(u8)}
+
+, _kdf1_ref(u8_k0, kctx) {
+    return this.opaque_a._kdf1_ref(u8_k0, kctx.kx_a)}
+
+, async _kdf2_loc(k1ref, kctx) {
+    let k1ref_b = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a);
+    return this.opaque_b._kdf2_loc(k1ref_b, kctx.kx_b)} });
+
+function _with_k21({k1ref, k2loc}, tgt) {
+  tgt.k1ref = k1ref;
+  tgt.k2loc = k2loc;
+  return tgt}
+
+const okey_kx_a = /* #__PURE__ */ Object.freeze({
+  ... okey_ciphered
+, encipher(...args) {
+    return _with_k21(this, this.kx_a).encipher(...args)}
+, decipher(...args) {
+    return _with_k21(this, this.kx_a).decipher(...args)} });
+
+const okey_kx_b = /* #__PURE__ */ Object.freeze({
+  ... okey_ciphered
+, encipher(...args) {
+    console.log("TODO: this should use k1ref_b");
+    return _with_k21(this, this.kx_b).encipher(...args)}
+, decipher(...args) {
+    console.log("TODO: this should use k1ref_b");
+    return _with_k21(this, this.kx_b).decipher(...args)} });
+
+
+function opaque_compose(opaque_a, opaque_b) {
+  let res ={__proto__: opaque_comp_api, opaque_a, opaque_b};
+  let key_proto = opaque_b.ciphered ? okey_kx_b
+    : opaque_a.ciphered ? okey_kx_a
+    : okey_basic;
+
+  res.ciphered = key_proto.ciphered;
+  res.key_proto = key_proto;
+  return res}
+
+const opaque_tahoe = /* #__PURE__ */ Object.freeze({
+  ... opaque_basic_hmac_api
+, ciphered: true
+
+, key_proto: Object.freeze(
+    bind_okey_ciphered(u8_aes_256_gcm)) });
+
+
+const tahoe = () =>
+  ({ __proto__: opaque_tahoe });
+
+const tahoe_hmac = u8_key =>
+  opaque_tahoe.with_hmac(u8_key);
 
 const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>
@@ -1907,7 +1974,7 @@ const kdf_key_tail = kdf_inner =>
       _u8_mix_aaab( await kdf_inner(k1ref), k1ref );
 
 
-const opaque_ecdsa_basic = Object.freeze({
+const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze({
   ... opaque_basic_api
 
 , _hmac: u8_hmac_sha_256
@@ -1938,7 +2005,7 @@ const opaque_ecdsa_basic = Object.freeze({
 
 function bind_ecdsa_key_proto(kw_cfg) {
   return {
-    ... bind_ecdsa_basic()
+    __proto__: bind_ecdsa_basic()
   , ... bind_ecdsa_codec(kw_cfg)} }
 
 
@@ -1958,13 +2025,13 @@ function bind_ecdsa_basic() {
   , async encode_content(u8) {
       const {k1ref, k2loc} = this;
       if (k1ref && k2loc) {
-        return await this._pack_opaque({
+        return await this._rec_pack({
           c:u8, l:k2loc}) } }
 
   , async decode_content(u8_record) {
       const {k1ref, k2loc, _kdf_secret} = this;
       if (u8_record && k1ref && k2loc) {
-        const {c:u8} = await this._unpack_opaque(u8_record) || {};
+        const {c:u8} = await this._rec_unpack(u8_record) || {};
         return u8} } } }
 
 
@@ -1979,11 +2046,11 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
   return {
     async validate(u8_record) {
       if (u8_record) {
-        const res = await this._unpack_opaque(u8_record);
+        const res = await this._rec_unpack(u8_record);
         return undefined !== res} }
 
 
-  , async _pack_opaque(obj_body) {
+  , async _rec_pack(obj_body) {
       const {_ec_sign, codec: {encode}} = this;
 
       obj_body.e = await _ec_sign.ec;
@@ -1993,7 +2060,7 @@ function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) {
       return encode({z:sig, b:body}) }
 
 
-  , async _unpack_opaque(u8_record) {
+  , async _rec_unpack(u8_record) {
       const {k2loc, codec: {decode}} = this;
       let obj_sig;
       try {obj_sig = decode(u8_record);}
@@ -2046,11 +2113,11 @@ function _u8_test_aaab(a, b) {
       return false} }
   return true}
 
-const kdf_hmac_phorbas =
+const kdf_hmac_phorbas = 
   u8_hmac_sha_256('phorbas').hmac_sign;
 
 
-const opaque_ecdsa_tahoe = Object.freeze({
+const opaque_ecdsa_tahoe = /* #__PURE__ */ Object.freeze({
   ... opaque_ecdsa_basic
 , ciphered: true
 
@@ -2063,7 +2130,7 @@ const opaque_ecdsa_tahoe = Object.freeze({
 
 function bind_tahoe_ecdsa(kw_cfg) {
   return {
-    ... bind_tahoe_cipher(kw_cfg.cipher)
+    __proto__: bind_okey_ciphered(kw_cfg.cipher)
   , ... bind_ecdsa_codec(kw_cfg)
 
   , // 1 of 4 bytes of k1ref are present in k2loc; hash the AES encryption key an additional time
@@ -2095,7 +2162,7 @@ const opaque_ecdhe_basic = () =>
     opaque_basic_hmac,
     u8_ecdhe.p256());
 
-const opaque_ecdhe_basic_mirror =
+const opaque_ecdhe_basic_mirror = /* #__PURE__ */ 
   bind_opaque_ecdhe_mirror(
     opaque_basic_hmac);
 
@@ -2104,9 +2171,9 @@ const opaque_ecdhe_tahoe = () =>
     opaque_tahoe,
     u8_ecdhe.p521());
 
-const opaque_ecdhe_tahoe_mirror =
+const opaque_ecdhe_tahoe_mirror = /* #__PURE__ */ 
   bind_opaque_ecdhe_mirror(
     opaque_tahoe);
 
-export { U8, _bind_aes_256_gcm, _bind_ecdh, _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_cipher, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, crypto_api, ecc_by_len, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, subtle_api, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdh_p256, u8_ecdh_p384, u8_ecdh_p521, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
+export { U8, _bind_aes_256_gcm, _bind_ecdh, _bind_ecdhe, _bind_ecdsa, _bind_hmac_sha, _bind_sha_digest, _u8_mix_aaab, _u8_test_aaab, bind_ecdsa_basic, bind_ecdsa_codec, bind_ecdsa_key_proto, bind_opaque_ecdhe_mirror, bind_tahoe_ecdsa, decode as cbor_decode, encode as cbor_encode, create_opaque_ecdhe, crypto_api, ecc_by_len, kdf_hmac_phorbas, kdf_kctx_tail, kdf_key_tail, kdf_random_16, kdf_sha_256, opaque_basic, opaque_basic_api, opaque_basic_hmac, opaque_basic_hmac_api, opaque_compose, opaque_core_api, opaque_ecdhe_basic, opaque_ecdhe_basic_mirror, opaque_ecdhe_tahoe, opaque_ecdhe_tahoe_mirror, opaque_ecdsa_basic, opaque_ecdsa_tahoe, opaque_shared_codec, opaque_tahoe, subtle_api, tahoe, opaque_ecdhe_tahoe as tahoe_ecdhe, opaque_ecdhe_tahoe_mirror as tahoe_ecdhe_mirror, tahoe_hmac, u8_aes_256_gcm, u8_aes_256_gcm as u8_aes_gcm, u8_crypto_random, u8_ecdh_p256, u8_ecdh_p384, u8_ecdh_p521, u8_ecdhe, u8_ecdsa_sha_256 as u8_ecdsa, u8_ecdsa_sha_256, u8_ecdsa_sha_384, u8_ecdsa_sha_512, u8_fast_equal, u8_hmac_sha_256 as u8_hmac, u8_hmac_sha_256 as u8_hmac_sha, u8_hmac_sha_256, u8_hmac_sha_384, u8_hmac_sha_512, u8_maybe_utf8, u8_sha_256, u8_sha_384, u8_sha_512, u8_timing_equal, u8_to_utf8$1 as u8_to_utf8, utf8_to_u8$1 as utf8_to_u8 };
 //# sourceMappingURL=index.mjs.map

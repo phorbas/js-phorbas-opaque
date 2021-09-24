@@ -1,0 +1,67 @@
+import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
+import {kdf_random_16} from './opaque_basic_hmac.jsy'
+import {opaque_shared_codec} from './codec.jsy'
+
+
+export const okey_ciphered = /* #__PURE__ */ Object.freeze @:
+  k21pair() :: return [this.k2loc, this.k1ref]
+  codec: opaque_shared_codec
+  ciphered: true
+
+  encode_content(u8) :: return this.encipher(u8)
+  decode_content(u8) :: return this.decipher(u8)
+  encode_utf8(utf8) :: return this.encipher_utf8(utf8)
+  decode_utf8(u8) :: return this.decipher_utf8(u8)
+
+  encipher_utf8(utf8) ::
+    return this.encipher @ utf8_to_u8(utf8)
+
+  async decipher_utf8(u8_record) ::
+    const u8 = await this.decipher(u8_record)
+    if undefined !== u8 ::
+      return u8_to_utf8(u8)
+
+  // async encipher(u8_content) ::
+  // async decipher(u8_record) ::
+
+  _rec_pack(rec) ::
+    return this.codec.encode(rec)
+  _rec_unpack(u8_record) ::
+    return this.codec.decode(u8_record)
+
+
+export function bind_okey_ciphered(cipher) ::
+  return @{}
+    __proto__: okey_ciphered
+
+    async encipher(u8_content) ::
+      const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this
+      if k1ref && k2loc ::
+        const u8_secret = ! _kdf_secret ? k1ref
+          : await _kdf_secret(k1ref)
+
+        const u8_iv = await _kdf_iv(k2loc)
+
+        const u8_enc = await cipher.encrypt @
+          u8_content, u8_secret, u8_iv
+
+        return await this._rec_pack @:
+          c:u8_enc, v:u8_iv, l:k2loc
+
+    async decipher(u8_record) ::
+      const {k1ref, _kdf_secret} = this
+      if u8_record && k1ref ::
+        const {v:u8_iv, c:u8_enc} =
+          await this._rec_unpack(u8_record) || {}
+
+        const u8_secret = ! _kdf_secret ? k1ref
+          : await _kdf_secret(k1ref)
+
+        if u8_enc && u8_secret && u8_iv ::
+          return await cipher.decrypt @
+            u8_enc, u8_secret, u8_iv
+
+
+    _kdf_iv: kdf_random_16
+    // _kdf_secret: k1ref => k1ref
+
