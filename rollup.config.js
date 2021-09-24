@@ -33,7 +33,7 @@ export default configs
 add_jsy('index')
 add_jsy('subtle')
 
-if (0) {
+if (1) {
   add_jsy('opaque_basic')
   add_jsy('opaque_basic_hmac')
   add_jsy('opaque_composite')

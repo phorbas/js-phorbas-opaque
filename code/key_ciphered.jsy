@@ -34,6 +34,9 @@ export function bind_okey_ciphered(cipher) ::
   return @{}
     __proto__: okey_ciphered
 
+    _kdf_iv: kdf_random_16
+    // _kdf_secret: k1ref => k1ref
+
     async encipher(u8_content) ::
       const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this
       if k1ref && k2loc ::
@@ -60,8 +63,4 @@ export function bind_okey_ciphered(cipher) ::
         if u8_enc && u8_secret && u8_iv ::
           return await cipher.decrypt @
             u8_enc, u8_secret, u8_iv
-
-
-    _kdf_iv: kdf_random_16
-    // _kdf_secret: k1ref => k1ref
 

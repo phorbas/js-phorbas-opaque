@@ -1858,7 +1858,10 @@ function bind_okey_ciphered(cipher) {
   return {
     __proto__: okey_ciphered
 
-  , async encipher(u8_content) {
+  , _kdf_iv: kdf_random_16
+  , // _kdf_secret: k1ref => k1ref
+
+    async encipher(u8_content) {
       const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this;
       if (k1ref && k2loc) {
         const u8_secret = ! _kdf_secret ? k1ref
@@ -1883,11 +1886,7 @@ function bind_okey_ciphered(cipher) {
 
         if (u8_enc && u8_secret && u8_iv) {
           return await cipher.decrypt(
-            u8_enc, u8_secret, u8_iv) } } }
-
-
-  , _kdf_iv: kdf_random_16
-  , } }// _kdf_secret: k1ref => k1ref
+            u8_enc, u8_secret, u8_iv) } } } } }
 
 const opaque_comp_api = /* #__PURE__ */ Object.freeze({
   ... opaque_core_api
@@ -1916,29 +1915,26 @@ const opaque_comp_api = /* #__PURE__ */ Object.freeze({
     return this.opaque_a._kdf1_ref(u8_k0, kctx.kx_a)}
 
 , async _kdf2_loc(k1ref, kctx) {
-    let k1ref_b = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a);
-    return this.opaque_b._kdf2_loc(k1ref_b, kctx.kx_b)} });
+    kctx.k1ref_b = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a);
+    return this.opaque_b._kdf2_loc(kctx.k1ref_b, kctx.kx_b)} });
 
-function _with_k21({k1ref, k2loc}, tgt) {
-  tgt.k1ref = k1ref;
-  tgt.k2loc = k2loc;
-  return tgt}
+
+function _with_k21(k1ref, k2loc, tgt) {
+  tgt.k1ref = k1ref; tgt.k2loc = k2loc; return tgt}
 
 const okey_kx_a = /* #__PURE__ */ Object.freeze({
   ... okey_ciphered
 , encipher(...args) {
-    return _with_k21(this, this.kx_a).encipher(...args)}
+    return _with_k21(this.k1ref, this.k2loc, this.kx_a).encipher(...args)}
 , decipher(...args) {
-    return _with_k21(this, this.kx_a).decipher(...args)} });
+    return _with_k21(this.k1ref, this.k2loc, this.kx_a).decipher(...args)} });
 
 const okey_kx_b = /* #__PURE__ */ Object.freeze({
   ... okey_ciphered
 , encipher(...args) {
-    console.log("TODO: this should use k1ref_b");
-    return _with_k21(this, this.kx_b).encipher(...args)}
+    return _with_k21(this.k1ref_b, this.k2loc, this.kx_b).encipher(...args)}
 , decipher(...args) {
-    console.log("TODO: this should use k1ref_b");
-    return _with_k21(this, this.kx_b).decipher(...args)} });
+    return _with_k21(this.k1ref_b, this.k2loc, this.kx_b).decipher(...args)} });
 
 
 function opaque_compose(opaque_a, opaque_b) {
