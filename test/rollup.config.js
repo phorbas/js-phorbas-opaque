@@ -4,14 +4,15 @@ import rpi_jsy from 'rollup-plugin-jsy'
 
 const sourcemap = 'inline'
 
-const cfg_nodejs = {
-  external: id => id.startsWith('node:') || builtinModules.includes(id),
+const cfg_node = {
+  external: id => /^\w+:/.test(id) || builtinModules.includes(id),
   plugins: [
     rpi_resolve(),
     rpi_jsy({defines: {PLAT_NODEJS: true}}),
   ]}
 
 const cfg_web = {
+  external: id => /\w+:/.test(id),
   context: 'window',
   plugins: [
     rpi_resolve(),
@@ -20,9 +21,10 @@ const cfg_web = {
 
 
 export default [
-  { input: `./unittest.jsy`, ... cfg_nodejs,
-    output: { file: './__unittest.cjs.js', format: 'cjs', sourcemap } },
+  { ... cfg_node, input: {'unittest': `./unittest.jsy`},
+    preserveEntrySignatures: false,
+    output: { dir: './cjs/', format: 'cjs', sourcemap: true }},
 
-  { input: `./unittest.jsy`, ... cfg_web,
-    output: { file: './__unittest.iife.js', format: 'iife', name: `unittest`, sourcemap } },
+  { ... cfg_web, input: {'unittest': `./unittest.jsy`},
+    output: { dir: './esm/', format: 'esm', sourcemap: true }},
 ]

@@ -23,9 +23,6 @@
     ".": "./esm/node/index.mjs",
     "./esm/*": "./esm/*"
   },
-  "workspaces": [
-    "test"
-  ],
   "dependencies": {},
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.0.5",

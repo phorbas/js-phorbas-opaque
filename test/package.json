@@ -10,15 +10,15 @@
     "qsrv": "^0.1.9"
   },
   "scripts": {
-    "serve": "qsrv -f unittest.html -- __unittest.iife.js",
+    "serve": "qsrv -f unittest.html -- . ./esm",
     "start": "npm -s run serve",
     "prebuild": "test -d ./node_modules || npm -s install",
-    "build": "../node_modules/.bin/rollup --config",
-    "clean": "rm ./__unittest.*",
-    "watch": "npm -s run build -- --watch",
+    "build": "npx rollup --config",
+    "watch": "npx rollup --config --watch",
+    "clean": "rm ./esm/* ./cjs/*",
     "pretest": "npm -s run build",
     "test": "npm -s run test:one",
-    "test:one": "NODE_OPTIONS=--enable-source-maps  mocha ./__unittest.cjs.js",
-    "test:min": "NODE_OPTIONS=--enable-source-maps  mocha --reporter=min ./__unittest.cjs.js"
+    "test:one": "NODE_OPTIONS=--enable-source-maps  mocha ./cjs/unittest.js",
+    "test:min": "NODE_OPTIONS=--enable-source-maps  mocha --reporter=min ./cjs/unittest.js"
   }
 }
