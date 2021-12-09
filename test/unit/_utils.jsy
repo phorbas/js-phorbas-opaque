@@ -1,3 +1,7 @@
+export @{}
+  cbor_encode, cbor_decode,
+  utf8_to_u8, u8_to_hex, hex_to_u8,
+from 'cbor-codec'
 
 export function show_okey(okey) ::
   if okey.k1ref ::

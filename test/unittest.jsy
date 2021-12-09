@@ -9,6 +9,7 @@ import './unit/subtle/test_iso_ecdhe.jsy'
 import './unit/subtle/test_iso_ecdh.jsy'
 
 import './unit/test_opaque_basic.jsy'
+import './unit/test_opaque_composed.jsy'
 
 import './unit/test_opaque_ecdsa_basic.jsy'
 import './unit/test_opaque_ecdsa_basic_session.jsy'

@@ -1,0 +1,137 @@
+import @{}
+  opaque_core_api,
+#IF PLAT_WEB
+  from '@phorbas/opaque/esm/web-codec/index.mjs'
+#ELIF PLAT_NODEJS
+  from '@phorbas/opaque/esm/node-codec/index.mjs'
+
+import { utf8_to_u8 } from './_utils.jsy'
+
+const { assert, expect } = require('chai')
+
+
+export async function _expect_core_api(opaque, opt={}) ::
+  expect(opaque_core_api).to.be.an('object')
+  expect(opaque.from_k1ref).to.be.a('function')
+  expect(opaque.from_k2loc).to.be.a('function')
+  expect(opaque.from_random).to.be.a('function')
+  expect(opaque.from_content).to.be.a('function')
+  expect(opaque.from_u8).to.be.a('function')
+  expect(opaque.as_core).to.be.a('function')
+
+  if ! opt.skip_kdf ::
+    expect(opaque._kdf0_hash).to.be.undefined
+    expect(opaque._kdf0_random).to.be.undefined
+    expect(opaque._kdf1_ref).to.be.undefined
+    expect(opaque._kdf2_loc).to.be.undefined
+
+  if ! opt.skip_okey ::
+    expect(opaque.ciphered).to.be.a('boolean')
+
+    await _expect_okey @
+      opaque.from_random()
+      opaque.ciphered
+
+export async function _expect_full_api(opaque) ::
+  expect(opaque._kdf0_hash).to.be.a('function')
+  expect(opaque._kdf0_random).to.be.a('function')
+  expect(opaque._kdf1_ref).to.be.a('function')
+  expect(opaque._kdf2_loc).to.be.a('function')
+
+  await _expect_core_api @ opaque, {skip_kdf: true}
+
+
+export async function _expect_okey(okey, ciphered) ::
+  okey = await okey
+
+  expect(okey.k1ref)
+  .to.have.length(32)
+  .to.be.an.instanceof(Uint8Array)
+
+  expect(okey.k2loc)
+  .to.have.length(32)
+  .to.be.an.instanceof(Uint8Array)
+
+  expect(okey.ciphered).to.be.a('boolean')
+  expect(okey.k21pair).to.be.a('function')
+
+  expect(okey.k21pair())
+  .to.be.an('array')
+  .to.have.length(2)
+  .to.deep.equal @#
+    okey.k2loc
+    okey.k1ref
+
+
+  expect(okey.encode_content).to.be.a('function')
+  expect(okey.decode_content).to.be.a('function')
+  expect(okey.encode_utf8).to.be.a('function')
+  expect(okey.decode_utf8).to.be.a('function')
+
+  if ciphered ::
+    expect(okey.encipher).to.be.a('function')
+    expect(okey.decipher).to.be.a('function')
+    expect(okey.encipher_utf8).to.be.a('function')
+    expect(okey.decipher_utf8).to.be.a('function')
+
+  else ::
+    expect(okey.encipher).to.be.undefined
+    expect(okey.decipher).to.be.undefined
+    expect(okey.encipher_utf8).to.be.undefined
+    expect(okey.decipher_utf8).to.be.undefined
+
+  
+  const utf8_test_content = 'some sample unit test content'
+  const u8_test_content = utf8_to_u8 @ utf8_test_content
+
+  ::
+    for const u8_enc_p of [
+          okey.encode_utf8(utf8_test_content),
+          okey.encode_content(u8_test_content),
+        ] ::
+
+      expect(u8_enc_p).to.be.a('promise')
+
+      const u8_enc = await u8_enc_p
+      expect(u8_enc).to.be.an.instanceof(Uint8Array)
+
+      ::
+        const u8_dec_p = okey.decode_content(u8_enc)
+        expect(u8_dec_p).to.be.a('promise')
+
+        const u8_dec = await u8_dec_p
+        expect(u8_dec).to.be.deep.equal @ u8_test_content
+
+      ::
+        const utf8_dec_p = okey.decode_utf8(u8_enc)
+        expect(utf8_dec_p).to.be.a('promise')
+
+        const utf8_dec = await utf8_dec_p
+        expect(utf8_dec).to.be.deep.equal @ utf8_test_content
+
+  if ciphered ::
+    for const u8_enc_p of [
+          okey.encipher_utf8(utf8_test_content),
+          okey.encipher(u8_test_content),
+        ] ::
+
+      expect(u8_enc_p).to.be.a('promise')
+
+      const u8_enc = await u8_enc_p
+      expect(u8_enc).to.be.an.instanceof(Uint8Array)
+
+      ::
+        const u8_dec_p = okey.decipher(u8_enc)
+        expect(u8_dec_p).to.be.a('promise')
+
+        const u8_dec = await u8_dec_p
+        expect(u8_dec).to.be.deep.equal @ u8_test_content
+
+      ::
+        const utf8_dec_p = okey.decipher_utf8(u8_enc)
+        expect(utf8_dec_p).to.be.a('promise')
+
+        const utf8_dec = await utf8_dec_p
+        expect(utf8_dec).to.be.deep.equal @ utf8_test_content
+
+

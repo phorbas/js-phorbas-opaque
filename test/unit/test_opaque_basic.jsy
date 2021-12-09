@@ -2,7 +2,6 @@ import @{}
   opaque_core_api, opaque_basic,
   opaque_basic_hmac,
   opaque_tahoe,
-  opaque_compose,
   tahoe_hmac,
   tahoe_ecdhe, tahoe_ecdhe_mirror, 
   opaque_ecdsa_basic, 
@@ -16,7 +15,13 @@ import @{}
 import @{}
   cbor_encode, cbor_decode,
   utf8_to_u8, u8_to_hex, hex_to_u8,
-from 'cbor-codec'
+from './_utils.jsy'
+
+import @{}
+  _expect_core_api,
+  _expect_full_api,
+  _expect_okey,
+from './_opaque_test_utils.jsy'
 
 const { assert, expect } = require('chai')
 
@@ -186,196 +191,5 @@ describe @ 'opaque core & basics', @::
     .to.deep.equal @ hex_to_u8 @ "7334974a0cba50f7a836731efb1e3dcfe0c739c393cc5ac8e1fb8f3991341fcc"
 
 
-describe @ 'opaque composed', @::
-  let opaque_algs = Object.entries @:
-    opaque_basic,
-    opaque_basic_hmac,
-    "opaque_basic_hmac('unittest')": opaque_basic_hmac.with_hmac('unittest'),
-    opaque_tahoe
 
-  for let [name_oa, opaque_a] of opaque_algs ::
-    for let [name_ob, opaque_b] of opaque_algs ::
-
-      it @ `shape of opaque_compose(${name_oa}, ${name_ob})`, @::>
-        let oc = opaque_compose(opaque_a, opaque_b)
-        await _expect_full_api(oc)
-
-  it @ 'opaque_compose(opaque_basic, opaque_basic).from_u8', @::>
-    const p_okey = opaque_compose(opaque_basic, opaque_basic).from_u8 @
-      new Uint8Array @# 10,12,14,16
-    expect(p_okey).to.be.a('promise')
-
-    const okey = await p_okey
-    await _expect_okey(okey, false)
-
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "0e3f601857911eccb26954151fdd238614138e25de92531f834e1dd68ab5e89b"
-
-    expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "127755b4d6d7d7a3508203ea1d6d55da047747bdba69b4dd89535ab2656763cd"
-
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "1a4344cefeda6bd4ed075c6ce98122c7b2e0b42705f4e846ab9b9aab55bc8cc3"
-
-
-  it @ 'opaque_compose(opaque_basic, opaque_basic).from_content', @::>
-    const p_okey = opaque_compose(opaque_basic, opaque_basic).from_content @
-      utf8_to_u8 @ 'some example content'
-    expect(p_okey).to.be.a('promise')
-
-    const okey = await p_okey
-    await _expect_okey(okey, false)
-
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "9b05a4d2f05971731b4739415262dcb7b1ac05c9ec3c135280e1212fac555f23"
-
-    expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "cb27470ffe7164a6b29613baf7193deca8db4ef9c880ea0345a4549f4ad63ecd"
-
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "6ab57f09adcdc4138e790a8480ff318b663e727a4e31336c0bcea13bb4e8bf97"
-
-  it @ 'opaque_compose(opaque_basic_hmac("unittest"), tahoe_hmac("other")).from_content', @::>
-    const p_okey = opaque_compose(
-        opaque_basic_hmac.with_hmac("unittest"), tahoe_hmac("other"))
-      .from_content @ utf8_to_u8('some example content')
-    expect(p_okey).to.be.a('promise')
-
-    const okey = await p_okey
-    await _expect_okey(okey, true)
-
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "6c36f63f9a524f7ad218fc91ac0a25249835a731a6a1493601acc974673bb9e5"
-
-    expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "b8ef8542c687ab88a61794f36678a634c8928b17715116ae1ed95d0f4a58b17d"
-
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "f84a15460811be3f09ef0b79f94fa3234708c08d27890bba83edbacc132b7da5"
-
-
-
-async function _expect_core_api(opaque, opt={}) ::
-  expect(opaque_core_api).to.be.an('object')
-  expect(opaque.from_k1ref).to.be.a('function')
-  expect(opaque.from_k2loc).to.be.a('function')
-  expect(opaque.from_random).to.be.a('function')
-  expect(opaque.from_content).to.be.a('function')
-  expect(opaque.from_u8).to.be.a('function')
-  expect(opaque.as_core).to.be.a('function')
-
-  if ! opt.skip_kdf ::
-    expect(opaque._kdf0_hash).to.be.undefined
-    expect(opaque._kdf0_random).to.be.undefined
-    expect(opaque._kdf1_ref).to.be.undefined
-    expect(opaque._kdf2_loc).to.be.undefined
-
-  if ! opt.skip_okey ::
-    expect(opaque.ciphered).to.be.a('boolean')
-
-    await _expect_okey @
-      opaque.from_random()
-      opaque.ciphered
-
-async function _expect_full_api(opaque) ::
-  expect(opaque._kdf0_hash).to.be.a('function')
-  expect(opaque._kdf0_random).to.be.a('function')
-  expect(opaque._kdf1_ref).to.be.a('function')
-  expect(opaque._kdf2_loc).to.be.a('function')
-
-  await _expect_core_api @ opaque, {skip_kdf: true}
-
-
-async function _expect_okey(okey, ciphered) ::
-  okey = await okey
-
-  expect(okey.k1ref)
-  .to.have.length(32)
-  .to.be.an.instanceof(Uint8Array)
-
-  expect(okey.k2loc)
-  .to.have.length(32)
-  .to.be.an.instanceof(Uint8Array)
-
-  expect(okey.ciphered).to.be.a('boolean')
-  expect(okey.k21pair).to.be.a('function')
-
-  expect(okey.k21pair())
-  .to.be.an('array')
-  .to.have.length(2)
-  .to.deep.equal @#
-    okey.k2loc
-    okey.k1ref
-
-
-  expect(okey.encode_content).to.be.a('function')
-  expect(okey.decode_content).to.be.a('function')
-  expect(okey.encode_utf8).to.be.a('function')
-  expect(okey.decode_utf8).to.be.a('function')
-
-  if ciphered ::
-    expect(okey.encipher).to.be.a('function')
-    expect(okey.decipher).to.be.a('function')
-    expect(okey.encipher_utf8).to.be.a('function')
-    expect(okey.decipher_utf8).to.be.a('function')
-
-  else ::
-    expect(okey.encipher).to.be.undefined
-    expect(okey.decipher).to.be.undefined
-    expect(okey.encipher_utf8).to.be.undefined
-    expect(okey.decipher_utf8).to.be.undefined
-
-  
-  const utf8_test_content = 'some sample unit test content'
-  const u8_test_content = utf8_to_u8 @ utf8_test_content
-
-  ::
-    for const u8_enc_p of [
-          okey.encode_utf8(utf8_test_content),
-          okey.encode_content(u8_test_content),
-        ] ::
-
-      expect(u8_enc_p).to.be.a('promise')
-
-      const u8_enc = await u8_enc_p
-      expect(u8_enc).to.be.an.instanceof(Uint8Array)
-
-      ::
-        const u8_dec_p = okey.decode_content(u8_enc)
-        expect(u8_dec_p).to.be.a('promise')
-
-        const u8_dec = await u8_dec_p
-        expect(u8_dec).to.be.deep.equal @ u8_test_content
-
-      ::
-        const utf8_dec_p = okey.decode_utf8(u8_enc)
-        expect(utf8_dec_p).to.be.a('promise')
-
-        const utf8_dec = await utf8_dec_p
-        expect(utf8_dec).to.be.deep.equal @ utf8_test_content
-
-  if ciphered ::
-    for const u8_enc_p of [
-          okey.encipher_utf8(utf8_test_content),
-          okey.encipher(u8_test_content),
-        ] ::
-
-      expect(u8_enc_p).to.be.a('promise')
-
-      const u8_enc = await u8_enc_p
-      expect(u8_enc).to.be.an.instanceof(Uint8Array)
-
-      ::
-        const u8_dec_p = okey.decipher(u8_enc)
-        expect(u8_dec_p).to.be.a('promise')
-
-        const u8_dec = await u8_dec_p
-        expect(u8_dec).to.be.deep.equal @ u8_test_content
-
-      ::
-        const utf8_dec_p = okey.decipher_utf8(u8_enc)
-        expect(utf8_dec_p).to.be.a('promise')
-
-        const utf8_dec = await utf8_dec_p
-        expect(utf8_dec).to.be.deep.equal @ utf8_test_content
 
