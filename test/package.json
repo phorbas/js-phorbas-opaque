@@ -6,8 +6,8 @@
   },
   "devDependencies": {
     "@phorbas/opaque": "file:..",
-    "@phorbas/store": "^0.2.12",
-    "qsrv": "^0.1.9"
+    "@phorbas/store": "^0.2.15",
+    "qsrv": "^0.2.0"
   },
   "scripts": {
     "serve": "qsrv -f unittest.html -- . ./esm",

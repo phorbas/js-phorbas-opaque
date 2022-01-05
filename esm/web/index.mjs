@@ -10,6 +10,11 @@ function u8_to_utf8$1(u8) {
 function utf8_to_u8$1(utf8) {
   return new TextEncoder('utf-8').encode(utf8) }
 
+'undefined' !== typeof crypto
+    ? crypto.getRandomValues.bind(crypto)
+    : import('node:crypto'.trim()) // avoid static compiler
+        .then(m => m.randomFillSync);
+
 const u8_maybe_utf8 = u8 =>
   'string' === typeof u8
     ? utf8_to_u8$1(u8)
@@ -333,6 +338,11 @@ function u8_to_utf8(u8) {
 
 function utf8_to_u8(utf8) {
   return new TextEncoder('utf-8').encode(utf8) }
+
+'undefined' !== typeof crypto
+    ? crypto.getRandomValues.bind(crypto)
+    : import('node:crypto'.trim()) // avoid static compiler
+        .then(m => m.randomFillSync);
 
 function as_u8_buffer(u8) {
   
@@ -1502,16 +1512,18 @@ const _cbor_jmp_sync ={
       throw new TypeError('Expected a tags Map') }
 
     return function(ctx, tag) {
-      const tag_handler = tags_lut.get(tag);
-      if (tag_handler) {
-        let res = tag_handler(ctx, tag);
-        if ('object' === typeof res) {
-          return res.custom_tag(ctx, tag)}
+      let tag_handler = tags_lut.get(tag);
+      if (! tag_handler) {
+        return cbor_tag.from(tag, ctx.next_value())}
 
-        const body = ctx.next_value();
-        return undefined === res ? body : res(body)}
+      let hdlr = tag_handler(ctx, tag);
+      let body = ctx.next_value();
 
-      return cbor_tag.from(tag, ctx.next_value())} } };
+      if (! hdlr) {
+        return body}
+      if (hdlr.custom_tag) {
+        return hdlr.custom_tag(ctx, tag, body)}
+      return hdlr(body)} } };
 
 class CBORDecoderBasic extends CBORDecoderBase {
   // decode(u8) ::
@@ -1733,16 +1745,18 @@ const _cbor_jmp_async ={
       throw new TypeError('Expected a tags Map') }
 
     return async function as_tag(ctx, tag) {
-      const tag_handler = tags_lut.get(tag);
-      if (tag_handler) {
-        const res = await tag_handler(ctx, tag);
-        if ('object' === typeof res) {
-          return res.custom_tag(ctx, tag)}
+      let tag_handler = tags_lut.get(tag);
+      if (! tag_handler) {
+        return cbor_tag.from(tag, await ctx.next_value())}
 
-        const body = await ctx.next_value();
-        return undefined === res ? body : res(body)}
+      let hdlr = await tag_handler(ctx, tag);
+      let body = await ctx.next_value();
 
-      return cbor_tag.from(tag, await ctx.next_value())} } };
+      if (! hdlr) {
+        return body}
+      if (hdlr.custom_tag) {
+        return hdlr.custom_tag(ctx, tag, body)}
+      return hdlr(body)} } };
 
 class CBORAsyncDecoderBasic extends CBORDecoderBase {
   // async decode_stream(u8_stream, opt) ::
