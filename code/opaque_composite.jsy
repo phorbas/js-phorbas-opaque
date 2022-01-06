@@ -1,4 +1,4 @@
-import {opaque_core_api} from './opaque_core_api.jsy'
+import {opaque_core_api} from './core_api.jsy'
 import {okey_basic} from './key_basic.jsy'
 import {okey_ciphered} from './key_ciphered.jsy'
 

@@ -1,5 +1,5 @@
 import {okey_basic} from './key_basic.jsy'
-import {opaque_core_api} from './opaque_core_api.jsy'
+import {opaque_core_api} from './core_api.jsy'
 import {u8_crypto_random, u8_sha_256} from './subtle.jsy'
 
 
