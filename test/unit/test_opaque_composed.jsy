@@ -86,8 +86,8 @@ describe @ 'opaque composed', @::
     .to.deep.equal @ hex_to_u8 @ "6c36f63f9a524f7ad218fc91ac0a25249835a731a6a1493601acc974673bb9e5"
 
     expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "b8ef8542c687ab88a61794f36678a634c8928b17715116ae1ed95d0f4a58b17d"
+    .to.deep.equal @ hex_to_u8 @ "3ec6a2148a09e9b41650b1295191830de50373f41d1597c12182a251ca353c0a"
 
     expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "f84a15460811be3f09ef0b79f94fa3234708c08d27890bba83edbacc132b7da5"
+    .to.deep.equal @ hex_to_u8 @ "b03ab587d4b3f8f2c3634848173b3e2f51a1ccafadcb88b27f02f5567f4ac04b"
 

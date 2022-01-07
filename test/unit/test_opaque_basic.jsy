@@ -188,7 +188,7 @@ describe @ 'opaque core & basics', @::
     .to.deep.equal @ hex_to_u8 @ "2bfc553c3ac54f041e02ffc99714981f3084a382748bd9b594317d2f4ec9e2fc"
 
     expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "7334974a0cba50f7a836731efb1e3dcfe0c739c393cc5ac8e1fb8f3991341fcc"
+    .to.deep.equal @ hex_to_u8 @ "b0040d915ea477a0824168347665f6d7d17189907fc8b0d4b7dfd4bb3f01e533"
 
 
 

@@ -1919,7 +1919,9 @@ const opaque_basic_hmac_api = {
 
 , with_hmac(u8_key) {
     const {hmac_sign} = this._hmac(u8_key);
-    return this._clone({_kdf1_ref: hmac_sign})}
+    return this._clone({
+      _kdf1_ref: hmac_sign
+    , _kdf2_loc: hmac_sign}) }
 
 , _clone(ctx) {return {__proto__: this, as_session: null, ...ctx}} };
 
@@ -2096,7 +2098,9 @@ const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze({
     const {hmac_sign} = this._hmac(u8_key);
     return this._clone({
       _kdf1_ref: (async ( u8_key, kctx ) =>
-        this._kdf1_ref(await hmac_sign(u8_key), kctx) ) }) } });
+        this._kdf1_ref(await hmac_sign(u8_key), kctx) )
+    , _kdf2_loc: (async ( u8_key, kctx ) =>
+        this._kdf2_loc(await hmac_sign(u8_key), kctx) ) }) } });
 
 
 function bind_ecdsa_key_proto(kw_cfg) {

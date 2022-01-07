@@ -45,6 +45,8 @@ export const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze @:
     return this._clone @:
       _kdf1_ref: @\ u8_key, kctx =>>
         this._kdf1_ref @ await hmac_sign(u8_key), kctx
+      _kdf2_loc: @\ u8_key, kctx =>>
+        this._kdf2_loc @ await hmac_sign(u8_key), kctx
 
 
 export function bind_ecdsa_key_proto(kw_cfg) ::
