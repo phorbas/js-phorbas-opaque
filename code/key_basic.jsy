@@ -4,6 +4,8 @@ import {opaque_shared_codec} from './codec.jsy'
 const _as_u8_async = async u8 => u8 && new Uint8Array(u8)
 
 export const okey_basic = /* #__PURE__ */ Object.freeze @:
+  get 0() :: return this.k2loc
+  get 1() :: return this.k1ref
   k21pair() :: return [this.k2loc, this.k1ref]
   codec: opaque_shared_codec
   ciphered: false

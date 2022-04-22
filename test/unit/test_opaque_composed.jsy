@@ -55,6 +55,9 @@ describe @ 'opaque composed', @::
     expect(okey.k2loc)
     .to.deep.equal @ hex_to_u8 @ "1a4344cefeda6bd4ed075c6ce98122c7b2e0b42705f4e846ab9b9aab55bc8cc3"
 
+    expect(okey[1]).to.equal @ okey.k1ref
+    expect(okey[0]).to.equal @ okey.k2loc
+
 
   it @ 'opaque_compose(opaque_basic, opaque_basic).from_content', @::>
     const p_okey = opaque_compose(opaque_basic, opaque_basic).from_content @
@@ -73,6 +76,9 @@ describe @ 'opaque composed', @::
     expect(okey.k2loc)
     .to.deep.equal @ hex_to_u8 @ "6ab57f09adcdc4138e790a8480ff318b663e727a4e31336c0bcea13bb4e8bf97"
 
+    expect(okey[1]).to.equal @ okey.k1ref
+    expect(okey[0]).to.equal @ okey.k2loc
+
   it @ 'opaque_compose(opaque_basic_hmac("unittest"), tahoe_hmac("other")).from_content', @::>
     const p_okey = opaque_compose(
         opaque_basic_hmac.with_hmac("unittest"), tahoe_hmac("other"))
@@ -90,4 +96,7 @@ describe @ 'opaque composed', @::
 
     expect(okey.k2loc)
     .to.deep.equal @ hex_to_u8 @ "b03ab587d4b3f8f2c3634848173b3e2f51a1ccafadcb88b27f02f5567f4ac04b"
+
+    expect(okey[1]).to.equal @ okey.k1ref
+    expect(okey[0]).to.equal @ okey.k2loc
 

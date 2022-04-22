@@ -4,6 +4,8 @@ import {opaque_shared_codec} from './codec.jsy'
 
 
 export const okey_ciphered = /* #__PURE__ */ Object.freeze @:
+  get 0() :: return this.k2loc
+  get 1() :: return this.k1ref
   k21pair() :: return [this.k2loc, this.k1ref]
   codec: opaque_shared_codec
   ciphered: true

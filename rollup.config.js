@@ -11,11 +11,11 @@ const _rpis_ = (defines, ...args) => [
   rpi_dgnotify()]
 
 const cfg_node = {
-  external: id => /^node:/.test(id) || builtinModules.includes(id),
+  external: id => /^\w+:/.test(id) || builtinModules.includes(id),
   plugins: _rpis_({PLAT_NODEJS: true}) }
 
 const cfg_web = {
-  external: [],
+  external: id => /\w+:/.test(id),
   plugins: _rpis_({PLAT_WEB: true}) }
 
 const cfg_node_codec = { ... cfg_node,

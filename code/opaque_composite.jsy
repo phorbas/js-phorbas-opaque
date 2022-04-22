@@ -38,14 +38,14 @@ function _with_k21(k1ref, k2loc, tgt) ::
   return @{} __proto__: tgt, k1ref, k2loc
 
 const okey_kx_a = /* #__PURE__ */ Object.freeze @:
-  ... okey_ciphered
+  __proto__: okey_ciphered
   encipher(...args) ::
     return _with_k21(this.k1ref, this.k2loc, this.kx_a).encipher(...args)
   decipher(...args) ::
     return _with_k21(this.k1ref, this.k2loc, this.kx_a).decipher(...args)
 
 const okey_kx_b = /* #__PURE__ */ Object.freeze @:
-  ... okey_ciphered
+  __proto__: okey_ciphered
   encipher(...args) ::
     return _with_k21(this.k1mid, this.k2loc, this.kx_b).encipher(...args)
   decipher(...args) ::
@@ -53,12 +53,11 @@ const okey_kx_b = /* #__PURE__ */ Object.freeze @:
 
 
 export function opaque_compose(opaque_a, opaque_b) ::
-  let res = @{} __proto__: opaque_comp_api, opaque_a, opaque_b
   let key_proto = opaque_b.ciphered ? okey_kx_b
     : opaque_a.ciphered ? okey_kx_a
     : okey_basic
 
-  res.ciphered = key_proto.ciphered
-  res.key_proto = key_proto
+  let res = @{} __proto__: opaque_comp_api, opaque_a, opaque_b
+    key_proto, ciphered: key_proto.ciphered
   return res
 

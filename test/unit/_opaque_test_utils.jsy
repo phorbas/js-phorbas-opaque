@@ -81,6 +81,9 @@ export async function _expect_okey(okey, ciphered) ::
     expect(okey.decipher_utf8).to.be.undefined
 
   
+  expect(okey[1]).to.equal @ okey.k1ref
+  expect(okey[0]).to.equal @ okey.k2loc
+
   const utf8_test_content = 'some sample unit test content'
   const u8_test_content = utf8_to_u8 @ utf8_test_content
 

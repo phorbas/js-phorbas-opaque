@@ -1,13 +1,13 @@
 {
   "private": true,
   "dependencies": {
-    "chai": "^4.3.4",
-    "mocha": "^9.1.3"
+    "chai": "^4.3.6",
+    "mocha": "^9.2.2"
   },
   "devDependencies": {
     "@phorbas/opaque": "file:..",
-    "@phorbas/store": "^0.2.15",
-    "qsrv": "^0.2.0"
+    "@phorbas/store": "^0.3.2",
+    "qsrv": "^0.2.3"
   },
   "scripts": {
     "serve": "qsrv -f unittest.html -- . ./esm",
