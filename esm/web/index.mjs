@@ -1959,17 +1959,32 @@ function _self() {return this}
 
 const _as_u8_async = async u8 => u8 && new Uint8Array(u8);
 
+const okey_ops_basic = {
+  k21pair() {return [this.k2loc, this.k1ref]}
+
+, encode_utf8(utf8) {
+    return this.encode_content(utf8_to_u8$1(utf8))}
+, async decode_utf8(u8) {
+    u8 = await this.decode_content(u8);
+    if (undefined !== u8) {
+      return u8_to_utf8$1(u8)} }
+
+, encode_obj(obj) {
+    return this.codec.encode(obj)}
+, decode_obj(u8) {
+    return this.codec.decode(u8)} };
+
+
 const okey_basic = /* #__PURE__ */ Object.freeze({
   get 0() {return this.k2loc}
 , get 1() {return this.k1ref}
-, k21pair() {return [this.k2loc, this.k1ref]}
 , codec: opaque_shared_codec
 , ciphered: false
 
 , encode_content: _as_u8_async
 , decode_content: _as_u8_async
-, encode_utf8: async utf8 => utf8_to_u8$1(utf8)
-, decode_utf8: async u8 => u8_to_utf8$1(u8)});
+
+, ... okey_ops_basic});
 
 const kdf_random_16 = () => u8_crypto_random(16);
 const kdf_sha_256 = u8 => u8_sha_256(u8);
@@ -2013,25 +2028,39 @@ const opaque_basic_hmac_api = {
 const opaque_basic_hmac = /* #__PURE__ */ Object.freeze({
   ... opaque_basic_hmac_api});
 
-const okey_ciphered = /* #__PURE__ */ Object.freeze({
-  get 0() {return this.k2loc}
-, get 1() {return this.k1ref}
-, k21pair() {return [this.k2loc, this.k1ref]}
-, codec: opaque_shared_codec
-, ciphered: true
+const okey_ops_ciphered = {
+  k21pair() {return [this.k2loc, this.k1ref]}
 
 , encode_content(u8) {return this.encipher(u8)}
 , decode_content(u8) {return this.decipher(u8)}
+
 , encode_utf8(utf8) {return this.encipher_utf8(utf8)}
 , decode_utf8(u8) {return this.decipher_utf8(u8)}
-
 , encipher_utf8(utf8) {
     return this.encipher(utf8_to_u8$1(utf8)) }
-
 , async decipher_utf8(u8_record) {
     const u8 = await this.decipher(u8_record);
     if (undefined !== u8) {
       return u8_to_utf8$1(u8)} }
+
+, encode_obj(u8) {return this.encipher_obj(u8)}
+, decode_obj(u8) {return this.decipher_obj(u8)}
+, async encipher_obj(obj) {
+    return this.encipher(
+      await this.codec.encode(obj)) }
+, async decipher_obj(u8_record) {
+    const u8 = await this.decipher(u8_record);
+    if (undefined !== u8) {
+      return this.codec.decode(u8)} } };
+
+
+const okey_ciphered = /* #__PURE__ */ Object.freeze({
+  get 0() {return this.k2loc}
+, get 1() {return this.k1ref}
+, codec: opaque_shared_codec
+, ciphered: true
+
+, ... okey_ops_ciphered
 
 , // async encipher(u8_content) ::
   // async decipher(u8_record) ::
@@ -2199,15 +2228,8 @@ function bind_ecdsa_basic() {
     ciphered: false
   , get 0() {return this.k2loc}
   , get 1() {return this.k1ref}
-  , k21pair() {return [this.k2loc, this.k1ref]}
 
-  , encode_utf8(utf8) {
-      return this.encode_content(utf8_to_u8$1(utf8))}
-
-  , async decode_utf8(u8_record) {
-      const u8 = await this.decode_content(u8_record);
-      if (undefined !== u8) {
-        return u8_to_utf8$1(u8)} }
+  , ... okey_ops_basic
 
   , async encode_content(u8) {
       const {k1ref, k2loc} = this;
