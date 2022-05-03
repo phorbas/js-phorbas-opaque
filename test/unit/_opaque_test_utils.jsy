@@ -67,18 +67,24 @@ export async function _expect_okey(okey, ciphered) ::
   expect(okey.decode_content).to.be.a('function')
   expect(okey.encode_utf8).to.be.a('function')
   expect(okey.decode_utf8).to.be.a('function')
+  expect(okey.encode_obj).to.be.a('function')
+  expect(okey.decode_obj).to.be.a('function')
 
   if ciphered ::
     expect(okey.encipher).to.be.a('function')
     expect(okey.decipher).to.be.a('function')
     expect(okey.encipher_utf8).to.be.a('function')
     expect(okey.decipher_utf8).to.be.a('function')
+    expect(okey.encipher_obj).to.be.a('function')
+    expect(okey.decipher_obj).to.be.a('function')
 
   else ::
     expect(okey.encipher).to.be.undefined
     expect(okey.decipher).to.be.undefined
     expect(okey.encipher_utf8).to.be.undefined
     expect(okey.decipher_utf8).to.be.undefined
+    expect(okey.encipher_obj).to.be.undefined
+    expect(okey.decipher_obj).to.be.undefined
 
   
   expect(okey[1]).to.equal @ okey.k1ref

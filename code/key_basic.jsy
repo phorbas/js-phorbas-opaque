@@ -3,15 +3,30 @@ import {opaque_shared_codec} from './codec.jsy'
 
 const _as_u8_async = async u8 => u8 && new Uint8Array(u8)
 
+export const okey_ops_basic = /* #__PURE__ */ @{}
+  k21pair() :: return [this.k2loc, this.k1ref]
+
+  encode_utf8(utf8) ::
+    return this.encode_content(utf8_to_u8(utf8))
+  async decode_utf8(u8) ::
+    u8 = await this.decode_content(u8)
+    if undefined !== u8 ::
+      return u8_to_utf8(u8)
+
+  encode_obj(obj) ::
+    return this.codec.encode(obj)
+  decode_obj(u8) ::
+    return this.codec.decode(u8)
+
+
 export const okey_basic = /* #__PURE__ */ Object.freeze @:
   get 0() :: return this.k2loc
   get 1() :: return this.k1ref
-  k21pair() :: return [this.k2loc, this.k1ref]
   codec: opaque_shared_codec
   ciphered: false
 
   encode_content: _as_u8_async
   decode_content: _as_u8_async
-  encode_utf8: async utf8 => utf8_to_u8(utf8)
-  decode_utf8: async u8 => u8_to_utf8(u8)
+
+  ... okey_ops_basic
 

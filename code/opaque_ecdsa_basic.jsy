@@ -1,5 +1,6 @@
 import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
 import {u8_sha_256} from './subtle.jsy'
+import {okey_ops_basic} from './key_basic.jsy'
 import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
 
 import @{}
@@ -60,15 +61,8 @@ export function bind_ecdsa_basic() ::
     ciphered: false
     get 0() :: return this.k2loc
     get 1() :: return this.k1ref
-    k21pair() :: return [this.k2loc, this.k1ref]
 
-    encode_utf8(utf8) ::
-      return this.encode_content(utf8_to_u8(utf8))
-
-    async decode_utf8(u8_record) ::
-      const u8 = await this.decode_content(u8_record)
-      if undefined !== u8 ::
-        return u8_to_utf8(u8)
+    ... okey_ops_basic
 
     async encode_content(u8) ::
       const {k1ref, k2loc} = this
