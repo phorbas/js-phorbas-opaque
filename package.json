@@ -35,14 +35,14 @@
     "vite": "^6.2.0"
   },
   "scripts": {
-    "clean": "rm -rf ./esm/* ./test/esm/*",
+    "clean": "rm -rf ./esm/* ./esm-*/*",
     "build": "rollup --config",
     "watch": "rollup --config --watch",
     "previte": "test -f esm/index.js || vite",
     "vite": "vite",
     "pretest": "test -f esm/index.js || npm -s run build",
     "test": "npm -s run test:one",
-    "test:one": "node --test ./test/esm/unittest.js",
-    "test:watch": "node --watch --test ./test/esm/unittest.js"
+    "test:one": "node --test ./esm-test/unittest.js",
+    "test:watch": "node --watch --test ./esm-test/unittest.js"
   }
 }

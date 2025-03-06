@@ -46,7 +46,7 @@ export const pkg_test_cfg = {
     './test/unittest.jsy',
   ],
   output: {
-    dir: 'test/esm',
+    dir: 'esm-test',
     format: 'es',
     sourcemap: 'inline',
   }

@@ -1,8 +1,6 @@
-cjs/
 esm/
-umd/
+esm-*/
 dist/
 node_modules/
 npm-debug.log
 .hggitignore
-__unittest*.js
