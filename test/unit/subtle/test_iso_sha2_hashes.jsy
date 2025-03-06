@@ -1,10 +1,7 @@
-import @{} u8_sha_256
-#IF PLAT_WEB
-  from '@phorbas/opaque/esm/web/subtle.mjs'
-#ELIF PLAT_NODEJS
-  from '@phorbas/opaque/esm/node/subtle.mjs'
+import {describe, it} from 'node:test'
+import {expect} from 'chai'
 
-const { assert, expect } = require('chai')
+import {u8_sha_256} from '@phorbas/opaque/esm/subtle.js'
 
 describe @ 'subtle/iso_sha2_hashes', @::
   it @ 'shape', @::>

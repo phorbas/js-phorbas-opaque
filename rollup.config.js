@@ -1,8 +1,8 @@
-import {builtinModules} from 'module'
 import rpi_jsy from 'rollup-plugin-jsy'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 
+const external = id => /^\w+:|^#/.test(id)
 
 const _rpis_ = (defines, ...args) => [
   rpi_jsy({defines}),
@@ -10,54 +10,50 @@ const _rpis_ = (defines, ...args) => [
   ...args,
   rpi_dgnotify()]
 
-const cfg_node = {
-  external: id => /^\w+:/.test(id) || builtinModules.includes(id),
-  plugins: _rpis_({PLAT_NODEJS: true}) }
+export const pkg_cfg = {
+  plugins: _rpis_({NO_CBOR:true}),
+  external,
 
-const cfg_web = {
-  external: id => /\w+:/.test(id),
-  plugins: _rpis_({PLAT_WEB: true}) }
+  input: [
+    './code/index.jsy',
+    './code/subtle.jsy',
 
-const cfg_node_codec = { ... cfg_node,
-  plugins: _rpis_({PLAT_NODEJS: true, NO_CBOR: true}) }
+    './code/opaque_basic.jsy',
+    './code/opaque_basic_hmac.jsy',
+    './code/opaque_composite.jsy',
+    './code/opaque_tahoe.jsy',
 
-const cfg_web_codec = { ... cfg_web,
-  plugins: _rpis_({PLAT_WEB: true, NO_CBOR: true}) }
+    './code/opaque_ecdsa_basic.jsy',
+    './code/opaque_ecdsa_tahoe.jsy',
 
-const _out_ = { sourcemap: true }
-
-
-const configs = []
-export default configs
-
-add_jsy('index')
-add_jsy('subtle')
-
-if (1) {
-  add_jsy('opaque_basic')
-  add_jsy('opaque_basic_hmac')
-  add_jsy('opaque_composite')
-  add_jsy('opaque_tahoe')
-  add_jsy('opaque_ecdsa_basic')
-  add_jsy('opaque_ecdsa_tahoe')
-  add_jsy('opaque_ecdhe')
-  add_jsy('opaque_ecdhe_basic')
-  add_jsy('opaque_ecdhe_tahoe')
+    './code/opaque_ecdhe.jsy',
+    './code/opaque_ecdhe_basic.jsy',
+    './code/opaque_ecdhe_tahoe.jsy',
+  ],
+  output: {
+    dir: 'esm',
+    format: 'es',
+    sourcemap: true,
+    chunkFileNames: '[name].js'
+  }
 }
 
+export const pkg_test_cfg = {
+  plugins: _rpis_({NO_CBOR:true}),
+  external,
 
-function add_jsy(src_name, opt={}) {
-  const input = `code/${src_name}${opt.ext || '.jsy'}`
-
-  configs.push({ ... cfg_node, input,
-    output: { ..._out_, file: `esm/node/${src_name}.mjs`, format: 'es' }})
-
-  configs.push({ ... cfg_web, input,
-    output: { ..._out_, file: `esm/web/${src_name}.mjs`, format: 'es' }})
-
-  configs.push({ ... cfg_node_codec, input,
-    output: { ..._out_, file: `esm/node-codec/${src_name}.mjs`, format: 'es' }})
-
-  configs.push({ ... cfg_web_codec, input,
-    output: { ..._out_, file: `esm/web-codec/${src_name}.mjs`, format: 'es' }})
+  input: [
+    './test/unittest.jsy',
+  ],
+  output: {
+    dir: 'test/esm',
+    format: 'es',
+    sourcemap: 'inline',
+  }
 }
+
+export default [
+  pkg_cfg,
+  pkg_test_cfg,
+]
+

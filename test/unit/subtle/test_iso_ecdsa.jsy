@@ -1,3 +1,6 @@
+import {describe, it} from 'node:test'
+import {expect} from 'chai'
+
 import @{}
   u8_ecdsa
   u8_crypto_random
@@ -5,16 +8,9 @@ import @{}
   u8_ecdsa_sha_256
   u8_ecdsa_sha_384
   u8_ecdsa_sha_512
-
-#IF PLAT_WEB
-  from '@phorbas/opaque/esm/web/subtle.mjs'
-#ELIF PLAT_NODEJS
-  from '@phorbas/opaque/esm/node/subtle.mjs'
+from '@phorbas/opaque/esm/subtle.js'
 
 import {cbor_decode, hex_to_u8} from 'cbor-codec'
-
-const { assert, expect } = require('chai')
-
 
 describe @ 'subtle/iso_ecdsa', @::
   const u8_buf = new Uint8Array([9,10,11,12])

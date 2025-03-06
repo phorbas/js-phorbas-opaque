@@ -1,17 +1,14 @@
+import {describe, it} from 'node:test'
+import {expect} from 'chai'
+
 import @{}
   u8_ecdh_p256
   u8_ecdh_p384
   u8_ecdh_p521
   subtle_api
-
-#IF PLAT_WEB
-  from '@phorbas/opaque/esm/web/subtle.mjs'
-#ELIF PLAT_NODEJS
-  from '@phorbas/opaque/esm/node/subtle.mjs'
+from '@phorbas/opaque/esm/subtle.js'
 
 import {hex_to_u8, u8_to_hex} from 'cbor-codec'
-const { assert, expect } = require('chai')
-
 
 describe @ 'subtle/iso_ecdh', @::
 

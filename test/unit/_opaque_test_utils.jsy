@@ -1,17 +1,8 @@
-import @{}
-  opaque_core_api,
-#IF PLAT_WEB
-  from '@phorbas/opaque/esm/web-codec/index.mjs'
-#ELIF PLAT_NODEJS
-  from '@phorbas/opaque/esm/node-codec/index.mjs'
+import {expect} from 'chai'
 
 import { utf8_to_u8 } from './_utils.jsy'
 
-const { assert, expect } = require('chai')
-
-
 export async function _expect_core_api(opaque, opt={}) ::
-  expect(opaque_core_api).to.be.an('object')
   expect(opaque.from_k1ref).to.be.a('function')
   expect(opaque.from_k2loc).to.be.a('function')
   expect(opaque.from_random).to.be.a('function')

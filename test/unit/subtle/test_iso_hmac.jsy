@@ -1,11 +1,8 @@
-import @{} u8_hmac
-#IF PLAT_WEB
-  from '@phorbas/opaque/esm/web/subtle.mjs'
-#ELIF PLAT_NODEJS
-  from '@phorbas/opaque/esm/node/subtle.mjs'
+import {describe, it} from 'node:test'
+import {expect} from 'chai'
 
+import {u8_hmac} from '@phorbas/opaque/esm/subtle.js'
 import {utf8_to_u8} from 'u8-utils'
-const { assert, expect } = require('chai')
 
 describe @ 'subtle/iso_hmac_sha2', @::
   const u8_buf = new Uint8Array([9,10,11,12])
