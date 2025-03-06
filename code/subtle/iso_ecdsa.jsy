@@ -1,4 +1,4 @@
-import {ecc_by_len} from './utils.jsy'
+import {ecc_by_len, as_arrbuf} from './utils.jsy'
 
 /* #__NO_SIDE_EFFECTS__ */
 export function _bind_ecdsa(hash) ::
@@ -38,13 +38,13 @@ export function _bind_ecdsa(hash) ::
       hash, namedCurve
 
 
-    async function ecdsa_sign(u8) ::
-      const {privateKey} = await _ec_
-      const u8_sig =
-        await subtle_api.sign @
-          _kind, privateKey, u8
+    async function ecdsa_sign(buf) ::
+      buf = await as_arrbuf(buf)
+      let {privateKey} = await _ec_
+      let sig = await subtle_api.sign @
+        _kind, privateKey, buf
 
-      return @{} ec: await ec, sig: u8_sig
+      return @{} ec: await ec, sig
 
 
 export const u8_ecdsa_sha_256 = _bind_ecdsa('SHA-256')

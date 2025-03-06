@@ -1,5 +1,5 @@
 import './test_opaque_ecdsa_basic.jsy'
 import './test_opaque_ecdsa_basic_session.jsy'
-import './test_opaque_ecdsa_tahoe.jsy'
-import './test_opaque_ecdsa_tahoe_session.jsy'
+//import './test_opaque_ecdsa_tahoe.jsy'
+//import './test_opaque_ecdsa_tahoe_session.jsy'
 

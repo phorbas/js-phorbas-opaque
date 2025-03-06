@@ -24,8 +24,8 @@ export const pkg_cfg = {
     './code/opaque_tahoe.jsy',
     './code/opaque_composite.jsy',
 
-    /*
     './code/ecdsa/opaque_ecdsa_basic.jsy',
+    /*
     './code/ecdsa/opaque_ecdsa_tahoe.jsy',
     */
 
@@ -51,7 +51,7 @@ export const pkg_test_cfg = {
   output: {
     dir: 'esm-test',
     format: 'es',
-    sourcemap: 'inline',
+    sourcemap: true,
   }
 }
 

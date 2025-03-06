@@ -1,6 +1,7 @@
 export * from './subtle.jsy'
 
 export * from './core_api.jsy'
+export * from './_rec_pack_codec.jsy'
 
 export * from './basic/opaque_basic.jsy'
 export * from './basic/opaque_basic_hmac.jsy'
@@ -9,8 +10,8 @@ export * from './opaque_tahoe.jsy'
 export * from './opaque_composite.jsy'
 
 
-/*
 export * from './ecdsa/opaque_ecdsa_basic.jsy'
+/*
 export * from './ecdsa/opaque_ecdsa_tahoe.jsy'
 */
 

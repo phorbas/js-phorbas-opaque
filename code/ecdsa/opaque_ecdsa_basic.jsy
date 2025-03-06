@@ -1,13 +1,11 @@
-import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
-import {u8_sha_256} from './subtle.jsy'
-import {okey_ops_basic} from './key_basic.jsy'
-import {opaque_basic_api, kdf_sha_256} from './opaque_basic.jsy'
+import {okey_basic} from '../basic/key_basic.jsy'
+import {opaque_basic} from '../basic/opaque_basic.jsy'
+import {_rec_pack_raw, _rec_unpack_raw} from '../_rec_pack_codec.jsy'
 
-import @{}
-  u8_hmac_sha_256
-  u8_ecdsa_sha_256
-  u8_fast_equal
-from './subtle.jsy'
+import {as_arrbuf, as_hexkey, hex_to_u8} from '../subtle/utils.jsy'
+import {u8_sha_256} from '../subtle/iso_sha2_hashes.jsy'
+import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
+import {u8_ecdsa_sha_256} from '../subtle/iso_ecdsa.jsy'
 
 
 export const kdf_kctx_tail = kdf_inner =>
@@ -20,15 +18,15 @@ export const kdf_key_tail = kdf_inner =>
 
 
 export const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze @:
-  ... opaque_basic_api
+  ... opaque_basic
 
   _hmac: u8_hmac_sha_256
-  _kdf1_ref: kdf_kctx_tail @ kdf_sha_256
-  _kdf2_loc: kdf_key_tail @ kdf_sha_256
+  _kdf1_ref: kdf_kctx_tail @ u8_sha_256
+  _kdf2_loc: kdf_key_tail @ u8_sha_256
 
   key_proto: Object.freeze @
     bind_ecdsa_key_proto @:
-      kdf_ec: kdf_sha_256
+      kdf_ec: u8_sha_256
       ecdsa_signer: u8_ecdsa_sha_256.p521
       ecdsa_verify: u8_ecdsa_sha_256.verify
 
@@ -41,13 +39,13 @@ export const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze @:
   as_session(...args) :: return this._clone @:
     key_proto: this.key_proto.as_session(...args)
 
-  with_hmac(u8_key) ::
-    const {hmac_sign} = this._hmac(u8_key)
+  with_hmac(key) ::
+    const {hmac_sign} = this._hmac(key)
     return this._clone @:
-      _kdf1_ref: @\ u8_key, kctx =>>
-        this._kdf1_ref @ await hmac_sign(u8_key), kctx
-      _kdf2_loc: @\ u8_key, kctx =>>
-        this._kdf2_loc @ await hmac_sign(u8_key), kctx
+      _kdf1_ref: @\ key, kctx =>>
+        this._kdf1_ref @ await hmac_sign(key), kctx
+      _kdf2_loc: @\ key, kctx =>>
+        this._kdf2_loc @ await hmac_sign(key), kctx
 
 
 export function bind_ecdsa_key_proto(kw_cfg) ::
@@ -58,23 +56,20 @@ export function bind_ecdsa_key_proto(kw_cfg) ::
 
 export function bind_ecdsa_basic() ::
   return @{}
-    ciphered: false
-    get 0() :: return this.k2loc
-    get 1() :: return this.k1ref
+    __proto__: okey_basic
 
-    ... okey_ops_basic
-
-    async encode_content(u8) ::
-      const {k1ref, k2loc} = this
-      if k1ref && k2loc ::
+    async sign_content(buf) ::
+      buf = await as_arrbuf(buf)
+      const {hk1ref, hk2loc} = this
+      if hk1ref && hk2loc ::
         return await this._rec_pack @:
-          c:u8, l:k2loc
+          c:buf, l: hex_to_u8(hk2loc)
 
-    async decode_content(u8_record) ::
-      const {k1ref, k2loc, _kdf_secret} = this
-      if u8_record && k1ref && k2loc ::
-        const {c:u8} = await this._rec_unpack(u8_record) || {}
-        return u8
+    async verify_content(u8_record) ::
+      const {hk1ref, hk2loc, _kdf_secret} = this
+      if u8_record && hk1ref && hk2loc ::
+        const {c:buf} = await this._rec_unpack(u8_record) || {}
+        return buf
 
 
 
@@ -88,34 +83,34 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
   return @{}
     async validate(u8_record) ::
       if u8_record ::
-        const res = await this._rec_unpack(u8_record)
+        let res = await this._rec_unpack(u8_record)
         return undefined !== res
 
 
     async _rec_pack(obj_body) ::
-      const {_ec_sign, codec: {encode}} = this
+      const {_ec_sign} = this
 
       obj_body.e = await _ec_sign.ec
-      const body = encode(obj_body)
+      const body = await _rec_pack_raw(obj_body)
       const {sig} = await _ec_sign(body)
 
-      return encode @: z:sig, b:body
+      return _rec_pack_raw @: z:sig, b:body
 
 
     async _rec_unpack(u8_record) ::
-      const {k2loc, codec: {decode}} = this
+      const {hk2loc} = this
       let obj_sig
-      try :: obj_sig = decode(u8_record)
+      try :: obj_sig = await _rec_unpack_raw(u8_record)
       catch err :: return // ignore decoding error
 
       const {z:sig, b:body} = obj_sig
 
       let obj_body
-      try :: obj_body = decode(body)
+      try :: obj_body = await _rec_unpack_raw(body)
       catch err :: return // ignore decoding error
 
       const {e: ec, l: _k2loc} = obj_body
-      if ! u8_fast_equal @ k2loc, _k2loc ::
+      if hk2loc !== as_hexkey(_k2loc) ::
         return
 
       try ::
@@ -128,7 +123,6 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
       return obj_body
 
-    codec: opaque_basic_api.codec
     _init_eckey: (is_new, kctx) =>
       do_kctx_ec @ kctx, ecdsa_signer()
 
@@ -143,12 +137,16 @@ export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
 
 
 export function _u8_mix_aaab(a, b) ::
+  a = a.buffer ? a :new Uint8Array(a)
+  b = b.buffer ? b :new Uint8Array(b)
   const alen = a.length, blen = b.length
   for let i=3; i<alen; i+=4 ::
     a[i] = b[i % blen]
   return a
 
 export function _u8_test_aaab(a, b) ::
+  a = a.buffer ? a :new Uint8Array(a)
+  b = b.buffer ? b :new Uint8Array(b)
   const alen = a.length, blen = b.length
   for let i=3; i<alen; i+=4 ::
     if a[i] !== b[i % blen] ::
