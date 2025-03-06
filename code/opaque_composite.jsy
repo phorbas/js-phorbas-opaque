@@ -1,3 +1,4 @@
+import {as_hexkey, hex_to_u8} from './subtle/utils.jsy'
 import {opaque_core_api} from './core_api.jsy'
 import {okey_basic} from './basic/key_basic.jsy'
 import {okey_ciphered} from './key_ciphered.jsy'
@@ -9,15 +10,15 @@ const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
   //opaque_b: opaque
   //key_proto: okey_basic or okey_kx_a or okey_kx_b
 
-  _init_key(is_new) ::
+  async _init_key(is_new) ::
     return @{}
       __proto__: this.key_proto
-      kx_a: this.opaque_a._init_key(is_new)
-      kx_b: this.opaque_b._init_key(is_new)
+      kx_a: await this.opaque_a._init_key(is_new)
+      kx_b: await this.opaque_b._init_key(is_new)
 
-  _finish_key(kctx) ::
-    kctx.kx_a = this.opaque_a._finish_key(kctx.kx_a)
-    kctx.kx_b = this.opaque_b._finish_key(kctx.kx_b)
+  async _finish_key(kctx) ::
+    kctx.kx_a = await this.opaque_a._finish_key(kctx.kx_a)
+    kctx.kx_b = await this.opaque_b._finish_key(kctx.kx_b)
     return kctx
 
   _kdf0_hash(buf) ::
@@ -27,12 +28,12 @@ const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
     return this.opaque_a._kdf1_ref(u8_k0, kctx.kx_a)
 
   async _kdf2_loc(hk1ref, kctx) ::
-    kctx.k1mid = await this.opaque_a._kdf2_loc(hk1ref, kctx.kx_a)
-    return this.opaque_b._kdf2_loc(kctx.k1mid, kctx.kx_b)
+    let k1mid = await this.opaque_a._kdf2_loc(hk1ref, kctx.kx_a)
+    kctx.hk1mid = as_hexkey @ k1mid
+    return this.opaque_b._kdf2_loc(k1mid, kctx.kx_b)
 
 
-function _with_hk21(hk1ref, hk2loc, tgt) ::
-  return @{} __proto__: tgt, hk1ref, hk2loc
+const _with_hk21 = (hk1ref, hk2loc, tgt) => @: __proto__: tgt, hk1ref, hk2loc
 
 const okey_kx_a = Object.freeze @:
   __proto__: okey_ciphered
@@ -44,9 +45,9 @@ const okey_kx_a = Object.freeze @:
 const okey_kx_b = Object.freeze @:
   __proto__: okey_ciphered
   encipher(...args) ::
-    return _with_hk21(this.k1mid, this.hk2loc, this.kx_b).encipher(...args)
+    return _with_hk21(this.hk1mid, this.hk2loc, this.kx_b).encipher(...args)
   decipher(...args) ::
-    return _with_hk21(this.k1mid, this.hk2loc, this.kx_b).decipher(...args)
+    return _with_hk21(this.hk1mid, this.hk2loc, this.kx_b).decipher(...args)
 
 
 export function opaque_compose(opaque_a, opaque_b) ::

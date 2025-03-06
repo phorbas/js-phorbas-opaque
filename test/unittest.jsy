@@ -4,10 +4,11 @@ import './subtle/unittest.jsy'
 
 import './test_opaque_basic.jsy'
 import './test_opaque_basic_hmac.jsy'
-//import './test_opaque_tahoe.jsy'
-//import './test_opaque_composed.jsy'
+import './test_opaque_tahoe.jsy'
+import './test_opaque_composed.jsy'
 
 //import './ecdsa/unittest.jsy'
 //import './ecdhe/unittest.jsy'
 
 //import './test_storage_opaque.jsy'
+

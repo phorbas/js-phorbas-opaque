@@ -10,7 +10,6 @@ import @{}
 from '@phorbas/opaque'
 
 import @{}
-  cbor_encode, cbor_decode,
   utf8_to_u8, u8_to_hex, hex_to_u8,
 from './_utils.jsy'
 
@@ -28,72 +27,73 @@ describe @ 'opaque composed', @::
     "opaque_basic_hmac('unittest')": opaque_basic_hmac.with_hmac('unittest'),
     opaque_tahoe
 
-  for let [name_oa, opaque_a] of opaque_algs ::
-    for let [name_ob, opaque_b] of opaque_algs ::
+  describe @ 'shape', @:: 
+    for let [name_oa, opaque_a] of opaque_algs ::
+      for let [name_ob, opaque_b] of opaque_algs ::
 
-      it @ `shape of opaque_compose(${name_oa}, ${name_ob})`, @::>
-        let oc = opaque_compose(opaque_a, opaque_b)
-        await _expect_full_api(oc)
+        it @ `shape of opaque_compose(${name_oa}, ${name_ob})`, @::>
+          let oc = opaque_compose(opaque_a, opaque_b)
+          await _expect_full_api(oc)
 
-  it @ 'opaque_compose(opaque_basic, opaque_basic).from_u8', @::>
-    const p_okey = opaque_compose(opaque_basic, opaque_basic).from_u8 @
-      new Uint8Array @# 10,12,14,16
+  it @ 'opaque_compose(opaque_basic, opaque_basic).from_content', @::>
+    const p_okey = opaque_compose(opaque_basic, opaque_basic)
+      .from_content @ new Uint8Array @# 10,12,14,16
     expect(p_okey).to.be.a('promise')
 
     const okey = await p_okey
     await _expect_okey(okey, false)
 
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "0e3f601857911eccb26954151fdd238614138e25de92531f834e1dd68ab5e89b"
+    expect(okey.hk1ref)
+    .to.equal @ "0e3f601857911eccb26954151fdd238614138e25de92531f834e1dd68ab5e89b"
 
-    expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "127755b4d6d7d7a3508203ea1d6d55da047747bdba69b4dd89535ab2656763cd"
+    expect(okey.hk1mid)
+    .to.equal @ "127755b4d6d7d7a3508203ea1d6d55da047747bdba69b4dd89535ab2656763cd"
 
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "1a4344cefeda6bd4ed075c6ce98122c7b2e0b42705f4e846ab9b9aab55bc8cc3"
+    expect(okey.hk2loc)
+    .to.equal @ "1a4344cefeda6bd4ed075c6ce98122c7b2e0b42705f4e846ab9b9aab55bc8cc3"
 
-    expect(okey[1]).to.equal @ okey.k1ref
-    expect(okey[0]).to.equal @ okey.k2loc
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
 
 
   it @ 'opaque_compose(opaque_basic, opaque_basic).from_content', @::>
-    const p_okey = opaque_compose(opaque_basic, opaque_basic).from_content @
-      utf8_to_u8 @ 'some example content'
+    const p_okey = opaque_compose(opaque_basic, opaque_basic)
+      .from_content @ 'some example content', true
     expect(p_okey).to.be.a('promise')
 
     const okey = await p_okey
     await _expect_okey(okey, false)
 
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "9b05a4d2f05971731b4739415262dcb7b1ac05c9ec3c135280e1212fac555f23"
+    expect(okey.hk1ref)
+    .to.equal @ "9b05a4d2f05971731b4739415262dcb7b1ac05c9ec3c135280e1212fac555f23"
 
-    expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "cb27470ffe7164a6b29613baf7193deca8db4ef9c880ea0345a4549f4ad63ecd"
+    expect(okey.hk1mid)
+    .to.equal @ "cb27470ffe7164a6b29613baf7193deca8db4ef9c880ea0345a4549f4ad63ecd"
 
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "6ab57f09adcdc4138e790a8480ff318b663e727a4e31336c0bcea13bb4e8bf97"
+    expect(okey.hk2loc)
+    .to.equal @ "6ab57f09adcdc4138e790a8480ff318b663e727a4e31336c0bcea13bb4e8bf97"
 
-    expect(okey[1]).to.equal @ okey.k1ref
-    expect(okey[0]).to.equal @ okey.k2loc
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
 
   it @ 'opaque_compose(opaque_basic_hmac("unittest"), tahoe_hmac("other")).from_content', @::>
     const p_okey = opaque_compose(
         opaque_basic_hmac.with_hmac("unittest"), tahoe_hmac("other"))
-      .from_content @ utf8_to_u8('some example content')
+      .from_content @ 'some example content', true
     expect(p_okey).to.be.a('promise')
 
     const okey = await p_okey
     await _expect_okey(okey, true)
 
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "6c36f63f9a524f7ad218fc91ac0a25249835a731a6a1493601acc974673bb9e5"
+    expect(okey.hk1ref)
+    .to.equal @ "6c36f63f9a524f7ad218fc91ac0a25249835a731a6a1493601acc974673bb9e5"
 
-    expect(okey.k1mid)
-    .to.deep.equal @ hex_to_u8 @ "3ec6a2148a09e9b41650b1295191830de50373f41d1597c12182a251ca353c0a"
+    expect(okey.hk1mid)
+    .to.equal @ "3ec6a2148a09e9b41650b1295191830de50373f41d1597c12182a251ca353c0a"
 
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "b03ab587d4b3f8f2c3634848173b3e2f51a1ccafadcb88b27f02f5567f4ac04b"
+    expect(okey.hk2loc)
+    .to.equal @ "b03ab587d4b3f8f2c3634848173b3e2f51a1ccafadcb88b27f02f5567f4ac04b"
 
-    expect(okey[1]).to.equal @ okey.k1ref
-    expect(okey[0]).to.equal @ okey.k2loc
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
 

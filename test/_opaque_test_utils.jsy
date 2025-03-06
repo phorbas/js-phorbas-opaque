@@ -1,6 +1,6 @@
 import {expect} from 'chai'
 
-import { utf8_to_u8 } from './_utils.jsy'
+import { utf8_to_u8, u8_to_utf8 } from 'u8-utils'
 
 export async function _expect_core_api(opaque, opt={}) ::
   expect(opaque.from_hk21).to.be.a('function')
@@ -49,44 +49,30 @@ export async function _expect_okey(okey, ciphered) ::
     okey.hk2loc
     okey.hk1ref
 
-  if ciphered ::
-    expect(okey.encipher).to.be.a('function')
-    expect(okey.decipher).to.be.a('function')
-
-  else ::
-    expect(okey.encipher).to.be.undefined
-    expect(okey.decipher).to.be.undefined
-  
   expect(okey[1]).to.equal @ okey.hk1ref
   expect(okey[0]).to.equal @ okey.hk2loc
 
-  if ! ciphered :: return
+  if ! ciphered ::
+    expect(okey.encipher).to.be.undefined
+    expect(okey.decipher).to.be.undefined
 
-  throw new Exception('TODO: test encipher/decipher')
-  const utf8_test_content = 'some sample unit test content'
-  const u8_test_content = utf8_to_u8 @ utf8_test_content
+    return true
 
-  for const u8_enc_p of [
-        okey.encipher_utf8(utf8_test_content),
-      ] ::
+  expect(okey.encipher).to.be.a('function')
+  expect(okey.decipher).to.be.a('function')
+
+  :: 
+    const test_content = 'some sample unit test content'
+    const u8_enc_p = okey.encipher(test_content)
 
     expect(u8_enc_p).to.be.a('promise')
 
     const u8_enc = await u8_enc_p
     expect(u8_enc).to.be.an.instanceof(Uint8Array)
 
-    ::
-      const u8_dec_p = okey.decipher(u8_enc)
-      expect(u8_dec_p).to.be.a('promise')
+    const u8_dec_p = okey.decipher(u8_enc)
+    expect(u8_dec_p).to.be.a('promise')
 
-      const u8_dec = await u8_dec_p
-      expect(u8_dec).to.be.deep.equal @ u8_test_content
-
-    ::
-      const utf8_dec_p = okey.decipher_utf8(u8_enc)
-      expect(utf8_dec_p).to.be.a('promise')
-
-      const utf8_dec = await utf8_dec_p
-      expect(utf8_dec).to.be.deep.equal @ utf8_test_content
-
+    const u8_dec = await u8_dec_p
+    expect(u8_to_utf8(u8_dec)).to.equal @ test_content
 

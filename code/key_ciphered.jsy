@@ -1,53 +1,57 @@
+import {as_arrbuf, hex_to_u8} from './subtle/utils.jsy'
 import {u8_crypto_random} from './subtle/iso_random.jsy'
+import {cbor_encode, cbor_decode} from 'cbor-codec'
 
 export const kdf_random_16 = () => u8_crypto_random(16)
 
 export const okey_ciphered = Object.freeze @:
   hk21() :: return [this.hk2loc, this.hk1ref]
-  get 0() :: return this.k2loc
-  get 1() :: return this.k1ref
+  get 0() :: return this.hk2loc
+  get 1() :: return this.hk1ref
   ciphered: true
 
   // async encipher(u8_content) ::
-  // async decipher(u8_record) ::
-
-  _rec_pack(rec) ::
-    return this.codec.encode(rec)
-  _rec_unpack(u8_record) ::
-    return this.codec.decode(u8_record)
+  // async decipher(buf_record) ::
 
 
-export function bind_okey_ciphered(cipher) ::
+export const bind_okey_ciphered = cipher =>
+  _bind_okey_ciphered(cipher, cbor_encode, cbor_decode)
+
+export function _bind_okey_ciphered(cipher, _rec_pack_, _rec_unpack_) ::
   return @{}
     __proto__: okey_ciphered
 
     _kdf_iv: kdf_random_16
     // _kdf_secret: k1ref => k1ref
 
-    async encipher(u8_content) ::
-      const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this
-      if k1ref && k2loc ::
+    async encipher(content=this.buf) ::
+      content = await as_arrbuf(content)
+
+      const {hk1ref, hk2loc, _kdf_secret, _kdf_iv} = this
+      if hk1ref && hk2loc ::
+        const k1ref = hex_to_u8(hk1ref), k2loc = hex_to_u8(hk2loc)
         const u8_secret = ! _kdf_secret ? k1ref
           : await _kdf_secret(k1ref)
 
-        const u8_iv = await _kdf_iv(k2loc)
+        const iv = await _kdf_iv(k2loc)
 
         const u8_enc = await cipher.encrypt @
-          u8_content, u8_secret, u8_iv
+          content, u8_secret, iv
 
-        return await this._rec_pack @:
-          c:u8_enc, v:u8_iv, l:k2loc
+        return await _rec_pack_ @:
+          c:u8_enc, v:iv, l:k2loc
 
-    async decipher(u8_record) ::
-      const {k1ref, _kdf_secret} = this
-      if u8_record && k1ref ::
-        const {v:u8_iv, c:u8_enc} =
-          await this._rec_unpack(u8_record) || {}
+    async decipher(buf_record) ::
+      const {hk1ref, _kdf_secret} = this
+      if buf_record && hk1ref ::
+        const k1ref = hex_to_u8(hk1ref)
+        const {v:iv, c:u8_enc} =
+          await _rec_unpack_(buf_record) || {}
 
         const u8_secret = ! _kdf_secret ? k1ref
           : await _kdf_secret(k1ref)
 
-        if u8_enc && u8_secret && u8_iv ::
+        if u8_enc && u8_secret && iv ::
           return await cipher.decrypt @
-            u8_enc, u8_secret, u8_iv
+            u8_enc, u8_secret, iv
 

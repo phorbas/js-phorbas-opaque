@@ -1,10 +1,10 @@
-import {bind_okey_ciphered} from './key_ciphered.jsy'
-import {opaque_basic_hmac_api} from './opaque_basic_hmac.jsy'
-import {u8_aes_256_gcm} from './subtle.jsy'
+import { bind_okey_ciphered } from './key_ciphered.jsy'
+import { opaque_basic_hmac } from './basic/opaque_basic_hmac.jsy'
+import { u8_aes_256_gcm } from './subtle/iso_aes_256_gcm.jsy'
 
 
-export const opaque_tahoe = /* #__PURE__ */ Object.freeze @:
-  ... opaque_basic_hmac_api
+export const opaque_tahoe = Object.freeze @:
+  ... opaque_basic_hmac
   ciphered: true
 
   key_proto: Object.freeze @

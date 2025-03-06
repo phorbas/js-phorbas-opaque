@@ -21,10 +21,10 @@ export const pkg_cfg = {
     './code/basic/opaque_basic.jsy',
     './code/basic/opaque_basic_hmac.jsy',
 
-    /*
-    './code/opaque_composite.jsy',
     './code/opaque_tahoe.jsy',
+    './code/opaque_composite.jsy',
 
+    /*
     './code/ecdsa/opaque_ecdsa_basic.jsy',
     './code/ecdsa/opaque_ecdsa_tahoe.jsy',
 
