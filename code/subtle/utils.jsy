@@ -1,11 +1,29 @@
-import { utf8_to_u8, u8_to_utf8 } from 'u8-utils'
+import { utf8_to_u8, u8_to_utf8, u8_to_hex, hex_to_u8 } from 'u8-utils'
 
-export { utf8_to_u8, u8_to_utf8 }
+export { utf8_to_u8, u8_to_utf8, u8_to_hex, hex_to_u8 }
 
 export const u8_maybe_utf8 = u8 =>
   'string' === typeof u8
     ? utf8_to_u8(u8)
     : u8
+
+export const as_hexkey = dk => @
+  dk = new Uint8Array(dk),
+  dk.toHex?.() ?? u8_to_hex(dk)
+
+  
+export async function as_arrbuf(c) ::
+  c = await c
+  if c instanceof ArrayBuffer || ArrayBuffer.isView(c) ::
+    return c
+
+  if c.trim ::
+    return utf8_to_u8(c)
+
+  if ! c.arrayBuffer ::
+    c = new Blob(!c ? [] : c[Symbol.iterator] ? c : [c])
+  return c.arrayBuffer()
+
 
 export const u8_subarray = (buf, ...args) => buf &&
   (1 === buf.BYTES_PER_ELEMENT ? buf : new Uint8Array(buf))

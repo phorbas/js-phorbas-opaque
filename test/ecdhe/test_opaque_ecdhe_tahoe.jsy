@@ -18,6 +18,37 @@ describe @ 'opaque ecdhe tahoe', @::
     encode: cbor_encode
     decode: cbor_decode
 
+
+  describe @ 'shape', @::
+    it @ 'shape of tahoe_ecdhe', @::>
+      const op_alice_key = tahoe_ecdhe()
+      const op_bob_p = tahoe_ecdhe_mirror(op_alice_key.ecdh)
+
+      expect(op_bob_p).to.be.a('promise')
+      const op_bob = await op_bob_p
+      await _expect_full_api @ op_bob
+
+      const op_alice_p = op_alice_key.with_ecdh(op_bob.ecdh)
+      expect(op_alice_p).to.be.a('promise')
+      const op_alice = await op_alice_p
+      await _expect_full_api @ op_alice
+
+
+    it @ 'shape of tahoe_ecdhe.as_core()', @::>
+      const op_alice_key = tahoe_ecdhe()
+      const op_bob_p = tahoe_ecdhe_mirror(op_alice_key.ecdh)
+
+      expect(op_bob_p).to.be.a('promise')
+      const op_bob = await op_bob_p
+      await _expect_core_api @ op_bob.as_core()
+
+      const op_alice_p = op_alice_key.with_ecdh(op_bob.ecdh)
+      expect(op_alice_p).to.be.a('promise')
+      const op_alice = await op_alice_p
+      await _expect_core_api @ op_alice.as_core()
+
+
+
   const u8_test_content = 'some ecdhe test content'
 
   it @ 'shape', @::>

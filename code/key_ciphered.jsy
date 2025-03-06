@@ -1,41 +1,12 @@
-import {utf8_to_u8, u8_to_utf8} from './subtle/utils.jsy'
-import {kdf_random_16} from './opaque_basic_hmac.jsy'
-import {opaque_shared_codec} from './codec.jsy'
+import {u8_crypto_random} from './subtle/iso_random.jsy'
 
+export const kdf_random_16 = () => u8_crypto_random(16)
 
-export const okey_ops_ciphered = /* #__PURE__ */ @{}
-  k21pair() :: return [this.k2loc, this.k1ref]
-
-  encode_content(u8) :: return this.encipher(u8)
-  decode_content(u8) :: return this.decipher(u8)
-
-  encode_utf8(utf8) :: return this.encipher_utf8(utf8)
-  decode_utf8(u8) :: return this.decipher_utf8(u8)
-  encipher_utf8(utf8) ::
-    return this.encipher @ utf8_to_u8(utf8)
-  async decipher_utf8(u8_record) ::
-    const u8 = await this.decipher(u8_record)
-    if undefined !== u8 ::
-      return u8_to_utf8(u8)
-
-  encode_obj(u8) :: return this.encipher_obj(u8)
-  decode_obj(u8) :: return this.decipher_obj(u8)
-  async encipher_obj(obj) ::
-    return this.encipher @
-      await this.codec.encode(obj)
-  async decipher_obj(u8_record) ::
-    const u8 = await this.decipher(u8_record)
-    if undefined !== u8 ::
-      return this.codec.decode(u8)
-
-
-export const okey_ciphered = /* #__PURE__ */ Object.freeze @:
+export const okey_ciphered = Object.freeze @:
+  hk21() :: return [this.hk2loc, this.hk1ref]
   get 0() :: return this.k2loc
   get 1() :: return this.k1ref
-  codec: opaque_shared_codec
   ciphered: true
-
-  ... okey_ops_ciphered
 
   // async encipher(u8_content) ::
   // async decipher(u8_record) ::

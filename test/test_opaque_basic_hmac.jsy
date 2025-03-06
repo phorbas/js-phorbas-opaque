@@ -1,0 +1,68 @@
+import {describe, it} from 'node:test'
+import {expect} from 'chai'
+
+import { opaque_basic_hmac } from '@phorbas/opaque'
+
+import @{}
+  _expect_okey,
+  _expect_full_api,
+  _expect_core_api,
+from './_opaque_test_utils.jsy'
+
+
+describe @ 'opaque_basic_hmac', @::
+  describe @ 'shape', @::
+    it @ 'shape of opaque_basic_hmac', @::>
+      await _expect_full_api @ opaque_basic_hmac
+
+    it @ 'shape of opaque_basic_hmac.as_core()', @::>
+      await _expect_core_api @ opaque_basic_hmac.as_core()
+
+
+  it @ 'opaque_basic_hmac.from_content(u8)', @::>
+    const p_okey = opaque_basic_hmac
+      .with_hmac('some-test-key')
+      .from_content @ new Uint8Array @# 10,12,14,16
+    expect(p_okey).to.be.a('promise')
+
+    const okey = await p_okey
+    await _expect_okey(okey, false)
+
+    expect(okey.hk1ref)
+    .to.deep.equal @ "d05d3241a3ad348a48a3e261c2e17bc15016456129ceb805bdb2d695890ccb97"
+
+    expect(okey.hk2loc)
+    .to.deep.equal @ "aefa34fd7a5e3d87b6fe331a8826a6d04133cb8250226130284c3437f6ba05d2"
+
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
+
+
+  it @ 'opaque_basic_hmac.from_content(string)', @::>
+    const p_okey = opaque_basic_hmac
+      .with_hmac('some-test-key')
+      .from_content @ 'some example content', true
+    expect(p_okey).to.be.a('promise')
+
+    const okey = await p_okey
+    await _expect_okey(okey, false)
+
+    expect(okey.hk1ref)
+    .to.deep.equal @ "ed8d2cef0cefd8751971f89cb3b5f5c9dfd5518a5db5e6bab075feb84a7d39dc"
+
+    expect(okey.hk2loc)
+    .to.deep.equal @ "cec6a8d5980ad990d42750b6a4639941d1f881fdce8ba834e8c8dd45de3f98b7"
+
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
+
+
+  it @ 'opaque_basic_hmac.from_random', @::>
+    const p_okey = opaque_basic_hmac
+      .with_hmac('some-test-key')
+      .from_random()
+    expect(p_okey).to.be.a('promise')
+
+    const okey = await p_okey
+    await _expect_okey(okey, false)
+

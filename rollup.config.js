@@ -18,17 +18,20 @@ export const pkg_cfg = {
     './code/index.jsy',
     './code/subtle.jsy',
 
-    './code/opaque_basic.jsy',
-    './code/opaque_basic_hmac.jsy',
+    './code/basic/opaque_basic.jsy',
+    './code/basic/opaque_basic_hmac.jsy',
+
+    /*
     './code/opaque_composite.jsy',
     './code/opaque_tahoe.jsy',
 
-    './code/opaque_ecdsa_basic.jsy',
-    './code/opaque_ecdsa_tahoe.jsy',
+    './code/ecdsa/opaque_ecdsa_basic.jsy',
+    './code/ecdsa/opaque_ecdsa_tahoe.jsy',
 
-    './code/opaque_ecdhe.jsy',
-    './code/opaque_ecdhe_basic.jsy',
-    './code/opaque_ecdhe_tahoe.jsy',
+    './code/ecdhe/opaque_ecdhe.jsy',
+    './code/ecdhe/opaque_ecdhe_basic.jsy',
+    './code/ecdhe/opaque_ecdhe_tahoe.jsy',
+    */
   ],
   output: {
     dir: 'esm',

@@ -1,5 +1,5 @@
 import {opaque_core_api} from './core_api.jsy'
-import {okey_basic} from './key_basic.jsy'
+import {okey_basic} from './basic/key_basic.jsy'
 import {okey_ciphered} from './key_ciphered.jsy'
 
 
@@ -20,36 +20,33 @@ const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
     kctx.kx_b = this.opaque_b._finish_key(kctx.kx_b)
     return kctx
 
-  _kdf0_random() ::
-    return this.opaque_a._kdf0_random()
-
-  _kdf0_hash(u8) ::
-    return this.opaque_a._kdf0_hash(u8)
+  _kdf0_hash(buf) ::
+    return this.opaque_a._kdf0_hash(buf)
 
   _kdf1_ref(u8_k0, kctx) ::
     return this.opaque_a._kdf1_ref(u8_k0, kctx.kx_a)
 
-  async _kdf2_loc(k1ref, kctx) ::
-    kctx.k1mid = await this.opaque_a._kdf2_loc(k1ref, kctx.kx_a)
+  async _kdf2_loc(hk1ref, kctx) ::
+    kctx.k1mid = await this.opaque_a._kdf2_loc(hk1ref, kctx.kx_a)
     return this.opaque_b._kdf2_loc(kctx.k1mid, kctx.kx_b)
 
 
-function _with_k21(k1ref, k2loc, tgt) ::
-  return @{} __proto__: tgt, k1ref, k2loc
+function _with_hk21(hk1ref, hk2loc, tgt) ::
+  return @{} __proto__: tgt, hk1ref, hk2loc
 
-const okey_kx_a = /* #__PURE__ */ Object.freeze @:
+const okey_kx_a = Object.freeze @:
   __proto__: okey_ciphered
   encipher(...args) ::
-    return _with_k21(this.k1ref, this.k2loc, this.kx_a).encipher(...args)
+    return _with_hk21(this.hk1ref, this.hk2loc, this.kx_a).encipher(...args)
   decipher(...args) ::
-    return _with_k21(this.k1ref, this.k2loc, this.kx_a).decipher(...args)
+    return _with_hk21(this.hk1ref, this.hk2loc, this.kx_a).decipher(...args)
 
-const okey_kx_b = /* #__PURE__ */ Object.freeze @:
+const okey_kx_b = Object.freeze @:
   __proto__: okey_ciphered
   encipher(...args) ::
-    return _with_k21(this.k1mid, this.k2loc, this.kx_b).encipher(...args)
+    return _with_hk21(this.k1mid, this.hk2loc, this.kx_b).encipher(...args)
   decipher(...args) ::
-    return _with_k21(this.k1mid, this.k2loc, this.kx_b).decipher(...args)
+    return _with_hk21(this.k1mid, this.hk2loc, this.kx_b).decipher(...args)
 
 
 export function opaque_compose(opaque_a, opaque_b) ::
@@ -57,7 +54,6 @@ export function opaque_compose(opaque_a, opaque_b) ::
     : opaque_a.ciphered ? okey_kx_a
     : okey_basic
 
-  let res = @{} __proto__: opaque_comp_api, opaque_a, opaque_b
+  return @{} __proto__: opaque_comp_api, opaque_a, opaque_b
     key_proto, ciphered: key_proto.ciphered
-  return res
 

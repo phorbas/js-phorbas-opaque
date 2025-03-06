@@ -1,61 +1,61 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import @{}
-  opaque_basic,
-  opaque_tahoe,
-  tahoe_hmac,
-from '@phorbas/opaque/esm/index.js'
-
-import @{}
-  cbor_encode, cbor_decode,
-  utf8_to_u8, u8_to_hex, hex_to_u8,
-from './_utils.jsy'
+import {opaque_core_api, opaque_basic} from '@phorbas/opaque'
 
 import @{}
   _expect_okey,
+  _expect_full_api,
+  _expect_core_api,
 from './_opaque_test_utils.jsy'
 
 
 describe @ 'opaque core & basics', @::
-  opaque_tahoe.init_shared_codec @:
-    encode: cbor_encode
-    decode: cbor_decode
+  describe @ 'shape', @::
+    it @ 'shape of opaque_core_api', @::>
+      await _expect_core_api @ opaque_core_api, {skip_okey: true}
 
-  it @ 'opaque_basic.from_u8', @::>
-    const p_okey = opaque_basic.from_u8 @
+    it @ 'shape of opaque_basic', @::>
+      await _expect_full_api @ opaque_basic
+
+    it @ 'shape of opaque_basic.as_core()', @::>
+      await _expect_core_api @ opaque_basic.as_core()
+
+
+  it @ 'opaque_basic.from_content(u8)', @::>
+    const p_okey = opaque_basic.from_content @
       new Uint8Array @# 10,12,14,16
     expect(p_okey).to.be.a('promise')
 
     const okey = await p_okey
     await _expect_okey(okey, false)
 
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "0e3f601857911eccb26954151fdd238614138e25de92531f834e1dd68ab5e89b"
+    expect(okey.hk1ref)
+    .to.deep.equal @ "0e3f601857911eccb26954151fdd238614138e25de92531f834e1dd68ab5e89b"
 
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "127755b4d6d7d7a3508203ea1d6d55da047747bdba69b4dd89535ab2656763cd"
+    expect(okey.hk2loc)
+    .to.deep.equal @ "127755b4d6d7d7a3508203ea1d6d55da047747bdba69b4dd89535ab2656763cd"
 
-    expect(okey[1]).to.equal @ okey.k1ref
-    expect(okey[0]).to.equal @ okey.k2loc
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
 
 
-  it @ 'opaque_basic.from_content', @::>
+  it @ 'opaque_basic.from_content(string)', @::>
     const p_okey = opaque_basic.from_content @
-      utf8_to_u8 @ 'some example content'
+      'some example content', true
     expect(p_okey).to.be.a('promise')
 
     const okey = await p_okey
     await _expect_okey(okey, false)
 
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "9b05a4d2f05971731b4739415262dcb7b1ac05c9ec3c135280e1212fac555f23"
+    expect(okey.hk1ref)
+    .to.deep.equal @ "9b05a4d2f05971731b4739415262dcb7b1ac05c9ec3c135280e1212fac555f23"
 
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "cb27470ffe7164a6b29613baf7193deca8db4ef9c880ea0345a4549f4ad63ecd"
+    expect(okey.hk2loc)
+    .to.deep.equal @ "cb27470ffe7164a6b29613baf7193deca8db4ef9c880ea0345a4549f4ad63ecd"
 
-    expect(okey[1]).to.equal @ okey.k1ref
-    expect(okey[0]).to.equal @ okey.k2loc
+    expect(okey[1]).to.equal @ okey.hk1ref
+    expect(okey[0]).to.equal @ okey.hk2loc
 
 
   it @ 'opaque_basic.from_random', @::>
@@ -64,64 +64,4 @@ describe @ 'opaque core & basics', @::
 
     const okey = await p_okey
     await _expect_okey(okey, false)
-
-  it @ 'opaque_tahoe.from_content', @::>
-    const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
-
-    const kv_test = @{}
-      k1ref: hex_to_u8 @ 'd421f311dff096fcae9f934b7ca417297bb2bc9e550709fb416a5e45bc5d19ea'
-      value: hex_to_u8 @ 'a36163582d67f3efd56df4ba45ee6e23fed12d38c5cbf33494f1b35ece8feeecf15eadeb187e4fda00199b9da2b4af56bbc261765086b528ce6f3fea6a64fcd8824ae0232b616c582013fa1fd5c392b22ba346390074b82c41fc4c48999f4dc2feae4f349c1bfb29ea'
-
-    ::
-      const p_okey = opaque_tahoe.from_content(u8_test_content)
-      expect(p_okey).to.be.a('promise')
-
-      const okey = await p_okey
-      await _expect_okey(okey, true)
-
-      expect(okey.k1ref).to.be.deep.equal @ kv_test.k1ref
-
-      expect(okey.encipher).to.be.a('function')
-      expect(okey.decipher).to.be.a('function')
-
-      const p_u8_enc = okey.encipher(u8_test_content)
-      expect(p_u8_enc).to.be.a('promise')
-
-      const u8_enc = await p_u8_enc
-      expect(u8_enc).to.be.an.instanceof(Uint8Array)
-
-
-    ::
-      const p_okey = opaque_tahoe.from_k1ref(kv_test.k1ref)
-      expect(p_okey).to.be.a('promise')
-
-      const okey = await p_okey
-      await _expect_okey(okey, true)
-
-      expect(okey.k1ref).to.be.deep.equal @ kv_test.k1ref
-
-      const p_u8_dec = okey.decipher(kv_test.value)
-      expect(p_u8_dec).to.be.a('promise')
-
-      const u8_dec = await p_u8_dec
-      expect(u8_dec).to.be.an.instanceof(Uint8Array)
-      expect(u8_dec).to.be.deep.equal @ u8_test_content
-
-
-  it @ 'tahoe_hmac.from_u8', @::>
-    const hk = utf8_to_u8 @ 'some hmac key'
-    
-    const okey = await tahoe_hmac(hk).from_u8 @
-      new Uint8Array @# 10,12,14,16
-
-    await _expect_okey(okey, true)
-
-    expect(okey.k1ref)
-    .to.deep.equal @ hex_to_u8 @ "2bfc553c3ac54f041e02ffc99714981f3084a382748bd9b594317d2f4ec9e2fc"
-
-    expect(okey.k2loc)
-    .to.deep.equal @ hex_to_u8 @ "b0040d915ea477a0824168347665f6d7d17189907fc8b0d4b7dfd4bb3f01e533"
-
-
-
 

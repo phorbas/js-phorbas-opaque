@@ -3,16 +3,13 @@ import {expect} from 'chai'
 import { utf8_to_u8 } from './_utils.jsy'
 
 export async function _expect_core_api(opaque, opt={}) ::
-  expect(opaque.from_k1ref).to.be.a('function')
-  expect(opaque.from_k2loc).to.be.a('function')
+  expect(opaque.from_hk21).to.be.a('function')
   expect(opaque.from_random).to.be.a('function')
   expect(opaque.from_content).to.be.a('function')
-  expect(opaque.from_u8).to.be.a('function')
   expect(opaque.as_core).to.be.a('function')
 
   if ! opt.skip_kdf ::
     expect(opaque._kdf0_hash).to.be.undefined
-    expect(opaque._kdf0_random).to.be.undefined
     expect(opaque._kdf1_ref).to.be.undefined
     expect(opaque._kdf2_loc).to.be.undefined
 
@@ -25,7 +22,6 @@ export async function _expect_core_api(opaque, opt={}) ::
 
 export async function _expect_full_api(opaque) ::
   expect(opaque._kdf0_hash).to.be.a('function')
-  expect(opaque._kdf0_random).to.be.a('function')
   expect(opaque._kdf1_ref).to.be.a('function')
   expect(opaque._kdf2_loc).to.be.a('function')
 
@@ -35,103 +31,62 @@ export async function _expect_full_api(opaque) ::
 export async function _expect_okey(okey, ciphered) ::
   okey = await okey
 
-  expect(okey.k1ref)
-  .to.have.length(32)
-  .to.be.an.instanceof(Uint8Array)
+  expect(okey.hk1ref)
+  .to.be.a('string')
+  .to.have.length(64)
 
-  expect(okey.k2loc)
-  .to.have.length(32)
-  .to.be.an.instanceof(Uint8Array)
+  expect(okey.hk2loc)
+  .to.be.a('string')
+  .to.have.length(64)
 
   expect(okey.ciphered).to.be.a('boolean')
-  expect(okey.k21pair).to.be.a('function')
+  expect(okey.hk21).to.be.a('function')
 
-  expect(okey.k21pair())
+  expect(okey.hk21())
   .to.be.an('array')
   .to.have.length(2)
   .to.deep.equal @#
-    okey.k2loc
-    okey.k1ref
-
-
-  expect(okey.encode_content).to.be.a('function')
-  expect(okey.decode_content).to.be.a('function')
-  expect(okey.encode_utf8).to.be.a('function')
-  expect(okey.decode_utf8).to.be.a('function')
-  expect(okey.encode_obj).to.be.a('function')
-  expect(okey.decode_obj).to.be.a('function')
+    okey.hk2loc
+    okey.hk1ref
 
   if ciphered ::
     expect(okey.encipher).to.be.a('function')
     expect(okey.decipher).to.be.a('function')
-    expect(okey.encipher_utf8).to.be.a('function')
-    expect(okey.decipher_utf8).to.be.a('function')
-    expect(okey.encipher_obj).to.be.a('function')
-    expect(okey.decipher_obj).to.be.a('function')
 
   else ::
     expect(okey.encipher).to.be.undefined
     expect(okey.decipher).to.be.undefined
-    expect(okey.encipher_utf8).to.be.undefined
-    expect(okey.decipher_utf8).to.be.undefined
-    expect(okey.encipher_obj).to.be.undefined
-    expect(okey.decipher_obj).to.be.undefined
-
   
-  expect(okey[1]).to.equal @ okey.k1ref
-  expect(okey[0]).to.equal @ okey.k2loc
+  expect(okey[1]).to.equal @ okey.hk1ref
+  expect(okey[0]).to.equal @ okey.hk2loc
 
+  if ! ciphered :: return
+
+  throw new Exception('TODO: test encipher/decipher')
   const utf8_test_content = 'some sample unit test content'
   const u8_test_content = utf8_to_u8 @ utf8_test_content
 
-  ::
-    for const u8_enc_p of [
-          okey.encode_utf8(utf8_test_content),
-          okey.encode_content(u8_test_content),
-        ] ::
+  for const u8_enc_p of [
+        okey.encipher_utf8(utf8_test_content),
+      ] ::
 
-      expect(u8_enc_p).to.be.a('promise')
+    expect(u8_enc_p).to.be.a('promise')
 
-      const u8_enc = await u8_enc_p
-      expect(u8_enc).to.be.an.instanceof(Uint8Array)
+    const u8_enc = await u8_enc_p
+    expect(u8_enc).to.be.an.instanceof(Uint8Array)
 
-      ::
-        const u8_dec_p = okey.decode_content(u8_enc)
-        expect(u8_dec_p).to.be.a('promise')
+    ::
+      const u8_dec_p = okey.decipher(u8_enc)
+      expect(u8_dec_p).to.be.a('promise')
 
-        const u8_dec = await u8_dec_p
-        expect(u8_dec).to.be.deep.equal @ u8_test_content
+      const u8_dec = await u8_dec_p
+      expect(u8_dec).to.be.deep.equal @ u8_test_content
 
-      ::
-        const utf8_dec_p = okey.decode_utf8(u8_enc)
-        expect(utf8_dec_p).to.be.a('promise')
+    ::
+      const utf8_dec_p = okey.decipher_utf8(u8_enc)
+      expect(utf8_dec_p).to.be.a('promise')
 
-        const utf8_dec = await utf8_dec_p
-        expect(utf8_dec).to.be.deep.equal @ utf8_test_content
-
-  if ciphered ::
-    for const u8_enc_p of [
-          okey.encipher_utf8(utf8_test_content),
-          okey.encipher(u8_test_content),
-        ] ::
-
-      expect(u8_enc_p).to.be.a('promise')
-
-      const u8_enc = await u8_enc_p
-      expect(u8_enc).to.be.an.instanceof(Uint8Array)
-
-      ::
-        const u8_dec_p = okey.decipher(u8_enc)
-        expect(u8_dec_p).to.be.a('promise')
-
-        const u8_dec = await u8_dec_p
-        expect(u8_dec).to.be.deep.equal @ u8_test_content
-
-      ::
-        const utf8_dec_p = okey.decipher_utf8(u8_enc)
-        expect(utf8_dec_p).to.be.a('promise')
-
-        const utf8_dec = await utf8_dec_p
-        expect(utf8_dec).to.be.deep.equal @ utf8_test_content
+      const utf8_dec = await utf8_dec_p
+      expect(utf8_dec).to.be.deep.equal @ utf8_test_content
 
 

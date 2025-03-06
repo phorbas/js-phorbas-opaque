@@ -1,93 +1,51 @@
-import {u8_maybe_utf8} from './subtle/utils.jsy'
-
-#IF NO_CBOR
-  import {opaque_shared_codec, init_opaque_shared_codec} from './codec.jsy'
-#ELSE
-  import {opaque_shared_codec} from './codec.jsy'
+import {as_arrbuf, as_hexkey, hex_to_u8} from './subtle/utils.jsy'
+import {u8_crypto_random} from './subtle/iso_random.jsy'
 
 
-export const opaque_core_api = /* #__PURE__ */ @{}
-  // k0 is source material for k1ref derivation
+export const as_opaque_core = (opaque) => @:
+  ciphered: opaque.ciphered
 
-  from_random() :: // k0
-    return this.from_u8(this._kdf0_random())
+  from_random: () => opaque.from_random()
+  from_content: content => opaque.from_content(content)
+  from_hk21: hk21 => opaque.from_hk21(hk21)
 
-  async from_content(u8_buf) :: // k0
-    u8_buf = await this._kdf0_hash(
-      u8_maybe_utf8(u8_buf))
-    return this.from_u8(u8_buf)
+  as_session: (...args) => as_opaque_core @ opaque.as_session(...args)
+  as_core() :: return this
 
-  async from_u8(u8_k0) :: // k0
-    const kctx = await this._init_key(true)
-    kctx.k1ref = await this._kdf1_ref(u8_k0, kctx)
+
+export const opaque_core_api = @{}
+  // k0 is source material for hk1ref derivation
+
+  async from_random() :: // k0
+    let kctx = await this._init_key(true)
+    kctx.hk1ref = as_hexkey @ await this._kdf1_ref(u8_crypto_random(16), kctx)
     return this._from_kctx(kctx)
 
-
-  // k1ref is privlaged reference
-
-  async from_k1ref(k1ref) ::
-    const kctx = await this._init_key()
-    kctx.k1ref = k1ref
+  async from_content(buf, k0_hash) :: // k0
+    let kctx = await this._init_key(true)
+    kctx.buf = buf = await as_arrbuf(buf)
+    let k0 = !k0_hash ? buf : await this._kdf0_hash(buf)
+    kctx.hk1ref = as_hexkey @ await this._kdf1_ref(k0, kctx)
     return this._from_kctx(kctx)
 
-  // k2loc is observable location
-
-  async from_k2loc(k2loc) ::
-    const kctx = await this._init_key()
-    kctx.k1ref = undefined
-    kctx.k2loc = k2loc
-    return this._finish_key(kctx)
-
-  // k21pair may be tuple of `[k1ref, k2pair]` or `k1ref` alone; lazily avoids rehashing `k2loc`
-
-  async from_k21pair(k21pair) ::
-    const kctx = await this._init_key()
-    if ! Array.isArray(k21pair) ::
-      if 'function' !== typeof k21pair.k21pair ::
-        kctx.k1ref = k21pair
-        return this._from_kctx(kctx)
-
-      k21pair = k21pair.k21pair()
-
-    kctx.k1ref = k21pair[1]
-    kctx.k2loc = k21pair[0]
-    return this._finish_key(kctx)
-
-
-  codec: opaque_shared_codec
-
-  //
-  // Protected extension api
-
-  // _init_key(is_new) : kctx // subclass responsibility
-  // _finish_key(kctx) : kctx // subclass responsibility
-  async _from_kctx(kctx) ::
-    kctx.k2loc = await this._kdf2_loc(kctx.k1ref, kctx)
-    return this._finish_key(kctx)
-
-
-  //
-  // Addtional public api
+  // hk21 may be tuple of `[hk2loc, hk1ref]` or `hk1ref` alone; lazily avoids rehashing `hk2loc`
+  async from_hk21(hk21) ::
+    hk21 = await hk21
+    let kctx = await this._init_key()
+    kctx.hk2loc = hk21.trim ? null : hk21[0]
+    kctx.hk1ref = hk21.trim ? hk21 : hk21[1]
+    return this._from_kctx(kctx)
 
   as_session() :: return this
 
-  #IF NO_CBOR
-    init_shared_codec: init_opaque_shared_codec,
 
-  as_core() :: return @{}
-    ciphered: this.ciphered
-    codec: this.codec
+  //### Protected extension api ###
+  // _init_key(is_new) : kctx // subclass responsibility
+  // _finish_key(kctx) : kctx // subclass responsibility
+  async _from_kctx(kctx) ::
+    kctx.hk2loc ??= as_hexkey @ await this._kdf2_loc(hex_to_u8(kctx.hk1ref), kctx)
+    return this._finish_key(kctx)
 
-    from_k1ref: k1ref => this.from_k1ref(k1ref)
-    from_k2loc: k2loc => this.from_k2loc(k2loc)
-    from_k21pair: k21pair => this.from_k21pair(k21pair)
-    from_content: u8_buf => this.from_content(u8_buf)
-    from_random: () => this.from_random()
-    from_u8: u8_k0 => this.from_u8(u8_k0)
+  as_core() :: return as_opaque_core(this)
 
-    as_session: (...args) => this.as_session(...args).as_core()
-
-    as_core: _self
-
-function _self() :: return this
 

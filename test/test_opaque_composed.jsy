@@ -7,8 +7,7 @@ import @{}
   opaque_tahoe,
   opaque_compose,
   tahoe_hmac,
-
-from '@phorbas/opaque/esm/index.js'
+from '@phorbas/opaque'
 
 import @{}
   cbor_encode, cbor_decode,

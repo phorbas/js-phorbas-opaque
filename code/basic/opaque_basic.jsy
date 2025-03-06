@@ -1,0 +1,21 @@
+import {okey_basic} from './key_basic.jsy'
+import {opaque_core_api} from '../core_api.jsy'
+import {u8_sha_256} from '../subtle.jsy'
+
+export * from '../core_api.jsy'
+
+export const opaque_basic = Object.freeze @:
+  ... opaque_core_api
+  ciphered: false
+
+  _kdf0_hash: u8_sha_256
+  _kdf1_ref: u8_sha_256
+  _kdf2_loc: u8_sha_256
+
+  key_proto: okey_basic
+
+  _init_key(is_new) :: return {__proto__: this.key_proto}
+  _finish_key(kctx) :: return kctx
+
+  _clone(ctx) :: return {__proto__: this, as_session: null, ...ctx}
+

@@ -1,0 +1,20 @@
+import {opaque_basic} from './opaque_basic.jsy'
+import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
+
+export * from './opaque_basic.jsy'
+
+export const opaque_basic_hmac = Object.freeze @:
+  ... opaque_basic
+  _hmac: u8_hmac_sha_256
+
+  as_session(key) ::
+    return key ? this.with_hmac(key) : this._clone()
+
+  with_hmac(key) ::
+    const {hmac_sign} = this._hmac(key)
+    return this._clone @:
+      _kdf1_ref: hmac_sign
+      _kdf2_loc: hmac_sign
+
+  _clone(ctx) :: return {__proto__: this, as_session: null, ...ctx}
+

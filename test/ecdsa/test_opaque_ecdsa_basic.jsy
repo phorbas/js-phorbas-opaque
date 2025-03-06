@@ -1,18 +1,29 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import {opaque_ecdsa_basic} from '@phorbas/opaque/esm/index.js'
+import {opaque_ecdsa_basic} from '@phorbas/opaque'
+
+import @{}
+  _expect_core_api,
+  _expect_full_api,
+from '../_opaque_test_utils.jsy'
 
 import @{}
   cbor_encode, cbor_decode,
   utf8_to_u8, u8_to_hex, hex_to_u8,
 from 'cbor-codec'
 
-
 describe @ 'opaque ecdsa basic', @::
   opaque_ecdsa_basic.init_shared_codec @:
     encode: cbor_encode
     decode: cbor_decode
+
+  describe @ 'shape', @::
+    it @ 'shape of opaque_ecdsa_basic', @::>
+      await _expect_full_api @ opaque_ecdsa_basic
+
+    it @ 'shape of opaque_ecdsa_basic.as_core()', @::>
+      await _expect_core_api @ opaque_ecdsa_basic.as_core()
 
 
   const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
