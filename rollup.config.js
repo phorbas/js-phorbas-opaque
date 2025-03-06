@@ -27,11 +27,11 @@ export const pkg_cfg = {
     /*
     './code/ecdsa/opaque_ecdsa_basic.jsy',
     './code/ecdsa/opaque_ecdsa_tahoe.jsy',
+    */
 
     './code/ecdhe/opaque_ecdhe.jsy',
     './code/ecdhe/opaque_ecdhe_basic.jsy',
     './code/ecdhe/opaque_ecdhe_tahoe.jsy',
-    */
   ],
   output: {
     dir: 'esm',

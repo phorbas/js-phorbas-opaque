@@ -1,6 +1,7 @@
-import {u8_ecdhe} from './subtle.jsy'
-import {opaque_tahoe} from './opaque_tahoe.jsy'
-import {create_opaque_ecdhe, bind_opaque_ecdhe_mirror} from './opaque_ecdhe.jsy'
+import {opaque_tahoe} from '../opaque_tahoe.jsy'
+import {u8_ecdhe, create_opaque_ecdhe, bind_opaque_ecdhe_mirror} from './opaque_ecdhe.jsy'
+
+export {u8_ecdhe}
 
 export const opaque_ecdhe_tahoe = () =>
   create_opaque_ecdhe @

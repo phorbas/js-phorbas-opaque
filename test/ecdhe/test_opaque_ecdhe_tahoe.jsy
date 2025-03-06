@@ -1,37 +1,36 @@
 import {describe, it} from 'node:test'
 import {assert, expect} from 'chai'
 
-import @{}
-  tahoe_ecdhe,
-  tahoe_ecdhe_mirror,
-  init_opaque_shared_codec,
-from '@phorbas/opaque/esm/index.js'
+import { tahoe_ecdhe, tahoe_ecdhe_mirror } from '@phorbas/opaque/esm/index.js'
 
 import @{}
-  cbor_encode, cbor_decode,
-  utf8_to_u8, u8_to_hex, hex_to_u8,
-from 'cbor-codec'
+  _expect_full_api,
+  _expect_core_api,
+from '../_opaque_test_utils.jsy'
 
 
 describe @ 'opaque ecdhe tahoe', @::
-  init_opaque_shared_codec @:
-    encode: cbor_encode
-    decode: cbor_decode
-
-
   describe @ 'shape', @::
     it @ 'shape of tahoe_ecdhe', @::>
+      const op_ecdhe = tahoe_ecdhe()
+
+      expect(op_ecdhe).to.be.a('function')
+      expect(op_ecdhe.ecdh).to.be.a('promise')
+      expect(await op_ecdhe.ecdh).to.be.instanceof(ArrayBuffer)
+
+
+    it @ 'shape of tahoe_ecdhe_mirror', @::>
       const op_alice_key = tahoe_ecdhe()
       const op_bob_p = tahoe_ecdhe_mirror(op_alice_key.ecdh)
 
       expect(op_bob_p).to.be.a('promise')
       const op_bob = await op_bob_p
-      await _expect_full_api @ op_bob
 
       const op_alice_p = op_alice_key.with_ecdh(op_bob.ecdh)
       expect(op_alice_p).to.be.a('promise')
       const op_alice = await op_alice_p
-      await _expect_full_api @ op_alice
+
+      await _expect_full_api @ op_bob
 
 
     it @ 'shape of tahoe_ecdhe.as_core()', @::>
@@ -48,29 +47,19 @@ describe @ 'opaque ecdhe tahoe', @::
       await _expect_core_api @ op_alice.as_core()
 
 
+    it @ 'shape second', @::>
+      const op_alice = tahoe_ecdhe()
+      expect(op_alice.with_ecdh).to.be.a('function')
+      expect(op_alice.ecdh).to.be.a('promise')
+      expect(await op_alice.ecdh).to.be.instanceof(ArrayBuffer)
 
-  const u8_test_content = 'some ecdhe test content'
+      const op_bob_p = tahoe_ecdhe_mirror(op_alice.ecdh)
 
-  it @ 'shape', @::>
-    const op_ecdhe = tahoe_ecdhe()
-
-    expect(op_ecdhe).to.be.a('function')
-    expect(op_ecdhe.ecdh).to.be.a('promise')
-    expect(await op_ecdhe.ecdh).to.be.instanceof(Uint8Array)
-
-  it @ 'shape second', @::>
-    const op_alice = tahoe_ecdhe()
-    expect(op_alice.with_ecdh).to.be.a('function')
-    expect(op_alice.ecdh).to.be.a('promise')
-    expect(await op_alice.ecdh).to.be.instanceof(Uint8Array)
-
-    const op_bob_p = tahoe_ecdhe_mirror(op_alice.ecdh)
-
-    expect(op_bob_p).to.be.a('promise')
-    const op_bob = await op_bob_p
-    expect(op_bob.with_ecdh).to.be.a('function')
-    expect(op_bob.ecdh).to.be.a('promise')
-    expect(await op_bob.ecdh).to.be.instanceof(Uint8Array)
+      expect(op_bob_p).to.be.a('promise')
+      const op_bob = await op_bob_p
+      expect(op_bob.with_ecdh).to.be.a('function')
+      expect(op_bob.ecdh).to.be.a('promise')
+      expect(await op_bob.ecdh).to.be.instanceof(ArrayBuffer)
 
   it @ 'three', @::>
     const op_ecdhe = @{}
@@ -87,15 +76,17 @@ describe @ 'opaque ecdhe tahoe', @::
             op_ecdhe[j].ecdh
 
 
-    const k1ref_map = {}, k2loc_map = {}
+    const test_content = 'some ecdhe test content'
+    const hk1ref_map = {}, hk2loc_map = {}
     for const [name, op] of Object.entries(op_paired) ::
-      const okey = await op.from_content @ u8_test_content 
-      k1ref_map[name] = u8_to_hex @ okey.k1ref
-      k2loc_map[name] = u8_to_hex @ okey.k2loc
+      const okey = await op.from_content(test_content)
+      hk1ref_map[name] = okey.hk1ref
+      hk2loc_map[name] = okey.hk2loc
 
     for const i of 'abc' ::
       for const j of 'abc' ::
         if i !== j ::
-          assert.equal @ k1ref_map[i+j], k1ref_map[j+i], `k1ref i:${i} j:${j}` 
-          assert.equal @ k2loc_map[i+j], k2loc_map[j+i], `k2loc i:${i} j:${j}` 
+          assert.equal @ hk1ref_map[i+j], hk1ref_map[j+i], `k1ref i:${i} j:${j}` 
+          assert.equal @ hk2loc_map[i+j], hk2loc_map[j+i], `k2loc i:${i} j:${j}` 
+
 
