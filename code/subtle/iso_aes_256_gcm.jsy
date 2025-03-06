@@ -1,26 +1,29 @@
-import {subtle_api, U8} from './iso_crypto_api.jsy'
+import {u8_subarray} from './utils.jsy'
 
+/* #__NO_SIDE_EFFECTS__ */
 export function _bind_aes_256_gcm() ::
+  const subtle_api = globalThis.crypto.subtle
+
   const name = 'AES-GCM', tagLength = 128
 
   const _import_aes_gcm_raw = aeskey =>
-    subtle_api.importKey @ 'raw', aeskey.subarray(-32),
+    subtle_api.importKey @ 'raw', u8_subarray(aeskey, -32),
       {name, length: 256}, false, ['encrypt', 'decrypt']
 
   return @{}
     async encrypt(raw_content, key_cipher, key_iv) ::
       key_cipher = await _import_aes_gcm_raw(key_cipher)
-      return new U8 @ await subtle_api.encrypt @
+      return await subtle_api.encrypt @
         @{} name, tagLength,
-            iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
+            iv: u8_subarray(key_iv, -12) // IV of 96 bits (12 bytes) 
         key_cipher, raw_content
 
     async decrypt(enc_content, key_cipher, key_iv, absent) ::
       try ::
         key_cipher = await _import_aes_gcm_raw(key_cipher)
-        return new U8 @ await subtle_api.decrypt @
+        return await subtle_api.decrypt @
           @{} name, tagLength,
-              iv: key_iv.subarray(-12) // IV of 96 bits (12 bytes) 
+              iv: u8_subarray(key_iv, -12) // IV of 96 bits (12 bytes) 
           key_cipher, enc_content
       catch err ::
         if undefined !== absent ::
@@ -30,6 +33,6 @@ export function _bind_aes_256_gcm() ::
         err.aes_decrypt = true
         throw err
 
-export const u8_aes_256_gcm = /* #__PURE__ */ _bind_aes_256_gcm()
+export const u8_aes_256_gcm = _bind_aes_256_gcm()
 export {u8_aes_256_gcm as u8_aes_gcm}
 

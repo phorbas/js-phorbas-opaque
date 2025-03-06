@@ -1,7 +1,9 @@
-import {subtle_api, U8} from './iso_crypto_api.jsy'
 import {ecc_by_len} from './utils.jsy'
 
+/* #__NO_SIDE_EFFECTS__ */
 export function _bind_ecdsa(hash) ::
+  const subtle_api = globalThis.crypto.subtle
+
   const name = 'ECDSA'
   return @{}
     p521: () => _ecdsa_signer('P-521')
@@ -13,7 +15,7 @@ export function _bind_ecdsa(hash) ::
 
   async function ecdsa_verify(ec_sig_obj, u8) ::
     const {ec, sig} = ec_sig_obj
-    const namedCurve = ecc_by_len(ec.length)
+    const namedCurve = ecc_by_len(ec.byteLength ?? ec.length)
     if ! namedCurve :: return
 
     const _kind = @{} name, hash, namedCurve
@@ -29,7 +31,7 @@ export function _bind_ecdsa(hash) ::
     const _ec_ = subtle_api.generateKey @
       _kind, false, ['sign']
 
-    const ec = _ec_.then @ async _ec_ => new U8 @
+    const ec = _ec_.then @ async _ec_ =>
       await subtle_api.exportKey('spki', _ec_.publicKey)
     return Object.assign @ ecdsa_sign, @{}
       ec, ecdsa_sign, ecdsa_verify
@@ -38,16 +40,16 @@ export function _bind_ecdsa(hash) ::
 
     async function ecdsa_sign(u8) ::
       const {privateKey} = await _ec_
-      const u8_sig = new U8 @
+      const u8_sig =
         await subtle_api.sign @
           _kind, privateKey, u8
 
       return @{} ec: await ec, sig: u8_sig
 
 
-export const u8_ecdsa_sha_256 = /* #__PURE__ */ _bind_ecdsa('SHA-256')
-export const u8_ecdsa_sha_384 = /* #__PURE__ */ _bind_ecdsa('SHA-384')
-export const u8_ecdsa_sha_512 = /* #__PURE__ */ _bind_ecdsa('SHA-512')
+export const u8_ecdsa_sha_256 = _bind_ecdsa('SHA-256')
+export const u8_ecdsa_sha_384 = _bind_ecdsa('SHA-384')
+export const u8_ecdsa_sha_512 = _bind_ecdsa('SHA-512')
 
 export @{}
   u8_ecdsa_sha_256 as u8_ecdsa

@@ -1,0 +1,8 @@
+import './test_iso_random.jsy'
+import './test_iso_aes_256_gcm.jsy'
+import './test_iso_sha2_hashes.jsy'
+import './test_iso_hmac.jsy'
+import './test_iso_ecdsa.jsy'
+import './test_iso_ecdhe.jsy'
+import './test_iso_ecdh.jsy'
+

@@ -1,8 +1,10 @@
-import {subtle_api, U8} from './iso_crypto_api.jsy'
 import {ecc_by_len} from './utils.jsy'
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function _bind_ecdhe() ::
+  const subtle_api = globalThis.crypto.subtle
+
   const name = 'ECDH'
   const n_bits = {'P-521': 528, 'P-384': 384, 'P-256': 256}
 
@@ -22,7 +24,7 @@ export function _bind_ecdhe() ::
   function _with_ecdh(namedCurve, _ec_) ::
     const _kind = {name, namedCurve}
     return Object.assign @ ecdh_derive, @{}
-      ecdh: _ec_.then @\ _ec_ =>> new U8 @
+      ecdh: _ec_.then @\ _ec_ =>>
         await subtle_api.exportKey('raw', _ec_.publicKey)
 
       ecdh_derive
@@ -32,8 +34,7 @@ export function _bind_ecdhe() ::
       const ec_pub = await subtle_api.importKey @
         'raw', await ecdh, _kind, false, []
 
-      return new U8 @
-        await subtle_api.deriveBits @ 
+      return await subtle_api.deriveBits @ 
           @{} ... _kind, public: ec_pub
           (await _ec_).privateKey
           n_bits[namedCurve]
@@ -42,11 +43,11 @@ export function _bind_ecdhe() ::
   function _ecdhe_mirror(ecdh_other, _gen_ecdhe) ::
     const ec_len = (0 | ecdh_other) === ecdh_other
       ? 0 | ecdh_other
-      : ecdh_other.byteLength || ecdh_other.length
+      : ecdh_other.byteLength ?? ecdh_other.length
 
     const namedCurve = ecc_by_len(ec_len)
     return _gen_ecdhe(namedCurve)
 
 
-export const u8_ecdhe = /* #__PURE__ */ _bind_ecdhe()
+export const u8_ecdhe = _bind_ecdhe()
 

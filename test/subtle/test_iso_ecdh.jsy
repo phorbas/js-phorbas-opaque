@@ -5,7 +5,6 @@ import @{}
   u8_ecdh_p256
   u8_ecdh_p384
   u8_ecdh_p521
-  subtle_api
 from '@phorbas/opaque/esm/subtle.js'
 
 import {hex_to_u8, u8_to_hex} from 'cbor-codec'
@@ -68,12 +67,13 @@ describe @ 'subtle/iso_ecdh', @::
         expect(p_ba_ss).to.be.a('promise')
 
         const ab_ss = await p_ab_ss
-        expect(ab_ss).to.be.instanceof(Uint8Array)
+        expect(ab_ss).to.be.instanceof(ArrayBuffer)
 
         const ba_ss = await p_ba_ss
-        expect(ba_ss).to.be.instanceof(Uint8Array)
+        expect(ba_ss).to.be.instanceof(ArrayBuffer)
 
-        expect(ab_ss).to.deep.equal(ba_ss)
+        expect @ new Uint8Array(ab_ss)
+        .to.deep.equal @ new Uint8Array(ba_ss)
 
 
       for let [keyKind, format] of [
@@ -94,7 +94,7 @@ describe @ 'subtle/iso_ecdh', @::
           out_key = await out_key
 
           if 'jwk' !== format ::
-            expect(out_key).to.be.instanceof(Uint8Array)
+            expect(out_key).to.be.instanceof(ArrayBuffer)
 
 
         it @ `import "${format}" ${keyKind}`, @::>

@@ -1,20 +1,21 @@
-import {subtle_api, U8} from './iso_crypto_api.jsy'
 import {u8_maybe_utf8} from './utils.jsy'
 
+/* #__NO_SIDE_EFFECTS__ */
 export function _bind_sha_digest(hash) ::
+  const subtle_api = globalThis.crypto.subtle
+
   const _digest_ = buf =>
     subtle_api.digest({ name: hash }, buf)
 
   return @\ data, n ::>
-    const u8 = new U8 @
-      await _digest_ @
+    const u8 = await _digest_ @
         u8_maybe_utf8 @ await data
 
     return undefined === n ? u8
       : u8.subarray(n)
 
 
-export const u8_sha_256 = /* #__PURE__ */ _bind_sha_digest('SHA-256')
-export const u8_sha_384 = /* #__PURE__ */ _bind_sha_digest('SHA-384')
-export const u8_sha_512 = /* #__PURE__ */ _bind_sha_digest('SHA-512')
+export const u8_sha_256 = _bind_sha_digest('SHA-256')
+export const u8_sha_384 = _bind_sha_digest('SHA-384')
+export const u8_sha_512 = _bind_sha_digest('SHA-512')
 

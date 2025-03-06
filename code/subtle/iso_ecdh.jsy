@@ -1,6 +1,8 @@
-import {subtle_api, U8} from './iso_crypto_api.jsy'
 
+/* #__NO_SIDE_EFFECTS__ */
 export function _bind_ecdh(namedCurve, _nc_bits) ::
+  const subtle_api = globalThis.crypto.subtle
+
   const alg = {name: 'ECDH', namedCurve}
   const extractable = true
   const usages = ['deriveBits', 'deriveKey']
@@ -11,11 +13,10 @@ export function _bind_ecdh(namedCurve, _nc_bits) ::
     namedCurve
 
     async exportKey(format) ::
-      let v = await subtle_api.exportKey(format, this.ec)
-      return v.byteLength ? new U8(v) : v
+      return await subtle_api.exportKey(format, this.ec)
 
     async deriveBits(ecdh_pub, n_bits=_nc_bits) ::
-      return new U8 @ await subtle_api.deriveBits @
+      return await subtle_api.deriveBits @
         { ... alg, public: await _as_ecdh_pub(ecdh_pub) }, this.ec, n_bits
 
     async deriveKey(ecdh_pub, alg_dk, usages_dk) ::
@@ -41,7 +42,7 @@ export function _bind_ecdh(namedCurve, _nc_bits) ::
 
   async function _as_ecdh_pub(ecdh_pub) ::
     ecdh_pub = await ecdh_pub
-    return ecdh_pub.buffer
+    return ecdh_pub.buffer || ecdh_pub.byteLength
       ? await importKey('raw', ecdh_pub, false)
       : ecdh_pub
 
@@ -54,7 +55,7 @@ export function _bind_ecdh(namedCurve, _nc_bits) ::
 
 
 
-export const u8_ecdh_p256 = /* #__PURE__ */ _bind_ecdh('P-256', 256)
-export const u8_ecdh_p384 = /* #__PURE__ */ _bind_ecdh('P-384', 384)
-export const u8_ecdh_p521 = /* #__PURE__ */ _bind_ecdh('P-521', 528)
+export const u8_ecdh_p256 = _bind_ecdh('P-256', 256)
+export const u8_ecdh_p384 = _bind_ecdh('P-384', 384)
+export const u8_ecdh_p521 = _bind_ecdh('P-521', 528)
 

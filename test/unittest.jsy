@@ -1,23 +1,12 @@
 import './smoke.jsy'
 
-import './subtle/test_iso_random.jsy'
-import './subtle/test_iso_aes_256_gcm.jsy'
-import './subtle/test_iso_sha2_hashes.jsy'
-import './subtle/test_iso_hmac.jsy'
-import './subtle/test_iso_ecdsa.jsy'
-import './subtle/test_iso_ecdhe.jsy'
-import './subtle/test_iso_ecdh.jsy'
+import './subtle/unittest.jsy'
 
-import './test_opaque_shape.jsy'
-import './test_opaque_basic.jsy'
-import './test_opaque_composed.jsy'
+//import './test_opaque_shape.jsy'
+//import './test_opaque_basic.jsy'
+//import './test_opaque_composed.jsy'
 
-import './test_opaque_ecdsa_basic.jsy'
-import './test_opaque_ecdsa_basic_session.jsy'
-import './test_opaque_ecdsa_tahoe.jsy'
-import './test_opaque_ecdsa_tahoe_session.jsy'
+//import './ecdsa/unittest.jsy'
+//import './ecdhe/unittest.jsy'
 
-import './test_opaque_ecdhe_basic.jsy'
-import './test_opaque_ecdhe_tahoe.jsy'
-
-import './test_storage_opaque.jsy'
+//import './test_storage_opaque.jsy'

@@ -37,7 +37,7 @@ describe @ 'subtle/iso_aes_gcm', @::
     expect(pe).to.be.a('promise')
 
     const enc_content = await pe
-    expect(enc_content).to.be.an.instanceof(Uint8Array)
+    expect(enc_content).to.be.an.instanceof(ArrayBuffer)
 
     const pd = u8_aes_gcm.decrypt @
       enc_content,
@@ -46,8 +46,8 @@ describe @ 'subtle/iso_aes_gcm', @::
     expect(pd).to.be.a('promise')
 
     const dec_content = await pd
-    expect(dec_content).to.be.an.instanceof(Uint8Array)
-    expect(dec_content).to.deep.equal(content)
+    expect(dec_content).to.be.an.instanceof(ArrayBuffer)
+    expect(new Uint8Array(dec_content)).to.deep.equal(content)
 
 
   it @ 'from NodeJS', @::>
@@ -58,8 +58,8 @@ describe @ 'subtle/iso_aes_gcm', @::
     expect(pd).to.be.a('promise')
 
     const dec_content = await pd
-    expect(dec_content).to.be.an.instanceof(Uint8Array)
-    expect(dec_content).to.deep.equal(content)
+    expect(dec_content).to.be.an.instanceof(ArrayBuffer)
+    expect(new Uint8Array(dec_content)).to.deep.equal(content)
 
 
   it @ 'from Web Crypto', @::>
@@ -70,8 +70,8 @@ describe @ 'subtle/iso_aes_gcm', @::
     expect(pd).to.be.a('promise')
 
     const dec_content = await pd
-    expect(dec_content).to.be.an.instanceof(Uint8Array)
-    expect(dec_content).to.deep.equal(content)
+    expect(dec_content).to.be.an.instanceof(ArrayBuffer)
+    expect(new Uint8Array(dec_content)).to.deep.equal(content)
 
 
   it @ 'wrong cipher with absent', @::>

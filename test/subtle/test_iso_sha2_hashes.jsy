@@ -9,10 +9,13 @@ describe @ 'subtle/iso_sha2_hashes', @::
 
   it @ 'known hash', @::>
     const u8_buf = new Uint8Array([9,10,11,12])
-    const r = u8_sha_256 @ u8_buf
+    let r = u8_sha_256 @ u8_buf
     expect(r).to.be.a('promise')
 
-    expect @ await r
+    r = await r
+    expect(r).to.be.an.instanceof(ArrayBuffer)
+
+    expect(new Uint8Array(r))
     .to.be.deep.equal @ new Uint8Array @#
       225, 232,  83, 104,  74,  32, 111,  22, 46, 232,   0, 165,  75, 105,  92, 156, 193, 168, 209, 213,  84, 164, 127, 203, 19, 254,  81,  34, 156,  23, 119,  63
 

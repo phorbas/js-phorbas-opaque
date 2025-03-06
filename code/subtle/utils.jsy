@@ -7,6 +7,9 @@ export const u8_maybe_utf8 = u8 =>
     ? utf8_to_u8(u8)
     : u8
 
+export const u8_subarray = (buf, ...args) => buf &&
+  (1 === buf.BYTES_PER_ELEMENT ? buf : new Uint8Array(buf))
+    .subarray(...args)
 
 export function u8_timing_equal(a, b) ::
   const alen = a.length

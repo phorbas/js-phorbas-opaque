@@ -26,8 +26,8 @@ describe @ 'subtle/iso_ecdsa', @::
     const ecdsa_sign = u8_ecdsa.p521()
     const sig_obj = await ecdsa_sign(u8_buf)
     expect(sig_obj).to.be.an('object')
-    expect(sig_obj.ec).to.be.an.instanceof(Uint8Array)
-    expect(sig_obj.sig).to.be.an.instanceof(Uint8Array)
+    expect(sig_obj.ec).to.be.an.instanceof(ArrayBuffer)
+    expect(sig_obj.sig).to.be.an.instanceof(ArrayBuffer)
 
     expect @
       await u8_ecdsa.verify @ sig_obj, u8_buf
@@ -88,15 +88,15 @@ describe @ 'subtle/iso_ecdsa', @::
       expect(ecdsa_sign.ecdsa_verify).to.be.a('function')
 
       expect(ecdsa_sign.ec).to.be.a('promise')
-      expect(await ecdsa_sign.ec).to.be.instanceof(Uint8Array)
+      expect(await ecdsa_sign.ec).to.be.instanceof(ArrayBuffer)
       
       ::
         const p_sig = ecdsa_sign @ test_vec
         expect(p_sig).to.be.a('promise')
 
         const {ec, sig} = await p_sig
-        expect(ec).to.be.instanceof(Uint8Array)
-        expect(sig).to.be.instanceof(Uint8Array)
+        expect(ec).to.be.instanceof(ArrayBuffer)
+        expect(sig).to.be.instanceof(ArrayBuffer)
 
         const p_ver = ecdsa_sign.ecdsa_verify @ {ec, sig}, test_vec
         expect(p_ver).to.be.a('promise')
@@ -104,8 +104,8 @@ describe @ 'subtle/iso_ecdsa', @::
 
       ::
         const {ec, sig} = await ecdsa_sign.ecdsa_sign @ test_vec
-        expect(ec).to.be.instanceof(Uint8Array)
-        expect(sig).to.be.instanceof(Uint8Array)
+        expect(ec).to.be.instanceof(ArrayBuffer)
+        expect(sig).to.be.instanceof(ArrayBuffer)
 
         const p_ver = ecdsa_sign.ecdsa_verify @ {ec, sig}, test_vec
         expect(p_ver).to.be.a('promise')

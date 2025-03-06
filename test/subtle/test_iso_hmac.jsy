@@ -15,10 +15,13 @@ describe @ 'subtle/iso_hmac_sha2', @::
   it @ 'known sign & verify', @::>
     const hm_known = u8_hmac @ utf8_to_u8('known')
 
-    const sig = hm_known.hmac_sign(u8_buf)
+    let sig = hm_known.hmac_sign(u8_buf)
     expect( sig ).to.be.a('promise')
 
-    expect @ await sig
+    sig = await sig
+    expect(sig).to.be.an.instanceof(ArrayBuffer)
+
+    expect(new Uint8Array(sig))
     .to.deep.equal @ new Uint8Array @#
         241,  65,   9, 187, 164, 176, 243,  99, 198, 237,  44, 176, 142,   0,  40,  82, 173,  83, 113,  76, 145, 233, 231, 190, 130, 219, 127, 177, 157, 115, 200, 188
 

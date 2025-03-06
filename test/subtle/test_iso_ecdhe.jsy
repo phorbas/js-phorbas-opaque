@@ -1,10 +1,7 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import @{}
-  u8_ecdhe
-  subtle_api
-from '@phorbas/opaque/esm/subtle.js'
+import {u8_ecdhe} from '@phorbas/opaque/esm/subtle.js'
 
 import {hex_to_u8, u8_to_hex} from 'cbor-codec'
 
@@ -21,7 +18,7 @@ describe @ 'subtle/iso_ecdhe', @::
     expect(ans).to.be.a('function')
     expect(ans.ecdh_derive).to.be.a('function')
     expect(ans.ecdh).to.be.a('promise')
-    expect(await ans.ecdh).to.be.instanceof(Uint8Array)
+    expect(await ans.ecdh).to.be.instanceof(ArrayBuffer)
 
   it @ 'two', @::>
     const a = u8_ecdhe.p521()
@@ -34,10 +31,10 @@ describe @ 'subtle/iso_ecdhe', @::
     expect(p_ba_ss).to.be.a('promise')
 
     const ab_ss = await p_ab_ss
-    expect(ab_ss).to.be.instanceof(Uint8Array)
+    expect(ab_ss).to.be.instanceof(ArrayBuffer)
 
     const ba_ss = await p_ba_ss
-    expect(ba_ss).to.be.instanceof(Uint8Array)
+    expect(ba_ss).to.be.instanceof(ArrayBuffer)
 
     expect(ab_ss).to.deep.equal(ba_ss)
 
@@ -55,23 +52,23 @@ describe @ 'subtle/iso_ecdhe', @::
 
       const node = await p_node
       const web = await p_web
-      expect(node).to.be.instanceof(Uint8Array)
-      expect(web).to.be.instanceof(Uint8Array)
+      expect(node).to.be.instanceof(ArrayBuffer)
+      expect(web).to.be.instanceof(ArrayBuffer)
 
       if ! testable.results ::
         console.log @ `node: hex_to_u8 @ '${u8_to_hex @ node}'`
         console.log @ `web:  hex_to_u8 @ '${u8_to_hex @ web}'`
         assert @ false, 'FIX results'
 
-      expect(node).to.deep.equal @ testable.results.node
-      expect(web).to.deep.equal @ testable.results.web
+      expect(new Uint8Array(node)).to.deep.equal @ testable.results.node
+      expect(new Uint8Array(web)).to.deep.equal @ testable.results.web
 
-      expect @ testable.from_node.web
+      expect @ new Uint8Array @ testable.from_node.web
       .to.deep.equal @ testable.from_web.node
 
-      expect @ testable.from_node.web
+      expect @ new Uint8Array @ testable.from_node.web
       .to.not.deep.equal @ testable.from_web.web
-      expect @ testable.from_node.node
+      expect @ new Uint8Array @ testable.from_node.node
       .to.not.deep.equal @ testable.from_web.node
 
 
@@ -148,15 +145,15 @@ async function _load_testable_ecdhe(testable) ::
   const {namedCurve, _known_web_jwk} = testable
   const _ecdh_kind = {name: 'ECDH', namedCurve}
   if ! _known_web_jwk ::
-    const {privateKey} = await subtle_api.generateKey @ _ecdh_kind, true, ['deriveBits']
-    const jwk = await subtle_api.exportKey @ 'jwk', privateKey
+    const {privateKey} = await crypto.subtle.generateKey @ _ecdh_kind, true, ['deriveBits']
+    const jwk = await crypto.subtle.exportKey @ 'jwk', privateKey
     console.log @ '_known_web_jwk:', JSON.stringify(jwk, null, 2)
     return assert @ false, 'FIX WEB ECDH JWK'
 
   const {kty, crv, x, y, d} = _known_web_jwk
   const _ec_ = Promise.resolve @:
-    privateKey: await subtle_api.importKey @ 'jwk', _known_web_jwk, _ecdh_kind, false, ['deriveBits']
-    publicKey: await subtle_api.importKey @ 'jwk', {kty, crv, x, y}, _ecdh_kind, true, []
+    privateKey: await crypto.subtle.importKey @ 'jwk', _known_web_jwk, _ecdh_kind, false, ['deriveBits']
+    publicKey: await crypto.subtle.importKey @ 'jwk', {kty, crv, x, y}, _ecdh_kind, true, []
 
   testable.results = testable.from_web
   testable.known_ecdhe =
