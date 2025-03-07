@@ -1,16 +1,17 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import @{}
-  u8_ecdsa
-  u8_crypto_random
+import {hex_to_u8, u8_to_hex, utf8_to_u8} from '@phorbas/opaque'
+import {u8_crypto_random} from '@phorbas/opaque/esm/subtle/iso_random.js'
+import {
+  u8_ecdsa,
+  u8_ecdsa_sha_256,
+  u8_ecdsa_sha_384,
+  u8_ecdsa_sha_512,
+} from '@phorbas/opaque/esm/subtle/iso_ecdsa.js'
 
-  u8_ecdsa_sha_256
-  u8_ecdsa_sha_384
-  u8_ecdsa_sha_512
-from '@phorbas/opaque/esm/subtle.js'
+import {cbor_decode} from 'cbor-codec'
 
-import {cbor_decode, hex_to_u8} from 'cbor-codec'
 
 describe @ 'subtle/iso_ecdsa', @::
   const u8_buf = new Uint8Array([9,10,11,12])

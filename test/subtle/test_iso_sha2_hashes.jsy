@@ -1,7 +1,8 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import {u8_sha_256} from '@phorbas/opaque/esm/subtle.js'
+import {u8_sha_256} from '@phorbas/opaque/esm/subtle/iso_sha2_hashes.js'
+
 
 describe @ 'subtle/iso_sha2_hashes', @::
   it @ 'shape', @::>

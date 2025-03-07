@@ -4,11 +4,7 @@ import {expect} from 'chai'
 import {opaque_tahoe, tahoe_hmac} from '@phorbas/opaque'
 import {utf8_to_u8, hex_to_u8} from '@phorbas/opaque'
 
-import @{}
-  _expect_okey,
-  _expect_full_api,
-  _expect_core_api,
-from './_opaque_test_utils.jsy'
+import { _expect_core_api, _expect_full_api, _expect_okey } from '../_check_opaque_utils.jsy'
 
 
 describe @ 'opaque_tahoe', @::

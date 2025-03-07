@@ -39,8 +39,8 @@
     "vite": "vite",
     "pretest": "test -f esm/index.js || npm -s run build",
     "test": "npm -s run test:one",
-    "test:one": "node --test ./esm-test/unittest.js",
-    "test:watch": "node --watch --test ./esm-test/unittest.js",
-    "test:only": "node --watch --test-only ./esm-test/unittest.js"
+    "test:one": "cd ./esm-test && node --test",
+    "test:watch": "cd ./esm-test && node --watch --test",
+    "test:only": "cd ./esm-test && node --watch --test-only"
   }
 }

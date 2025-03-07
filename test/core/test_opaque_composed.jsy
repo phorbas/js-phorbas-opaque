@@ -9,11 +9,7 @@ import @{}
   tahoe_hmac,
 from '@phorbas/opaque'
 
-import @{}
-  _expect_full_api,
-  _expect_okey,
-from './_opaque_test_utils.jsy'
-
+import { _expect_core_api, _expect_full_api, _expect_okey } from '../_check_opaque_utils.jsy'
 
 
 describe @ 'opaque composed', @::

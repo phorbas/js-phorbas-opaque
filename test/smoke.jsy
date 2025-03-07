@@ -1,7 +1,0 @@
-import {describe, it} from 'node:test'
-import {assert} from 'chai'
-
-describe @ 'smoke', @::
-  it @ 'basics', @::
-    assert @ 'works'
-

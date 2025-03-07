@@ -1,12 +1,5 @@
-import './smoke.jsy'
-
 import './subtle/unittest.jsy'
-
-import './test_opaque_basic.jsy'
-import './test_opaque_basic_hmac.jsy'
-import './test_opaque_tahoe.jsy'
-import './test_opaque_composed.jsy'
-
+import './core/unittest.jsy'
 import './ecdsa/unittest.jsy'
 import './ecdhe/unittest.jsy'
 

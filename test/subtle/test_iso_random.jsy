@@ -1,7 +1,8 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import {u8_crypto_random} from '@phorbas/opaque/esm/subtle.js'
+import {u8_crypto_random} from '@phorbas/opaque/esm/subtle/iso_random.js'
+
 
 describe @ 'subtle/iso_random', @::
   it @ 'shape', @::>

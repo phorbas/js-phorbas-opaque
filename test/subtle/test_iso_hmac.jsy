@@ -1,7 +1,8 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import {u8_hmac} from '@phorbas/opaque/esm/subtle.js'
+import {u8_hmac} from '@phorbas/opaque/esm/subtle/iso_hmac_sha2.js'
+
 
 describe @ 'subtle/iso_hmac_sha2', @::
   const u8_buf = new Uint8Array([9,10,11,12])

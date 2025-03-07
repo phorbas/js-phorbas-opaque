@@ -1,9 +1,11 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import {u8_ecdhe} from '@phorbas/opaque/esm/subtle.js'
+import {hex_to_u8, u8_to_hex, utf8_to_u8} from '@phorbas/opaque'
+import {u8_aes_gcm} from '@phorbas/opaque/esm/subtle/iso_aes_256_gcm.js'
+import {u8_hmac} from '@phorbas/opaque/esm/subtle/iso_hmac_sha2.js'
+import {u8_ecdhe} from '@phorbas/opaque/esm/subtle/iso_ecdhe.js'
 
-import {hex_to_u8, u8_to_hex} from 'cbor-codec'
 
 describe @ 'subtle/iso_ecdhe', @::
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Phorbas/Opus Mocha Unittest</title>
+<title>@phorbas/opaque unittest</title>
 <link rel="stylesheet" href="https://unpkg.com/mocha@10/mocha.css" />
 <script src="https://unpkg.com/mocha@10/mocha.js"></script>
 
@@ -19,7 +19,10 @@
 <script type=module>
   mocha.setup({ui: 'bdd'}).checkLeaks()
 
-  await import('./esm-test/unittest.js')
+  await import('./esm-test/test-core.js')
+  await import('./esm-test/test-ecdhe.js')
+  await import('./esm-test/test-ecdsa.js')
+  await import('./esm-test/test-subtle.js')
 
   mocha.run()
 </script>
