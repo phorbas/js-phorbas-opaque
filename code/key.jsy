@@ -1,0 +1,41 @@
+import { u8_to_hex, hex_to_u8 } from 'u8-utils'
+
+
+export const _okey_ = @{}
+  get length() :: return 2
+  hk21() :: return [this[0], this[1]]
+  toJSON() :: return this.hk21()
+
+  get k2loc() :: return as_u8key(this[0])
+  get hk2loc() :: return this[0]
+  set hk2loc(hk) :: return this[0] = as_hexkey(hk)
+
+  get k1ref() :: return as_u8key(this[1])
+  get hk1ref() :: return this[1]
+  set hk1ref(hk) :: return this[1] = as_hexkey(hk)
+
+  ciphered: false
+
+export const _okey_ciphered_ = @{}
+  __proto__: _okey_
+  ciphered: true
+
+  // async encipher(buf) ::
+  // async decipher(buf_record) ::
+
+
+const _rx_not_hex = /^[^0-9a-fA-F]+$/
+export function as_hexkey(dk) ::
+  if ! dk :: return null
+  if dk.trim ::
+    if _rx_not_hex.test(dk) ::
+      throw new Error('Invalid hexkey')
+    return dk
+
+  dk = new Uint8Array(dk)
+  return dk.toHex?.() ?? u8_to_hex(dk)
+
+
+export const as_u8key = hk => @
+  hk?.trim ? hex_to_u8(hk) : hk ?? null
+

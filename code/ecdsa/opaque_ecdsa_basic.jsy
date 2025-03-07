@@ -1,8 +1,8 @@
-import {okey_basic} from '../basic/key_basic.jsy'
+import {_okey_, as_hexkey} from '../key.jsy'
 import {opaque_basic} from '../basic/opaque_basic.jsy'
 import {_rec_pack_raw, _rec_unpack_raw} from '../_rec_pack_codec.jsy'
 
-import {as_arrbuf, as_hexkey, hex_to_u8} from '../subtle/utils.jsy'
+import {as_arrbuf} from '../subtle/utils.jsy'
 import {u8_sha_256} from '../subtle/iso_sha2_hashes.jsy'
 import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
 import {u8_ecdsa_sha_256} from '../subtle/iso_ecdsa.jsy'
@@ -19,14 +19,14 @@ export const kdf_key_tail = kdf_inner =>
       _u8_mix_aaab( await kdf_inner(k1ref), k1ref )
 
 
-export const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze @:
+export const opaque_ecdsa_basic = @{}
   ... opaque_basic
 
   _hmac: u8_hmac_sha_256
   _kdf1_ref: kdf_kctx_tail @ u8_sha_256
   _kdf2_loc: kdf_key_tail @ u8_sha_256
 
-  key_proto: Object.freeze @
+  key_proto:
     bind_ecdsa_key_proto @:
       kdf_ec: u8_sha_256
       ecdsa_signer: u8_ecdsa_sha_256.p521
@@ -50,22 +50,24 @@ export const opaque_ecdsa_basic = /* #__PURE__ */ Object.freeze @:
         this._kdf2_loc @ await hmac_sign(key), kctx
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function bind_ecdsa_key_proto(kw_cfg) ::
   return @{}
     __proto__: bind_ecdsa_basic()
     ... bind_ecdsa_codec(kw_cfg)
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function bind_ecdsa_basic() ::
   return @{}
-    __proto__: okey_basic
+    __proto__: _okey_
 
     async sign_content(buf) ::
       buf = await as_arrbuf(buf)
-      const {hk1ref, hk2loc} = this
-      if hk1ref && hk2loc ::
+      const {hk1ref, k2loc} = this
+      if hk1ref && k2loc ::
         return await this._rec_pack @:
-          c:buf, l: hex_to_u8(hk2loc)
+          c:buf, l: k2loc
 
     async verify_content(u8_record) ::
       const {hk1ref, hk2loc, _kdf_secret} = this
@@ -75,6 +77,7 @@ export function bind_ecdsa_basic() ::
 
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function bind_ecdsa_codec({kdf_ec, ecdsa_signer, ecdsa_verify}) ::
   async function do_kctx_ec(kctx, ec_sign) ::
     kctx._ec_sign = ec_sign

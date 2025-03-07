@@ -3,17 +3,18 @@ import { opaque_basic_hmac } from './basic/opaque_basic_hmac.jsy'
 import { u8_aes_256_gcm } from './subtle/iso_aes_256_gcm.jsy'
 
 
-export const opaque_tahoe = Object.freeze @:
+export const opaque_tahoe = @{}
   ... opaque_basic_hmac
   ciphered: true
 
-  key_proto: Object.freeze @
-    bind_okey_ciphered(u8_aes_256_gcm)
+  key_proto: bind_okey_ciphered(u8_aes_256_gcm)
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export const tahoe = () =>
   ({ __proto__: opaque_tahoe })
 
+/* #__NO_SIDE_EFFECTS__ */
 export const tahoe_hmac = u8_key =>
   opaque_tahoe.with_hmac(u8_key)
 

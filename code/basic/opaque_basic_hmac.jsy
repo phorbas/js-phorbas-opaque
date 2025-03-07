@@ -1,9 +1,7 @@
 import {opaque_basic} from './opaque_basic.jsy'
 import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
 
-export * from './opaque_basic.jsy'
-
-export const opaque_basic_hmac = Object.freeze @:
+export const opaque_basic_hmac = @{}
   ... opaque_basic
   _hmac: u8_hmac_sha_256
 

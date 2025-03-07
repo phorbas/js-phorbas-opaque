@@ -6,11 +6,11 @@ import {u8_aes_256_gcm} from '../subtle/iso_aes_256_gcm.jsy'
 export {u8_sha_256, u8_aes_256_gcm, u8_hmac_sha_256, u8_ecdsa_sha_256}
 
 
-export const opaque_ecdsa_tahoe = /* #__PURE__ */ Object.freeze @:
+export const opaque_ecdsa_tahoe = @{}
   ... opaque_ecdsa_basic
   ciphered: true
 
-  key_proto: Object.freeze @
+  key_proto:
     bind_tahoe_ecdsa @ 'phorbas', @{}
       cipher: u8_aes_256_gcm
       kdf_ec: u8_sha_256
@@ -18,6 +18,7 @@ export const opaque_ecdsa_tahoe = /* #__PURE__ */ Object.freeze @:
       ecdsa_verify: u8_ecdsa_sha_256.verify
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function bind_tahoe_ecdsa(hmac_key, kw_cfg) ::
   return @{}
     __proto__: bind_okey_ciphered(kw_cfg.cipher)

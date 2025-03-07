@@ -1,14 +1,12 @@
-import {as_hexkey, hex_to_u8} from './subtle/utils.jsy'
 import {opaque_core_api} from './core_api.jsy'
-import {okey_basic} from './basic/key_basic.jsy'
-import {okey_ciphered} from './key_ciphered.jsy'
+import {_okey_, _okey_ciphered_, as_hexkey} from './key.jsy'
 
 
-const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
+const _opaque_composed_ = @{}
   ... opaque_core_api
   //opaque_a: opaque
   //opaque_b: opaque
-  //key_proto: okey_basic or okey_kx_a or okey_kx_b
+  //key_proto: _okey_ or _okey_composed_ or _okey_composed_mid_
 
   async _init_key(is_new) ::
     return @{}
@@ -29,32 +27,27 @@ const opaque_comp_api = /* #__PURE__ */ Object.freeze @:
 
   async _kdf2_loc(hk1ref, kctx) ::
     let k1mid = await this.opaque_a._kdf2_loc(hk1ref, kctx.kx_a)
-    kctx.hk1mid = as_hexkey @ k1mid
+    kctx.hk1mid = as_hexkey(k1mid)
     return this.opaque_b._kdf2_loc(k1mid, kctx.kx_b)
 
 
-const _with_hk21 = (hk1ref, hk2loc, tgt) => @: __proto__: tgt, hk1ref, hk2loc
+const _okey_composed_ = @{}
+  __proto__: _okey_ciphered_
+  encipher(...args) :: return this._comp_.encipher(...args)
+  decipher(...args) :: return this._comp_.decipher(...args)
+  get _comp_() :: return @{} __proto__: this.kx_a, 0:this.hk2loc, 1:this.hk1ref
 
-const okey_kx_a = Object.freeze @:
-  __proto__: okey_ciphered
-  encipher(...args) ::
-    return _with_hk21(this.hk1ref, this.hk2loc, this.kx_a).encipher(...args)
-  decipher(...args) ::
-    return _with_hk21(this.hk1ref, this.hk2loc, this.kx_a).decipher(...args)
-
-const okey_kx_b = Object.freeze @:
-  __proto__: okey_ciphered
-  encipher(...args) ::
-    return _with_hk21(this.hk1mid, this.hk2loc, this.kx_b).encipher(...args)
-  decipher(...args) ::
-    return _with_hk21(this.hk1mid, this.hk2loc, this.kx_b).decipher(...args)
+const _okey_composed_mid_ = @{}
+  __proto__: _okey_composed_
+  get _comp_() :: return @{} __proto__: this.kx_b, 0:this.hk2loc, 1:this.hk1mid
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function opaque_compose(opaque_a, opaque_b) ::
-  let key_proto = opaque_b.ciphered ? okey_kx_b
-    : opaque_a.ciphered ? okey_kx_a
-    : okey_basic
+  let key_proto = opaque_b.ciphered ? _okey_composed_mid_
+    : opaque_a.ciphered ? _okey_composed_
+    : _okey_
 
-  return @{} __proto__: opaque_comp_api, opaque_a, opaque_b
+  return @{} __proto__: _opaque_composed_, opaque_a, opaque_b
     key_proto, ciphered: key_proto.ciphered
 

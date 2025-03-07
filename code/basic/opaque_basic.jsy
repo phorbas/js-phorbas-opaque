@@ -1,10 +1,8 @@
-import {okey_basic} from './key_basic.jsy'
+import {_okey_} from '../key.jsy'
 import {opaque_core_api} from '../core_api.jsy'
 import {u8_sha_256} from '../subtle.jsy'
 
-export * from '../core_api.jsy'
-
-export const opaque_basic = Object.freeze @:
+export const opaque_basic = @{}
   ... opaque_core_api
   ciphered: false
 
@@ -12,7 +10,7 @@ export const opaque_basic = Object.freeze @:
   _kdf1_ref: u8_sha_256
   _kdf2_loc: u8_sha_256
 
-  key_proto: okey_basic
+  key_proto: _okey_
 
   _init_key(is_new) :: return {__proto__: this.key_proto}
   _finish_key(kctx) :: return kctx

@@ -2,6 +2,7 @@ import {u8_ecdhe} from '../subtle/iso_ecdhe.jsy'
 
 export {u8_ecdhe}
 
+/* #__NO_SIDE_EFFECTS__ */
 export function create_opaque_ecdhe(opaque_base, _ecdh_) ::
   const opaque = @{}
     __proto__: opaque_base
@@ -17,6 +18,7 @@ export function create_opaque_ecdhe(opaque_base, _ecdh_) ::
       await _ecdh_(await ec_other)
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export function bind_opaque_ecdhe_mirror(opaque) ::
   return @\ ec_other ::>
     const _ecdh_ = u8_ecdhe.mirror(await ec_other)

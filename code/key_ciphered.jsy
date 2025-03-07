@@ -1,27 +1,24 @@
-import {as_arrbuf, hex_to_u8} from './subtle/utils.jsy'
+import {as_arrbuf} from './subtle/utils.jsy'
 import {u8_crypto_random} from './subtle/iso_random.jsy'
 import {_rec_pack_raw, _rec_unpack_raw} from './_rec_pack_codec.jsy'
+import {_okey_ciphered_} from './key.jsy'
 
+/* #__NO_SIDE_EFFECTS__ */
 export const kdf_random_16 = () => u8_crypto_random(16)
 
-export const okey_ciphered = Object.freeze @:
-  hk21() :: return [this.hk2loc, this.hk1ref]
-  get 0() :: return this.hk2loc
-  get 1() :: return this.hk1ref
-  ciphered: true
 
-  // async encipher(u8_content) ::
-  // async decipher(buf_record) ::
-
+/* #__NO_SIDE_EFFECTS__ */
 export const bind_okey_ciphered = (cipher, mixin) =>
   _bind_okey_ciphered @ cipher, @{}
     _rec_pack: _rec_pack_raw
     _rec_unpack: _rec_unpack_raw
     ...mixin
 
+
+/* #__NO_SIDE_EFFECTS__ */
 export function _bind_okey_ciphered(cipher, mixin) ::
   return @{}
-    __proto__: okey_ciphered
+    __proto__: _okey_ciphered_
 
     ...mixin
 
@@ -31,9 +28,8 @@ export function _bind_okey_ciphered(cipher, mixin) ::
     async encipher(content=this.buf) ::
       content = await as_arrbuf(content)
 
-      const {hk1ref, hk2loc, _kdf_secret, _kdf_iv} = this
-      if hk1ref && hk2loc ::
-        const k1ref = hex_to_u8(hk1ref), k2loc = hex_to_u8(hk2loc)
+      const {k1ref, k2loc, _kdf_secret, _kdf_iv} = this
+      if k1ref && k2loc ::
         const u8_secret = ! _kdf_secret ? k1ref
           : await _kdf_secret(k1ref)
 
@@ -46,9 +42,8 @@ export function _bind_okey_ciphered(cipher, mixin) ::
           c:u8_enc, v:iv, l:k2loc
 
     async decipher(buf_record) ::
-      const {hk1ref, _kdf_secret} = this
-      if buf_record && hk1ref ::
-        const k1ref = hex_to_u8(hk1ref)
+      const {k1ref, _kdf_secret} = this
+      if buf_record && k1ref ::
         const {v:iv, c:u8_enc} =
           await this._rec_unpack(buf_record) || {}
 

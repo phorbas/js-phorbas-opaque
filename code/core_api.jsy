@@ -1,7 +1,8 @@
-import {as_arrbuf, as_hexkey, hex_to_u8} from './subtle/utils.jsy'
+import {as_arrbuf} from './subtle/utils.jsy'
 import {u8_crypto_random} from './subtle/iso_random.jsy'
 
 
+/* #__NO_SIDE_EFFECTS__ */
 export const as_opaque_core = (opaque) => @:
   ciphered: opaque.ciphered
 
@@ -18,14 +19,14 @@ export const opaque_core_api = @{}
 
   async from_random() :: // k0
     let kctx = await this._init_key(true)
-    kctx.hk1ref = as_hexkey @ await this._kdf1_ref(u8_crypto_random(16), kctx)
+    kctx.hk1ref = await this._kdf1_ref(u8_crypto_random(16), kctx)
     return this._from_kctx(kctx)
 
   async from_content(buf, k0_hash) :: // k0
     let kctx = await this._init_key(true)
     kctx.buf = buf = await as_arrbuf(buf)
     let k0 = !k0_hash ? buf : await this._kdf0_hash(buf)
-    kctx.hk1ref = as_hexkey @ await this._kdf1_ref(k0, kctx)
+    kctx.hk1ref = await this._kdf1_ref(k0, kctx)
     return this._from_kctx(kctx)
 
   // hk21 may be tuple of `[hk2loc, hk1ref]` or `hk1ref` alone; lazily avoids rehashing `hk2loc`
@@ -43,9 +44,8 @@ export const opaque_core_api = @{}
   // _init_key(is_new) : kctx // subclass responsibility
   // _finish_key(kctx) : kctx // subclass responsibility
   async _from_kctx(kctx) ::
-    kctx.hk2loc ??= as_hexkey @ await this._kdf2_loc(hex_to_u8(kctx.hk1ref), kctx)
+    kctx.hk2loc ??= await this._kdf2_loc(kctx.k1ref, kctx)
     return this._finish_key(kctx)
 
   as_core() :: return as_opaque_core(this)
-
 

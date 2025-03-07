@@ -1,5 +1,6 @@
 export * from './subtle.jsy'
 
+export * from './key.jsy'
 export * from './core_api.jsy'
 export * from './_rec_pack_codec.jsy'
 

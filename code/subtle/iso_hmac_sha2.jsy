@@ -1,30 +1,30 @@
-import {u8_maybe_utf8} from './utils.jsy'
+import {as_arrbuf} from './utils.jsy'
 
 /* #__NO_SIDE_EFFECTS__ */
 export function _bind_hmac_sha(hash) ::
   const subtle_api = globalThis.crypto.subtle
 
   const name = 'HMAC'
-  return @\ u8_key, u8 ::
-    u8_key = u8_maybe_utf8(u8_key)
+  return @\ hmac_key, buf ::
+    const _hkey = as_arrbuf(hmac_key)
+      .then @ hmac_key =>
+        subtle_api.importKey @
+          'raw', hmac_key, {name, hash},
+          false, ['sign', 'verify']
 
-    const _hkey = subtle_api.importKey @
-      'raw', u8_key, {name, hash},
-      false, ['sign', 'verify']
-
-    const hmac_sign = async u8 =>
+    const hmac_sign = async buf =>
       await subtle_api.sign @
         {name}, await _hkey
-        u8_maybe_utf8(u8)
+        await as_arrbuf(buf)
 
-    if u8 ::
-      return hmac_sign(u8)
+    if buf ::
+      return hmac_sign(buf)
 
     return @{} hash, hmac_sign,
-      async hmac_verify(u8_sig, u8) ::
+      async hmac_verify(u8_sig, buf) ::
         return subtle_api.verify @
           {name}, await _hkey,
-          u8_sig, u8
+          u8_sig, buf
 
 
 export const u8_hmac_sha_256 = _bind_hmac_sha('SHA-256')

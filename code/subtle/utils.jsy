@@ -1,17 +1,7 @@
-import { utf8_to_u8, u8_to_utf8, u8_to_hex, hex_to_u8 } from 'u8-utils'
+import { u8_to_utf8, utf8_to_u8 } from 'u8-utils'
+export { u8_to_utf8, utf8_to_u8 }
 
-export { utf8_to_u8, u8_to_utf8, u8_to_hex, hex_to_u8 }
 
-export const u8_maybe_utf8 = u8 =>
-  'string' === typeof u8
-    ? utf8_to_u8(u8)
-    : u8
-
-export const as_hexkey = dk => @
-  dk = new Uint8Array(dk),
-  dk.toHex?.() ?? u8_to_hex(dk)
-
-  
 export async function as_arrbuf(c) ::
   c = await c
   if c instanceof ArrayBuffer || ArrayBuffer.isView(c) ::
@@ -28,32 +18,4 @@ export async function as_arrbuf(c) ::
 export const u8_subarray = (buf, ...args) => buf &&
   (1 === buf.BYTES_PER_ELEMENT ? buf : new Uint8Array(buf))
     .subarray(...args)
-
-export function u8_timing_equal(a, b) ::
-  const alen = a.length
-  let r = alen ^ b.length
-  // don't allow short-circut early return
-  for let i=0;i<alen;i++ ::
-    r |= a[i] ^ b[i]
-  return 0 === r
-
-
-export function u8_fast_equal(a, b) ::
-  const alen = a.length
-  if b.length !== alen ::
-    return false
-
-  for let i=0;i<alen;i++ ::
-    if a[i] !== b[i] ::
-      return false
-
-  return true
-
-
-export function ecc_by_len(ec_len, absent) ::
-  switch ec_len ::
-    case 158: case 133: return 'P-521'
-    case 120: case 97: return 'P-384'
-    case 91: case 65: return 'P-256'
-    default: return absent
 

@@ -1,10 +1,15 @@
-import {ecc_by_len, as_arrbuf} from './utils.jsy'
+import {as_arrbuf} from './utils.jsy'
 
 /* #__NO_SIDE_EFFECTS__ */
 export function _bind_ecdsa(hash) ::
   const subtle_api = globalThis.crypto.subtle
 
   const name = 'ECDSA'
+  const _ecc_by_len = new Map @#
+    [158,'P-521'], [133,'P-521'],
+    [120,'P-384'], [97,'P-384'],
+    [91,'P-256'], [65,'P-256'],
+
   return @{}
     p521: () => _ecdsa_signer('P-521')
     p384: () => _ecdsa_signer('P-384')
@@ -15,7 +20,7 @@ export function _bind_ecdsa(hash) ::
 
   async function ecdsa_verify(ec_sig_obj, u8) ::
     const {ec, sig} = ec_sig_obj
-    const namedCurve = ecc_by_len(ec.byteLength ?? ec.length)
+    const namedCurve = _ecc_by_len.get(ec.byteLength ?? ec.length)
     if ! namedCurve :: return
 
     const _kind = @{} name, hash, namedCurve

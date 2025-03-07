@@ -4,12 +4,7 @@ import {u8_ecdhe, create_opaque_ecdhe, bind_opaque_ecdhe_mirror} from './opaque_
 export {u8_ecdhe}
 
 export const opaque_ecdhe_basic = () =>
-  create_opaque_ecdhe @
-    opaque_basic_hmac,
-    u8_ecdhe.p256()
+  create_opaque_ecdhe(opaque_basic_hmac, u8_ecdhe.p256())
 
-export const opaque_ecdhe_basic_mirror = /* #__PURE__ */ 
-  bind_opaque_ecdhe_mirror @
-    opaque_basic_hmac
-
+export const opaque_ecdhe_basic_mirror = bind_opaque_ecdhe_mirror(opaque_basic_hmac)
 

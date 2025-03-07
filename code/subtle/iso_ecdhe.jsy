@@ -1,12 +1,13 @@
-import {ecc_by_len} from './utils.jsy'
-
-
 /* #__NO_SIDE_EFFECTS__ */
 export function _bind_ecdhe() ::
   const subtle_api = globalThis.crypto.subtle
 
   const name = 'ECDH'
   const n_bits = {'P-521': 528, 'P-384': 384, 'P-256': 256}
+  const _ecc_by_len = new Map @#
+    [158,'P-521'], [133,'P-521'],
+    [120,'P-384'], [97,'P-384'],
+    [91,'P-256'], [65,'P-256'],
 
   return @{}
     p521: () => _gen_ecdhe('P-521')
@@ -45,7 +46,7 @@ export function _bind_ecdhe() ::
       ? 0 | ecdh_other
       : ecdh_other.byteLength ?? ecdh_other.length
 
-    const namedCurve = ecc_by_len(ec_len)
+    const namedCurve = _ecc_by_len.get(ec_len)
     return _gen_ecdhe(namedCurve)
 
 

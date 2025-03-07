@@ -1,7 +1,0 @@
-
-export const okey_basic = Object.freeze @:
-  hk21() :: return [this.hk2loc, this.hk1ref]
-  get 0() :: return this.hk2loc
-  get 1() :: return this.hk1ref
-  ciphered: false
-
