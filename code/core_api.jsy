@@ -6,7 +6,7 @@ import {u8_crypto_random} from './subtle/iso_random.jsy'
 export const as_opaque_core = (opaque) => @:
   ciphered: opaque.ciphered
 
-  from_random: () => opaque.from_random()
+  from_random: n => opaque.from_random(n)
   from_content: content => opaque.from_content(content)
   from_hk21: hk21 => opaque.from_hk21(hk21)
 
@@ -17,9 +17,9 @@ export const as_opaque_core = (opaque) => @:
 export const opaque_core_api = @{}
   // k0 is source material for hk1ref derivation
 
-  async from_random() :: // k0
+  async from_random(n) :: // k0
     let kctx = await this._init_key(true)
-    kctx.hk1ref = await this._kdf1_ref(u8_crypto_random(16), kctx)
+    kctx.hk1ref = await this._kdf1_ref(u8_crypto_random(n ?? 16), kctx)
     return this._from_kctx(kctx)
 
   async from_content(buf, k0_hash) :: // k0
@@ -33,8 +33,10 @@ export const opaque_core_api = @{}
   async from_hk21(hk21) ::
     hk21 = await hk21
     let kctx = await this._init_key()
-    kctx.hk2loc = hk21.trim ? null : hk21[0]
-    kctx.hk1ref = hk21.trim ? hk21 : hk21[1]
+    if ! hk21.trim ::
+      kctx.hk1ref = hk21[1]
+      kctx.hk2loc = hk21[0]
+    else kctx.hk1ref = hk21
     return this._from_kctx(kctx)
 
   as_session() :: return this

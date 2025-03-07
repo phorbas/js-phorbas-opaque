@@ -24,13 +24,13 @@ export const _okey_ciphered_ = @{}
   // async decipher(buf_record) ::
 
 
-const _rx_not_hex = /^[^0-9a-fA-F]+$/
+const _rx_hexkey = /^[0-9a-fA-F]{4,256}$/
 export function as_hexkey(dk) ::
   if ! dk :: return null
   if dk.trim ::
-    if _rx_not_hex.test(dk) ::
-      throw new Error('Invalid hexkey')
-    return dk
+    if _rx_hexkey.test(dk) ::
+      return dk
+    throw new Error('Invalid hexkey')
 
   dk = new Uint8Array(dk)
   return dk.toHex?.() ?? u8_to_hex(dk)
