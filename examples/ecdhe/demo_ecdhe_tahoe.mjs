@@ -1,7 +1,6 @@
-import { opaque_ecdhe_tahoe } from '@phorbas/opaque'
+import { opaque_ecdhe_tahoe, u8_to_utf8 } from '@phorbas/opaque'
 
-// run demo with following function
-_run_demo(demo_opaque_ecdhe_tahoe,
+await demo_opaque_ecdhe_tahoe(
   'Hello from @phorbas/opaque demo_opaque_ecdhe_tahoe')
 
 async function demo_opaque_ecdhe_tahoe(msg) {
@@ -14,10 +13,11 @@ async function demo_opaque_ecdhe_tahoe(msg) {
   const bob = opaque_ecdhe_tahoe()
   console.log('bob', bob)
 
-  const {k21ref, enc_data} = await _as_alice(alice, bob.ecdh, msg)
+  const {alice_k21ref, enc_data} = await _as_alice(alice, bob.ecdh, msg)
 
-  const {rt_utf8} = await _as_bob(bob, alice.ecdh, {k21ref, enc_data})
+  const {rt_utf8} = await _as_bob(bob, alice.ecdh, {alice_k21ref, enc_data})
 
+  console.log('Round-trip match:', rt_utf8 === msg)
   if (rt_utf8 !== msg)
     throw new Error('Failed to round-trip')
 
@@ -32,38 +32,25 @@ async function _as_alice(alice, bob_public_ecdh, msg) {
   console.log('alice ciphered?:', alice.ciphered, alice_keyed_opaque.ciphered, alice_okey.ciphered)
   console.log('alice okey:', alice_okey)
 
-  const enc_data = await alice_okey.encipher_utf8(msg)
-  // or use basic api alias: await alice_okey.encode_utf8(msg)
-  console.log('alice encoded:', enc_data)
+  const enc_data = await alice_okey.encipher(msg)
+  console.log('alice encrypted:', enc_data)
 
-  const k21ref = alice_okey.k21pair()
-  console.log('alice k21ref:', k21ref)
+  const alice_k21ref = alice_okey.hk21()
+  console.log('alice k21ref:', alice_k21ref)
 
-  return {k21ref, enc_data}
+  return {alice_k21ref, enc_data}
 }
 
-async function _as_bob(bob, alice_public_ecdh, {k21ref, enc_data}) {
+async function _as_bob(bob, alice_public_ecdh, {alice_k21ref, enc_data}) {
   const bob_keyed_opaque = await bob.with_ecdh(alice_public_ecdh)
   console.log('bob_keyed_opaque:', bob_keyed_opaque)
 
-  const bob_okey = await bob_keyed_opaque.from_k21pair(k21ref)
+  const bob_okey = await bob_keyed_opaque.from_hk21(alice_k21ref)
   console.log('bob ciphered?:', bob.ciphered, bob_keyed_opaque.ciphered, bob_okey.ciphered)
   console.log('bob okey:', bob_okey)
 
-  const rt_utf8 = await bob_okey.decipher_utf8(enc_data)
-  // or use basic api alias: await bob_okey.decode_utf8(enc_data)
+  const rt_utf8 = u8_to_utf8( await bob_okey.decipher(enc_data) )
   console.log('bob round-trip: %o', rt_utf8)
 
   return {rt_utf8}
-}
-
-
-async function _run_demo(demo_main, ...args) {
-  // use timer to keep NodeJS from exiting
-  let tid = setTimeout(Boolean, 15000)
-  try {
-    await demo_main(...args)
-  } finally {
-    clearTimeout(tid)
-  }
 }
