@@ -3,15 +3,23 @@ export { u8_to_hex, hex_to_u8, u8_to_utf8, utf8_to_u8 } from 'u8-utils'
 
 
 export async function as_arrbuf(c) ::
-  c = await c
-  if c instanceof ArrayBuffer || ArrayBuffer.isView(c) ::
-    return c
+  if c?.then :: c = await c
+
+  if ! c || c instanceof ArrayBuffer ::
+    return c ?? null
+
+  if ArrayBuffer.isView(c) ::
+    let buf = c.buffer
+    if buf.byteLength !== c.byteLength ::
+      buf = buf.slice(c.byteOffset, c.byteOffset + c.byteLength)
+    return buf
 
   if c.trim ::
-    return utf8_to_u8(c)
+    return utf8_to_u8(c).buffer
 
   if ! c.arrayBuffer ::
-    c = new Blob(!c ? [] : c[Symbol.iterator] ? c : [c])
+    c = new Blob(c[Symbol.iterator] ? c : [c])
+
   return c.arrayBuffer()
 
 

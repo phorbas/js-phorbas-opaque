@@ -32,10 +32,11 @@ export function as_hexkey(dk) ::
       return dk
     throw new Error('Invalid hexkey')
 
-  dk = new Uint8Array(dk)
-  return dk.toHex?.() ?? u8_to_hex(dk)
+  return _toHex(new Uint8Array(dk))
 
+const _toHex = Uint8Array.fromHex ? dk => dk.toHex() : u8_to_hex
+const _fromHex = Uint8Array.fromHex?.bind(Uint8Array) ?? hex_to_u8
 
 export const as_u8key = hk => @
-  hk?.trim ? hex_to_u8(hk) : hk ?? null
+  hk?.trim ? _fromHex(hk) : (console.log({hk}), hk) ?? null
 
