@@ -1,14 +1,12 @@
 import rpi_jsy from 'rollup-plugin-jsy'
-import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 
 const external = id => /^\w+:|^#/.test(id)
 
-const _rpis_ = (defines, ...args) => [
+const _rpis_ = (defines) => [
   rpi_jsy({defines}),
   rpi_resolve(),
-  ...args,
-  rpi_dgnotify()]
+]
 
 export const pkg_cfg = {
   plugins: _rpis_({NO_CBOR:true}),
@@ -25,9 +23,7 @@ export const pkg_cfg = {
     './code/opaque_composite.jsy',
 
     './code/ecdsa/opaque_ecdsa_basic.jsy',
-    /*
     './code/ecdsa/opaque_ecdsa_tahoe.jsy',
-    */
 
     './code/ecdhe/opaque_ecdhe.jsy',
     './code/ecdhe/opaque_ecdhe_basic.jsy',

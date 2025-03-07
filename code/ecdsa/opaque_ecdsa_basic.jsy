@@ -7,6 +7,8 @@ import {u8_sha_256} from '../subtle/iso_sha2_hashes.jsy'
 import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
 import {u8_ecdsa_sha_256} from '../subtle/iso_ecdsa.jsy'
 
+export {u8_sha_256, u8_hmac_sha_256, u8_ecdsa_sha_256}
+
 
 export const kdf_kctx_tail = kdf_inner =>
     async (u8_k0, kctx) =>

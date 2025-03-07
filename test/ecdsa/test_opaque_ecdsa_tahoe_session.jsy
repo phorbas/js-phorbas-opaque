@@ -2,35 +2,33 @@ import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
 import {opaque_ecdsa_tahoe} from '@phorbas/opaque'
-
-import @{}
-  cbor_encode, cbor_decode,
-  utf8_to_u8, u8_to_hex, hex_to_u8,
-from 'cbor-codec'
+import { _expect_full_api } from '../_opaque_test_utils.jsy'
+import {hex_to_u8, u8_to_utf8} from 'u8-utils'
 
 
 describe @ 'opaque ecdsa tahoe session', @::
-  opaque_ecdsa_tahoe.init_shared_codec @:
-    encode: cbor_encode
-    decode: cbor_decode
-
-
   const opaque_session = opaque_ecdsa_tahoe.as_session()
-  const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
+
+  describe @ 'shape', @::
+    it @ 'shape of opaque_ecdsa_tahoe session', @::>
+      await _expect_full_api @ opaque_session
+
+
+  const test_content = 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ '6c0f81a7b097afc5ecc374ae33049e941a4c1ea32a333a008293c6ba7203a586'
-    k2loc: hex_to_u8 @ '7fa7fda7e4de0cc5373548aebac82b949aeecca35353de00eaadf0ba66a21a86'
+    hk1ref: '6c0f81a7b097afc5ecc374ae33049e941a4c1ea32a333a008293c6ba7203a586'
+    hk2loc: '7fa7fda7e4de0cc5373548aebac82b949aeecca35353de00eaadf0ba66a21a86'
     value: hex_to_u8 @ 'a2617a58840152c2d41bd344d134b0d41372f8fce9dfda8d37a3ac675a474f8329b0f47739cb37b991b370b7a382efdc60a7beef180389d5a7e3ed8d89b915a10fe3cf018060ab013e4a863c38d7befc4572e6386a246d87455afe0f88d058cb911f91bd496b823097fdc18a64ce335de20ded17574b65f2b50d6f688aafb66d1e42791c91e40623b7616259010ba46163582d43583e73c3d4825196fc51f70eefd49b74baa00a4f0a0cbfa99ec848ae0575f8a230ed9c4cef8c63547f21a01b61765000289abcaff5f3cf3a74375d2153ad47616c58207fa7fda7e4de0cc5373548aebac82b949aeecca35353de00eaadf0ba66a21a866165589e30819b301006072a8648ce3d020106052b810400230381860004002ab0c625c9bbfdf20f0468857a7d7ec90f0a1f62d4667d7e959733de8c884521d86549197f5f212d4b56a862d4f196f1718792498cc720a4db7a23a5116e76fc9300ff77285a0645e136e550a64c45e6f009b0c56680b670100220420b4b2dda1c26630d087da746e357b23449f7fa04ad4e58728ab85d65908c5fd222aec9101be7fe'
 
   if 0 ::
     return it.only @ 'REGEN kv_test data', @::>
       const okey = await opaque_session.from_random()
-      const rec = await okey.encipher(u8_test_content)
+      const rec = await okey.encipher(test_content)
 
       console.log @ `
           const kv_test = @{}
-            k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
-            k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
+            hk1ref: "'${okey.hk1ref}'"
+            hk2loc: "'${okey.hk2loc}'"
             value: hex_to_u8 @ '${u8_to_hex @ rec}'
         `
 
@@ -39,39 +37,29 @@ describe @ 'opaque ecdsa tahoe session', @::
     const okey_a = await opaque_session.from_random()
     const okey_b = await opaque_session.from_random()
 
-    expect @ okey_a.ec
-    .to.deep.equal @ okey_b.ec
-
-    expect @ okey_a.k1ref
-    .to.not.deep.equal @ okey_b.k1ref
+    expect(okey_a.hk1ref).to.not.equal(okey_b.hk1ref)
+    expect(okey_a.hk2loc).to.not.equal(okey_b.hk2loc)
 
 
-  it @ 'two from_content', @::>
-    const okey_a = await opaque_session.from_content @ u8_test_content
-    const okey_b = await opaque_session.from_content @ u8_test_content
+  it @ 'two from_content with same session should equal', @::>
+    const okey_a = await opaque_session.from_content(test_content)
+    const okey_b = await opaque_session.from_content(test_content)
 
-    expect @ okey_a.ec
-    .to.deep.equal @ okey_b.ec
+    expect(okey_a.hk1ref).to.equal(okey_b.hk1ref)
+    expect(okey_a.hk2loc).to.equal(okey_b.hk2loc)
 
-    expect @ okey_a.k1ref
-    .to.deep.equal @ okey_b.k1ref
-
-    expect @ okey_a.k2loc
-    .to.deep.equal @ okey_b.k2loc
-
-
-    // ecdsa algorithm uses an ephemeral nonce
-    const a_rec = await okey_a.encipher(u8_test_content)
-    const a2_rec = await okey_a.encipher(u8_test_content)
+    // ecdhe algorithm uses an ephemeral nonce
+    const a_rec = new Uint8Array @ await okey_a.encipher(test_content)
+    const a2_rec = new Uint8Array @ await okey_a.encipher(test_content)
     expect(a_rec).to.not.deep.equal(a2_rec)
 
-    const b_rec = await okey_b.encipher(u8_test_content)
+    const b_rec = new Uint8Array @ await okey_b.encipher(test_content)
     expect(b_rec).to.not.deep.equal(a_rec)
 
 
   it @ 'from_random', @::>
     const okey = await opaque_session.from_random()
-    const p_rec = okey.encipher(u8_test_content)
+    const p_rec = okey.encipher(test_content)
     expect(p_rec).to.be.a('promise')
 
     const rec = await p_rec
@@ -86,13 +74,13 @@ describe @ 'opaque ecdsa tahoe session', @::
     expect(p_ans).to.be.a('promise')
     const ans = await p_ans
 
-    expect(ans).to.be.an.instanceof(Uint8Array)
-    expect(ans).to.be.deep.equal @ u8_test_content
+    expect(ans).to.be.an.instanceof(ArrayBuffer)
+    expect(u8_to_utf8(ans)).to.equal(test_content)
 
 
   describe @ 'known', @::
-    it @ 'from_k1ref', @::>
-      const okey = await opaque_session.from_k1ref(kv_test.k1ref)
+    it @ 'from_hk21 with hk1ref', @::>
+      const okey = await opaque_session.from_hk21(kv_test.hk1ref)
 
       const p_check = okey.validate(kv_test.value)
       expect(p_check).to.be.a('promise')
@@ -103,11 +91,12 @@ describe @ 'opaque ecdsa tahoe session', @::
       expect(p_ans).to.be.a('promise')
       const ans = await p_ans
 
-      expect(ans).to.be.an.instanceof(Uint8Array)
-      expect(ans).to.be.deep.equal @ u8_test_content
+      expect(ans).to.be.an.instanceof(ArrayBuffer)
+      expect(u8_to_utf8(ans)).to.equal(test_content)
 
-    it @ 'from_k2ref', @::>
-      const okey = await opaque_session.from_k2loc(kv_test.k2loc)
+
+    it @ 'from_hk21 with hk2loc', @::>
+      const okey = await opaque_session.from_hk21([kv_test.hk2loc])
 
       const p_check = okey.validate(kv_test.value)
       expect(p_check).to.be.a('promise')
@@ -120,26 +109,31 @@ describe @ 'opaque ecdsa tahoe session', @::
       expect(ans).to.be.undefined
 
 
-    it @ 'from_k1ref invalid', @::>
-      const okey = await opaque_session.from_k1ref(kv_test.k1ref)
+    it @ 'from_hk21 with mismatched hk1ref data', @::>
+      const okey = await opaque_session.from_hk21(kv_test.hk1ref)
 
-      expect @ await okey.decipher(kv_test.value)
-      .to.be.deep.equal @ u8_test_content
-
-      for const slice_args of [ [15,-15], [0,-15], [15], ] ::
-        const part = kv_test.value.slice @ ...slice_args
-        expect @ await okey.decipher(part)
-        .to.be.undefined
-
-
-    it @ 'from_k2ref invalid', @::>
-      const okey = await opaque_session.from_k2loc(kv_test.k2loc)
-
-      expect @ await okey.validate(kv_test.value)
-      .to.be.true
+      ::
+        const ans = await okey.decipher(kv_test.value)
+        expect(u8_to_utf8(ans)).to.equal(test_content)
 
       for const slice_args of [ [15,-15], [0,-15], [15], ] ::
         const part = kv_test.value.slice @ ...slice_args
-        expect @ await okey.validate(part)
-        .to.be.false
+        const p_fail_ans = okey.decipher(part)
+        expect(p_fail_ans).to.be.a('promise')
+        expect(await p_fail_ans).to.be.undefined
+
+
+    it @ 'from_hk21 with mismatched hk2loc data', @::>
+      const okey = await opaque_session.from_hk21([kv_test.hk2loc])
+
+      ::
+        const ans = await okey.validate(kv_test.value)
+        expect(ans).to.be.true
+
+      for const slice_args of [ [15,-15], [0,-15], [15], ] ::
+        const part = kv_test.value.slice @ ...slice_args
+        const p_fail_ans = okey.validate(part)
+        expect(p_fail_ans).to.be.a('promise')
+        expect(await p_fail_ans).to.be.false
+
 

@@ -8,17 +8,10 @@ import @{}
   _expect_full_api,
 from '../_opaque_test_utils.jsy'
 
-import @{}
-  cbor_encode, cbor_decode,
-  utf8_to_u8, u8_to_hex, hex_to_u8,
-from 'cbor-codec'
+import {hex_to_u8, u8_to_utf8} from 'u8-utils'
 
 
 describe @ 'opaque ecdsa tahoe', @::
-  opaque_ecdsa_tahoe.init_shared_codec @:
-    encode: cbor_encode
-    decode: cbor_decode
-
   describe @ 'shape', @::
     it @ 'shape of opaque_ecdsa_tahoe', @::>
       await _expect_full_api @ opaque_ecdsa_tahoe
@@ -27,23 +20,23 @@ describe @ 'opaque ecdsa tahoe', @::
       await _expect_core_api @ opaque_ecdsa_tahoe.as_core()
 
 
-  const u8_test_content = utf8_to_u8 @ 'some sample unit test content'
+  const test_content = 'some sample unit test content'
   const kv_test = @{}
-    k1ref: hex_to_u8 @ 'd6ac973bac771d6caf21794b51dd1865a8ac073c6fcfc48c131a9e963645c1e7'
-    k2loc: hex_to_u8 @ '48f0b93b4c4ac86c90b2b04b7bb5bd6576f4453cee691e8c74f3e496710c55e7'
+    hk1ref: 'd6ac973bac771d6caf21794b51dd1865a8ac073c6fcfc48c131a9e963645c1e7'
+    hk2loc: '48f0b93b4c4ac86c90b2b04b7bb5bd6576f4453cee691e8c74f3e496710c55e7'
     value: hex_to_u8 @ 'a2617a588401f0c87fa698d98be30a4e88e28048416f02acdf3ba2ee34fdb1d1e9b0bc418a98c8cfb59ab6c65ac03adba129010565ad25f60c9c2f871ac387ef6ffd92ef1e67cd001bd2d4946f1519d0d088d7b2f63efba21bc1beb01f319d9bcee7431c95c7b06f7d5001fcf1db0c2cbca0378f41995ecb11d0759995fac666f52d9dc8ddf5b3547a616259010ba46163582db7fef2ed9ce9ecab9c302452fcca937dcd8890191a13907466996403b8b4c4dd263b0cf62d0884e8cc2a1127826176508fe87814765d5230c8a38a8f30d63c53616c582048f0b93b4c4ac86c90b2b04b7bb5bd6576f4453cee691e8c74f3e496710c55e76165589e30819b301006072a8648ce3d020106052b81040023038186000401c6c3142dc455f269bf4c90105834130438c294a5631d67c46c9f0296378e974786237adda29a936ad00995a07b645bc35f0f2c112240aa43cf9eac2352f4110d4301872f889fc88e471ef2e5030a1c33d5f47cfce7003f2c23bd12d95590108ebb368e21c4bfa580bf027472190a49be287c9e8aeda93cc6a264be64b7cdaad7999a99'
 
 
   if 0 ::
     return it.only @ 'REGEN kv_test data', @::>
       const okey = await opaque_ecdsa_tahoe.from_random()
-      const rec = await okey.encipher(u8_test_content)
+      const rec = await okey.encipher(test_content)
 
       console.log @ `
           const kv_test = @{}
-            k1ref: hex_to_u8 @ '${u8_to_hex @ okey.k1ref}'
-            k2loc: hex_to_u8 @ '${u8_to_hex @ okey.k2loc}'
-            value: hex_to_u8 @ '${u8_to_hex @ rec}'
+            hk1ref: "'${okey.hk1ref}'"
+            hk2loc: "'${okey.hk2loc}'"
+            value: hex_to_u8 @ "'${u8_to_hex @ rec}'"
         `
 
 
@@ -51,30 +44,29 @@ describe @ 'opaque ecdsa tahoe', @::
     const okey_a = await opaque_ecdsa_tahoe.from_random()
     const okey_b = await opaque_ecdsa_tahoe.from_random()
 
-    expect @ okey_a.ec
-    .to.not.deep.equal @ okey_b.ec
-
-    expect @ okey_a.k1ref
-    .to.not.deep.equal @ okey_b.k1ref
+    expect(okey_a.hk1ref).to.not.equal(okey_b.hk1ref)
+    expect(okey_a.hk2loc).to.not.equal(okey_b.hk2loc)
 
 
-  it @ 'two from_content', @::>
-    const okey_a = await opaque_ecdsa_tahoe.from_content @ u8_test_content
-    const okey_b = await opaque_ecdsa_tahoe.from_content @ u8_test_content
+  it @ 'two from_content should have different nonces', @::>
+    const okey_a = await opaque_ecdsa_tahoe.from_content(test_content)
+    const okey_b = await opaque_ecdsa_tahoe.from_content(test_content)
 
-    expect @ okey_a.ec
-    .to.not.deep.equal @ okey_b.ec
+    expect(okey_a.hk1ref).to.not.equal(okey_b.hk1ref)
+    expect(okey_a.hk2loc).to.not.equal(okey_b.hk2loc)
 
-    expect @ okey_a.k1ref
-    .to.not.deep.equal @ okey_b.k1ref
+    // ecdhe algorithm uses an ephemeral nonce
+    const a_rec = new Uint8Array @ await okey_a.encipher(test_content)
+    const a2_rec = new Uint8Array @ await okey_a.encipher(test_content)
+    expect(a_rec).to.not.deep.equal(a2_rec)
 
-    expect @ okey_a.k2loc
-    .to.not.deep.equal @ okey_b.k2loc
+    const b_rec = new Uint8Array @ await okey_b.encipher(test_content)
+    expect(b_rec).to.not.deep.equal(a_rec)
 
 
   it @ 'from_random', @::>
     const okey = await opaque_ecdsa_tahoe.from_random()
-    const p_rec = okey.encipher(u8_test_content)
+    const p_rec = okey.encipher(test_content)
     expect(p_rec).to.be.a('promise')
 
     const rec = await p_rec
@@ -89,12 +81,13 @@ describe @ 'opaque ecdsa tahoe', @::
     expect(p_ans).to.be.a('promise')
     const ans = await p_ans
 
-    expect(ans).to.be.an.instanceof(Uint8Array)
-    expect(ans).to.be.deep.equal @ u8_test_content
+    expect(ans).to.be.an.instanceof(ArrayBuffer)
+    expect(u8_to_utf8(ans)).to.equal(test_content)
+
 
   describe @ 'known', @::
-    it @ 'from_k1ref', @::>
-      const okey = await opaque_ecdsa_tahoe.from_k1ref(kv_test.k1ref)
+    it @ 'from_hk21 with hk1ref', @::>
+      const okey = await opaque_ecdsa_tahoe.from_hk21(kv_test.hk1ref)
 
       const p_check = okey.validate(kv_test.value)
       expect(p_check).to.be.a('promise')
@@ -105,12 +98,12 @@ describe @ 'opaque ecdsa tahoe', @::
       expect(p_ans).to.be.a('promise')
       const ans = await p_ans
 
-      expect(ans).to.be.an.instanceof(Uint8Array)
-      expect(ans).to.be.deep.equal @ u8_test_content
+      expect(ans).to.be.an.instanceof(ArrayBuffer)
+      expect(u8_to_utf8(ans)).to.equal(test_content)
 
 
-    it @ 'from_k2ref', @::>
-      const okey = await opaque_ecdsa_tahoe.from_k2loc(kv_test.k2loc)
+    it @ 'from_hk21 with hk2loc', @::>
+      const okey = await opaque_ecdsa_tahoe.from_hk21([kv_test.hk2loc])
 
       const p_check = okey.validate(kv_test.value)
       expect(p_check).to.be.a('promise')
@@ -123,26 +116,31 @@ describe @ 'opaque ecdsa tahoe', @::
       expect(ans).to.be.undefined
 
 
-    it @ 'from_k1ref invalid', @::>
-      const okey = await opaque_ecdsa_tahoe.from_k1ref(kv_test.k1ref)
+    it @ 'from_hk21 with mismatched hk1ref data', @::>
+      const okey = await opaque_ecdsa_tahoe.from_hk21(kv_test.hk1ref)
 
-      expect @ await okey.decipher(kv_test.value)
-      .to.be.deep.equal @ u8_test_content
-
-      for const slice_args of [ [15,-15], [0,-15], [15], ] ::
-        const part = kv_test.value.slice @ ...slice_args
-        expect @ await okey.decipher(part)
-        .to.be.undefined
-
-
-    it @ 'from_k2ref invalid', @::>
-      const okey = await opaque_ecdsa_tahoe.from_k2loc(kv_test.k2loc)
-
-      expect @ await okey.validate(kv_test.value)
-      .to.be.true
+      ::
+        const ans = await okey.decipher(kv_test.value)
+        expect(u8_to_utf8(ans)).to.equal(test_content)
 
       for const slice_args of [ [15,-15], [0,-15], [15], ] ::
         const part = kv_test.value.slice @ ...slice_args
-        expect @ await okey.validate(part)
-        .to.be.false
+        const p_fail_ans = okey.decipher(part)
+        expect(p_fail_ans).to.be.a('promise')
+        expect(await p_fail_ans).to.be.undefined
+
+
+    it @ 'from_hk21 with mismatched hk2loc data', @::>
+      const okey = await opaque_ecdsa_tahoe.from_hk21([kv_test.hk2loc])
+
+      ::
+        const ans = await okey.validate(kv_test.value)
+        expect(ans).to.be.true
+
+      for const slice_args of [ [15,-15], [0,-15], [15], ] ::
+        const part = kv_test.value.slice @ ...slice_args
+        const p_fail_ans = okey.validate(part)
+        expect(p_fail_ans).to.be.a('promise')
+        expect(await p_fail_ans).to.be.false
+
 

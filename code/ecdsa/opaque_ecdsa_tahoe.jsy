@@ -1,16 +1,9 @@
-import {kdf_sha_256} from './opaque_basic.jsy'
-import {bind_okey_ciphered} from './key_ciphered.jsy'
+import {bind_okey_ciphered} from '../key_ciphered.jsy'
 import {bind_ecdsa_codec, opaque_ecdsa_basic} from './opaque_ecdsa_basic.jsy'
+import {u8_sha_256, u8_hmac_sha_256, u8_ecdsa_sha_256} from './opaque_ecdsa_basic.jsy'
+import {u8_aes_256_gcm} from '../subtle/iso_aes_256_gcm.jsy'
 
-import @{}
-  u8_aes_256_gcm
-  u8_hmac_sha_256
-  u8_ecdsa_sha_256
-from './subtle.jsy'
-
-
-export const kdf_hmac_phorbas = /* #__PURE__ */
-  u8_hmac_sha_256('phorbas').hmac_sign
+export {u8_sha_256, u8_aes_256_gcm, u8_hmac_sha_256, u8_ecdsa_sha_256}
 
 
 export const opaque_ecdsa_tahoe = /* #__PURE__ */ Object.freeze @:
@@ -18,16 +11,17 @@ export const opaque_ecdsa_tahoe = /* #__PURE__ */ Object.freeze @:
   ciphered: true
 
   key_proto: Object.freeze @
-    bind_tahoe_ecdsa @:
+    bind_tahoe_ecdsa @ 'phorbas', @{}
       cipher: u8_aes_256_gcm
-      kdf_ec: kdf_sha_256
+      kdf_ec: u8_sha_256
       ecdsa_signer: u8_ecdsa_sha_256.p521
       ecdsa_verify: u8_ecdsa_sha_256.verify
 
-export function bind_tahoe_ecdsa(kw_cfg) ::
+
+export function bind_tahoe_ecdsa(hmac_key, kw_cfg) ::
   return @{}
     __proto__: bind_okey_ciphered(kw_cfg.cipher)
     ... bind_ecdsa_codec(kw_cfg)
 
     // 1 of 4 bytes of k1ref are present in k2loc; hash the AES encryption key an additional time
-    _kdf_secret: kdf_hmac_phorbas
+    _kdf_secret: u8_hmac_sha_256(hmac_key).hmac_sign

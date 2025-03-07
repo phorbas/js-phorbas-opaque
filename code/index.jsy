@@ -11,9 +11,7 @@ export * from './opaque_composite.jsy'
 
 
 export * from './ecdsa/opaque_ecdsa_basic.jsy'
-/*
 export * from './ecdsa/opaque_ecdsa_tahoe.jsy'
-*/
 
 export * from './ecdhe/opaque_ecdhe.jsy'
 export * from './ecdhe/opaque_ecdhe_basic.jsy'
