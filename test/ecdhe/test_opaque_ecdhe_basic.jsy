@@ -1,4 +1,4 @@
-import {describe, it} from 'node:test'
+import {describe, it} from '#test_bdd'
 import {assert, expect} from 'chai'
 
 import { opaque_ecdhe_basic, opaque_ecdhe_basic_mirror } from '@phorbas/opaque/esm/index.js'

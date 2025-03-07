@@ -1,4 +1,4 @@
-import {describe, it} from 'node:test'
+import {describe, it} from '#test_bdd'
 import {expect} from 'chai'
 
 import {u8_hmac} from '@phorbas/opaque/esm/subtle/iso_hmac_sha2.js'

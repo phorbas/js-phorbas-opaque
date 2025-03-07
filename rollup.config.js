@@ -6,13 +6,7 @@ const external = id => /^\w+:|^#/.test(id)
 export const pkg_cfg = {
   plugins: [ rpi_jsy(), rpi_resolve() ],
   external,
-
-  output: {
-    dir: 'esm',
-    format: 'es',
-    sourcemap: true,
-  },
-
+  output: { dir: 'esm', format: 'es', sourcemap: true },
   input: {
     'index': './code/index.jsy',
     'subtle': './code/subtle.jsy',
@@ -43,13 +37,7 @@ export const pkg_cfg = {
 export const pkg_test_cfg = {
   plugins: [ rpi_jsy(), rpi_resolve() ],
   external,
-
-  output: {
-    dir: 'esm-test',
-    format: 'es',
-    sourcemap: true,
-  },
-
+  output: { dir: 'esm-test', format: 'es', sourcemap: true },
   input: {
     'test-subtle': './test/subtle/unittest.jsy',
     'test-core': './test/core/unittest.jsy',

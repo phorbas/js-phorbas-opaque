@@ -1,4 +1,4 @@
-import {describe, it} from 'node:test'
+import {describe, it} from '#test_bdd'
 import {expect} from 'chai'
 
 import {opaque_core_api, opaque_basic} from '@phorbas/opaque'
@@ -19,8 +19,8 @@ describe @ 'opaque core & basics', @::
 
 
   it @ 'opaque_basic.from_content(u8)', @::>
-    const p_okey = opaque_basic.from_content @
-      new Uint8Array @# 10,12,14,16
+    let buf_body = new Uint8Array([0xff,0xff, 10,12,14,16, 0xff,0xff]).subarray(2,-2)
+    const p_okey = opaque_basic.from_content(buf_body)
     expect(p_okey).to.be.a('promise')
 
     const okey = await p_okey

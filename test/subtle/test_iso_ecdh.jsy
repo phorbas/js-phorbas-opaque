@@ -1,4 +1,4 @@
-import {describe, it} from 'node:test'
+import {describe, it} from '#test_bdd'
 import {expect} from 'chai'
 
 import {u8_ecdh_p256, u8_ecdh_p384, u8_ecdh_p521} from '@phorbas/opaque/esm/subtle/iso_ecdh.js'
