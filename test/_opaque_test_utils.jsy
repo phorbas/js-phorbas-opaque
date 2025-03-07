@@ -1,6 +1,7 @@
 import {expect} from 'chai'
 
-import { utf8_to_u8, u8_to_utf8 } from 'u8-utils'
+import { u8_to_utf8 } from '@phorbas/opaque'
+
 
 export async function _expect_core_api(opaque, opt={}) ::
   expect(opaque.from_hk21).to.be.a('function')

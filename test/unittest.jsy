@@ -10,5 +10,3 @@ import './test_opaque_composed.jsy'
 import './ecdsa/unittest.jsy'
 import './ecdhe/unittest.jsy'
 
-//import './test_storage_opaque.jsy'
-

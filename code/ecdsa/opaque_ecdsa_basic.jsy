@@ -1,13 +1,11 @@
-import {_okey_, as_hexkey} from '../key.jsy'
-import {opaque_basic} from '../basic/opaque_basic.jsy'
-import {_rec_pack_raw, _rec_unpack_raw} from '../_rec_pack_codec.jsy'
-
 import {as_arrbuf} from '../subtle/utils.jsy'
 import {u8_sha_256} from '../subtle/iso_sha2_hashes.jsy'
 import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
 import {u8_ecdsa_sha_256} from '../subtle/iso_ecdsa.jsy'
 
-export {u8_sha_256, u8_hmac_sha_256, u8_ecdsa_sha_256}
+import {_okey_, as_hexkey} from '../key.jsy'
+import {opaque_basic} from '../basic/opaque_basic.jsy'
+import {_rec_pack_raw, _rec_unpack_raw} from '../_rec_pack_codec.jsy'
 
 
 export const kdf_kctx_tail = kdf_inner =>

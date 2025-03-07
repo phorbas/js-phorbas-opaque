@@ -10,10 +10,6 @@ import @{}
 from '@phorbas/opaque'
 
 import @{}
-  utf8_to_u8, u8_to_hex, hex_to_u8,
-from './_utils.jsy'
-
-import @{}
   _expect_full_api,
   _expect_okey,
 from './_opaque_test_utils.jsy'

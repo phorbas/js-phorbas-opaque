@@ -2,10 +2,7 @@ import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
 import {opaque_tahoe, tahoe_hmac} from '@phorbas/opaque'
-
-import @{}
-  utf8_to_u8, hex_to_u8,
-from './_utils.jsy'
+import {utf8_to_u8, hex_to_u8} from '@phorbas/opaque'
 
 import @{}
   _expect_okey,

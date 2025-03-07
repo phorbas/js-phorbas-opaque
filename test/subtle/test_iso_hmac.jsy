@@ -2,18 +2,17 @@ import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
 import {u8_hmac} from '@phorbas/opaque/esm/subtle.js'
-import {utf8_to_u8} from 'u8-utils'
 
 describe @ 'subtle/iso_hmac_sha2', @::
   const u8_buf = new Uint8Array([9,10,11,12])
 
   it @ 'shape', @::>
     expect(u8_hmac).to.be.a('function')
-    expect(u8_hmac(utf8_to_u8('test')).hmac_sign).to.be.a('function')
-    expect(u8_hmac(utf8_to_u8('test')).hmac_verify).to.be.a('function')
+    expect(u8_hmac('test').hmac_sign).to.be.a('function')
+    expect(u8_hmac('test').hmac_verify).to.be.a('function')
 
   it @ 'known sign & verify', @::>
-    const hm_known = u8_hmac @ utf8_to_u8('known')
+    const hm_known = u8_hmac('known')
 
     let sig = hm_known.hmac_sign(u8_buf)
     expect( sig ).to.be.a('promise')
@@ -36,7 +35,7 @@ describe @ 'subtle/iso_hmac_sha2', @::
       expect( await p ).to.be.false
 
     ::
-      const p = u8_hmac(utf8_to_u8('other'))
+      const p = u8_hmac('other')
         .hmac_verify(await sig, u8_buf)
       expect( p ).to.be.a('promise')
       expect( await p ).to.be.false

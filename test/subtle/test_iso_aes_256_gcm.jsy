@@ -1,8 +1,7 @@
 import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
-import {u8_aes_gcm, u8_hmac} from '@phorbas/opaque/esm/subtle.js'
-import {utf8_to_u8} from 'u8-utils'
+import {u8_aes_gcm, u8_hmac, utf8_to_u8} from '@phorbas/opaque/esm/subtle.js'
 
 describe @ 'subtle/iso_aes_gcm', @::
   const content = utf8_to_u8 @ 'some test content'

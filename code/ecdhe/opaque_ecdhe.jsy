@@ -1,7 +1,5 @@
 import {u8_ecdhe} from '../subtle/iso_ecdhe.jsy'
 
-export {u8_ecdhe}
-
 /* #__NO_SIDE_EFFECTS__ */
 export function create_opaque_ecdhe(opaque_base, _ecdh_) ::
   const opaque = @{}

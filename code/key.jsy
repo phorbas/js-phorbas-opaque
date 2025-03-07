@@ -1,4 +1,4 @@
-import { u8_to_hex, hex_to_u8 } from 'u8-utils'
+import { u8_to_hex, hex_to_u8 } from './subtle/utils.jsy'
 
 
 export const _okey_ = @{}

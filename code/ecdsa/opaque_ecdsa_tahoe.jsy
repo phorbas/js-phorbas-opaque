@@ -1,9 +1,10 @@
-import {bind_okey_ciphered} from '../key_ciphered.jsy'
-import {bind_ecdsa_codec, opaque_ecdsa_basic} from './opaque_ecdsa_basic.jsy'
-import {u8_sha_256, u8_hmac_sha_256, u8_ecdsa_sha_256} from './opaque_ecdsa_basic.jsy'
+import {u8_sha_256} from '../subtle/iso_sha2_hashes.jsy'
+import {u8_hmac_sha_256} from '../subtle/iso_hmac_sha2.jsy'
+import {u8_ecdsa_sha_256} from '../subtle/iso_ecdsa.jsy'
 import {u8_aes_256_gcm} from '../subtle/iso_aes_256_gcm.jsy'
 
-export {u8_sha_256, u8_aes_256_gcm, u8_hmac_sha_256, u8_ecdsa_sha_256}
+import {bind_okey_ciphered} from '../key_ciphered.jsy'
+import {bind_ecdsa_codec, opaque_ecdsa_basic} from './opaque_ecdsa_basic.jsy'
 
 
 export const opaque_ecdsa_tahoe = @{}

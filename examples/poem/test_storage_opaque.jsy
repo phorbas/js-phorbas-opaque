@@ -10,10 +10,6 @@ import {poem_lines} from './poem.js'
 
 
 describe.todo @ 'poem with opaque and phorbas-store', @::
-  opaque_tahoe.init_shared_codec @:
-    encode: cbor_encode
-    decode: cbor_decode
-
   it @ 'with k1ref', @::>
     const stg = await bkc_with_js_map()
     const [_, k1ref] = await store_text_lines(poem_lines, stg, opaque_tahoe)

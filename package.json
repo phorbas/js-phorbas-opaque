@@ -23,7 +23,6 @@
     "./esm/*": "./esm/*"
   },
   "devDependencies": {
-    "@phorbas/store": "^0.4.3",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "cbor-codec": "^0.9.8",
     "chai": "^5.2.0",

@@ -1,5 +1,5 @@
-import { u8_to_utf8, utf8_to_u8 } from 'u8-utils'
-export { u8_to_utf8, utf8_to_u8 }
+import { utf8_to_u8 } from 'u8-utils'
+export { u8_to_hex, hex_to_u8, u8_to_utf8, utf8_to_u8 } from 'u8-utils'
 
 
 export async function as_arrbuf(c) ::

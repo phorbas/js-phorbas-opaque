@@ -2,13 +2,12 @@ import {describe, it} from 'node:test'
 import {expect} from 'chai'
 
 import {opaque_ecdsa_basic} from '@phorbas/opaque'
+import {hex_to_u8, u8_to_utf8} from '@phorbas/opaque'
 
 import @{}
   _expect_core_api,
   _expect_full_api,
 from '../_opaque_test_utils.jsy'
-
-import {hex_to_u8, u8_to_utf8} from 'u8-utils'
 
 
 describe @ 'opaque ecdsa basic', @::
