@@ -1,11 +1,11 @@
 # PHORBAS Opaque
 
 PHORBAS Opaque is inspired by [Content Addressable Stores][CAS] and [Tahoe-LAFS][].
-The techniques of Tahoe-LAFS are generalized to work with abstract `k0`, `k1ref`, `k2loc` concepts,
+The techniques of Tahoe-LAFS are generalized to work with abstract `hk1ref`, `hk2loc` concepts,
 expanding to additional cyrptographic hashing, HMAC, ciphering, digital signatures, public key/private key schemes.
 
-Roughly, `k0` and `k2loc` corresponds to the content-addressable aspects of a [CAS][].
-The `k1ref` corresponds to [Tahoe-LAFS][] ciphering secret, as well as the multiple hash steps from `k0` to `k1ref` to `k2loc`.
+Roughly, `hk2loc` corresponds to the content-addressable aspects of a [CAS][].
+The `hk1ref` corresponds to [Tahoe-LAFS][] ciphering secret, as well as the multiple hash steps from `hk1ref` to `hk2loc`.
 
   [Tahoe-LAFS]: https://tahoe-lafs.readthedocs.io/en/tahoe-lafs-1.12.1/specifications/file-encoding.html
   [CAS]: https://en.wikipedia.org/wiki/Content-addressable_storage
@@ -13,52 +13,30 @@ The `k1ref` corresponds to [Tahoe-LAFS][] ciphering secret, as well as the multi
 
 ## Use
 
-Try it at [`examples/example_tahoe.mjs`](../examples/example_tahoe.mjs)
-
-```javascript
-import { opaque_tahoe } from '@phorbas/opaque'
-
-async function tahoe_put(msg) {
-  const okey = await opaque_tahoe.from_content(msg)
-  return {
-    cas_addr: okey.k21pair(),
-    enc_data: await okey.encipher_utf8(msg), }
-}
-
-async function tahoe_get({cas_addr, enc_data}) {
-  const okey = await opaque_tahoe.from_k21pair(cas_addr)
-  return await okey.decipher_utf8(enc_data)
-}
-
-tahoe_put('Hello @phorbas/opaque')
-  .then(info => { console.log(info); return info })
-  .then(tahoe_get)
-  .then(out => { console.log('Round-trip: %s', out) })
-```
+Start with [`examples/tahoe/demo_tahoe.mjs`](../examples/tahoe/demo_tahoe.mjs)
 
 
 ## Core API
 
 Key zero source material
 
-  - `async from_u8(u8_k0) : kctx`
-  - `async from_random(kctx) : kctx`
+  - `async from_random() : kctx`
   - `async from_content(u8_buf) : kctx`
 
-Key one privlaged reference key
+Key privlaged reference key
 
-  - `async from_k1ref(k1ref) : kctx`
-  - `async from_k21pair(k21pair) : kctx`
+  - `async from_hk21(hk1ref) : kctx`
+  - `async from_hk21([hk2loc, hk1ref]) : kctx`
+  - `async from_hk21([null, hk1ref]) : kctx`
 
-Key two observable location key
+Key observable location key
 
-  - `async from_k2loc(k2loc) : kctx`
+  - `async from_hk21([hk2loc, hk1ref]) : kctx`
 
 Other public methods
 
   - `as_core() : kctx`
   - `ciphered : Boolean`
-  - `init_shared_codec()`
   - `as_session()`
 
 See [`./opaque_api.md`](./opaque_api.md) for more docs on the core api.
@@ -70,15 +48,15 @@ Tahoe (ciphered) Opaque Variants:
 
 - [`opaque_tahoe`](./opaque_tahoe.md) -- AES encrypted
 - [`opaque_ecdsa_tahoe`](./opaque_ecdsa.md) -- ECDSA signed, AES encrypted
-- [`opaque_ecdhe_tahoe`](./opaque_ecdhe.md) -- ECDHE shared HMAC secret for `k2loc`, AES encrypted
+- [`opaque_ecdhe_tahoe`](./opaque_ecdhe.md) -- ECDHE shared HMAC secret for `hk2loc`, AES encrypted
 
 
 Basic (cleartext) Opaque Variants:
 
 - [`opaque_basic`](./opaque_basic.md) -- plaintext
-- [`opaque_basic_hmac`](./opaque_basic.md) -- plaintext with HMAC for `k1ref` and `k2loc`
+- [`opaque_basic_hmac`](./opaque_basic.md) -- plaintext with HMAC for `hk1ref` and `hk2loc`
 - [`opaque_ecdsa_basic`](./opaque_ecdsa.md) -- ECDSA signed, plaintext
-- [`opaque_ecdhe_basic`](./opaque_ecdhe.md) -- ECDHE shared HMAC secret for `k1ref`, plaintext
+- [`opaque_ecdhe_basic`](./opaque_ecdhe.md) -- ECDHE shared HMAC secret for `hk1ref`, plaintext
 
 
 ### Key Context APIs:
@@ -89,19 +67,12 @@ Tahoe (ciphered) Opaque Variants:
 
 - `async encipher(u8) : u8`
 - `async decipher(u8_record) : u8`
-- `async encipher_utf8(utf8) : u8`
-- `async decipher_utf8(u8) : utf8`
 - ... and basic api
 
 Basic (cleartext) Opaque Variants:
 
-- `async encode_content(u8) : u8`
-- `async decode_content(u8) : u8`
-- `async encode_utf8(utf8) : u8`
-- `async decode_utf8(u8) : utf8`
-
-- `k21pair() : [k2loc, k1ref]`
-  Returns a pair of `u8` keys for idempotently reconstructing the `kctx` key context. Use
+- `hk21() : [hk2loc, hk1ref]`
+  Returns a pair of hex-encoded keys for idempotently reconstructing the `kctx` key context.
 
 - `ciphered : boolean`
   Indicates whether the key context is ciphered. Useful for debugging.

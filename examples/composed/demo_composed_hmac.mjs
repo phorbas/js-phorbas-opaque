@@ -1,4 +1,4 @@
-import { opaque_compose, opaque_tahoe, u8_to_utf8 } from '@phorbas/opaque'
+import { opaque_compose, opaque_hmac, opaque_tahoe, u8_to_utf8 } from '@phorbas/opaque'
 
 await demo_opaque_compose_hmac(
   'Hello from @phorbas/opaque demo_opaque_compose')
@@ -6,8 +6,9 @@ await demo_opaque_compose_hmac(
 async function demo_opaque_compose_hmac(msg) {
   console.log('msg: %o', msg)
 
-  const my_opaque = opaque_compose( opaque_tahoe,
-    opaque_tahoe.with_hmac('other hmac bits'),)
+  const my_opaque = opaque_compose(
+    opaque_hmac.with_hmac('other hmac bits'),
+    opaque_tahoe)
 
   const okey = await my_opaque.from_content(msg)
   console.log('ciphered?:', my_opaque.ciphered, okey.ciphered)

@@ -6,14 +6,14 @@ See [`kctx` API](./kctx_api.md) for Key Context API returned from most methods.
 
 Key zero `k0` is source material to derive `k1ref` from using a cryptographic hash.
 
-- `async from_u8(u8_k0) : kctx`
+- `async from_content(u8_buf, false?) : kctx`
   Use to idempotently create a new `kctx` key context given input.
 
-- `async from_random(kctx) : kctx`
-  Use as alias for `from_u8` using cryptographically random bits.
+- `async from_content(u8_buf, true) : kctx`
+  Use to idempotently create a new `kctx` using cryptographic hash of `u8_buf`.
 
-- `async from_content(u8_buf : u8 | utf8) : kctx`
-  Use as alias for `from_u8` using cryptographic hash of `u8_buf`.
+- `async from_random(kctx) : kctx`
+  Use to idempotently create a new `kctx` using cryptographically random bits.
 
 ##### `k1ref`
 
@@ -33,12 +33,14 @@ Key two `k2loc` is an observable location key. For Tahoe variants, `k2loc` is us
   The returned `kctx` will be unable to perform ciphering operations.
 
 
-##### `k21pair`
+##### `from_hk21`
 
-Combining both, a `k21pair` is a privileged reference key with precomputed `k2loc` information. Primarily used to optimize access by saving computing cycles.
+An `hk21` pair is a privileged reference key with precomputed `k2loc` information. Primarily used to optimize access by saving computing cycles.
 
-- `async from_k21pair(k21pair) : kctx`
-  Use to idempotently load a `kctx` key context given the `k21pair`.
+- `async from_hk21(hk21) : kctx`
+  Use to idempotently load a `kctx` key context given the `hk21`.
+
+If two item array is passed
   If a `u8` is passed, this becomes an alias for `from_k1ref()`.
   Otherwise `([k2loc, k1ref] = k21pair)` is unpacked, saving re-compute of `k2loc`.
   The returned `kctx` will have access ciphering operations iff `k1ref` is provided, depending upon opaque variant.
@@ -56,9 +58,6 @@ Combining both, a `k21pair` is a privileged reference key with precomputed `k2lo
   Denotes if the implementation ciphers content;
   `false` for `opaque_basic` variants;
   `true` for `opaque_tahoe` variants.
-
-- `init_shared_codec({encode, decode})`
-  Alias for `init_opaque_shared_codec` module shared codec settings.
 
 - `as_session()`
   Session semantics for opaque variants.
