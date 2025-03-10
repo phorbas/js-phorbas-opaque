@@ -2,25 +2,35 @@ import { utf8_to_u8 } from 'u8-utils'
 export { u8_to_hex, hex_to_u8, u8_to_utf8, utf8_to_u8 } from 'u8-utils'
 
 
-export async function as_arrbuf(c) ::
-  if c?.then :: c = await c
+export function _as_arrbuf(c, as_copy, convert) ::
+  if null == c :: return c
+  if c instanceof ArrayBuffer ::
+    return as_copy ? c.slice() : c
 
-  if ! c || c instanceof ArrayBuffer ::
-    return c ?? null
+  if c.readIntBE :: // detect NodeJS Buffer
+    // Copy to U8 array's ArrayBuffer
+    return new Uint8Array(c).buffer
 
   if ArrayBuffer.isView(c) ::
     let buf = c.buffer
     if buf.byteLength !== c.byteLength ::
-      buf = buf.slice(c.byteOffset, c.byteOffset + c.byteLength)
-    return buf
+      return buf.slice(c.byteOffset, c.byteOffset + c.byteLength)
+    return as_copy ? buf.slice() : buf
 
   if c.trim ::
     return utf8_to_u8(c).buffer
 
-  if ! c.arrayBuffer ::
-    c = new Blob(c[Symbol.iterator] ? c : [c])
+  if ! convert :: throw new Error('Invalid ArrayBuffer')
 
-  return c.arrayBuffer()
+  if true === convert ::
+    if ! c.arrayBuffer ::
+      c = new Blob(c[Symbol.iterator] ? c : [c])
+    return c.arrayBuffer()
+
+  return convert(c)
+
+export const as_arrbuf = async (c, as_copy) =>
+  _as_arrbuf(c = c?.then ? await c : c, as_copy, true)
 
 
 export const u8_subarray = (buf, ...args) => buf &&
