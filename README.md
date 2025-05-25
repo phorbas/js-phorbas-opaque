@@ -5,9 +5,9 @@ PHORBAS Opaque is inspired by [Content Addressable Stores][CAS] and
 include HMAC and Digital Signatures, as well as alternate hashing and
 encryption schemes and algorithms. The Opaque library handles the principles of
 **Hashed**, **Opaque**, and part of **Addressable**, as well as necessitates
-**Binary key/content**.
+**Binary content**.
 
-- [PHORBAS Store][] handles the principles of **Persistent**, **Binary key/content**, **Addressable**, and **Store**.
+- [PHORBAS Store][] handles the principles of **Persistent**, **Binary content**, **Addressable**, and **Store**.
 - [PHORBAS HAMT][] handles the principle of **Replicable**.
 
  [PHORBAS Store]: https://github.com/phorbas/js-phorbas-store
@@ -35,7 +35,7 @@ pasture" -- in this case, safe pasture to for data storage.
     H - Hashed
     O - Opaque
     R - Replicable
-    B - Binary key/content
+    B - Binary content
     A - Addressable
     S - Store
 
