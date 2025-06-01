@@ -1,7 +1,7 @@
 {
   "name": "@phorbas/opaque",
-  "version": "0.5.0",
-  "description": "Persistent, hashed, opaque, replicable, binary key/content, addressable, storage",
+  "version": "0.5.1",
+  "description": "Persistent, hashed, opaque, replicable, binary content, addressable, storage",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
   "homepage": "https://github.com/phorbas/js-phorbas-opaque#readme",
