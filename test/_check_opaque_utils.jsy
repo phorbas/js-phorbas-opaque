@@ -29,6 +29,7 @@ export async function _expect_full_api(opaque) ::
   await _expect_core_api @ opaque, {skip_kdf: true}
 
 
+const test_content = 'some sample unit test content'
 export async function _expect_okey(okey, ciphered) ::
   okey = await okey
 
@@ -53,6 +54,17 @@ export async function _expect_okey(okey, ciphered) ::
   expect(okey[1]).to.equal @ okey.hk1ref
   expect(okey[0]).to.equal @ okey.hk2loc
 
+  expect(okey.encode).to.be.a('function')
+  expect(okey.decode).to.be.a('function')
+
+  ::
+    let enc_content = await okey.encode(test_content)
+    let dec_content = await okey.decode(enc_content)
+    if 'string' !== typeof dec_content ::
+      dec_content = u8_to_utf8(dec_content)
+    expect(dec_content).to.equal(test_content)
+
+
   if ! ciphered ::
     expect(okey.encipher).to.be.undefined
     expect(okey.decipher).to.be.undefined
@@ -63,7 +75,6 @@ export async function _expect_okey(okey, ciphered) ::
   expect(okey.decipher).to.be.a('function')
 
   :: 
-    const test_content = 'some sample unit test content'
     const u8_enc_p = okey.encipher(test_content)
 
     expect(u8_enc_p).to.be.a('promise')

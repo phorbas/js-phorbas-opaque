@@ -15,10 +15,15 @@ export const _okey_ = @{}
   set hk1ref(hk) :: return this[1] = as_hexkey(hk)
 
   ciphered: false
+  encode(content) :: return content
+  decode(enc_content) :: return enc_content
+
 
 export const _okey_ciphered_ = @{}
   __proto__: _okey_
   ciphered: true
+  get encode() :: return this.encipher
+  get decode() :: return this.decipher
 
   // async encipher(buf) ::
   // async decipher(buf_record) ::
